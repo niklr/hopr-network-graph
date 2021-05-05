@@ -14,4 +14,6 @@ min. weight <input type="range" min="0" max="100" step="1" [value]="minWeight" (
   </option>
 </select>
 
+<button *ngIf="showStopSimulationButton" (click)="stopSimulation()">Stop simulation</button>
+
 <hopr-network-graph></hopr-network-graph>

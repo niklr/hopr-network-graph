@@ -67,7 +67,9 @@ export class D3Component implements OnInit, OnDestroy {
   }
 
   private stopSimulation(): void {
+    console.log('D3 stop simulation called.');
     this.simulation?.stop();
+    this.graphService.isSimulating = false;
   }
 
   private render(data: any): void {

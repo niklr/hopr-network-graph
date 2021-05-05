@@ -65,6 +65,14 @@ export class AppComponent implements AfterViewInit {
     this.load();
   }
 
+  public get showStopSimulationButton(): boolean {
+    return this.graphService.isSimulating && this.configService.config.selectedGraphLibraryType === GraphLibraryType.D3;
+  }
+
+  public stopSimulation(): void {
+    this.graphService.stopSimulation();
+  }
+
   private setMinWeight(): void {
     this.minWeight = this.configService.config.minWeight;
   }
