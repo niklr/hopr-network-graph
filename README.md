@@ -1,4 +1,8 @@
-# hopr-network-graphs
+# hopr-network-graph
+
+A visualization approach to gain a bird view on the HOPR token transfers on Ethereum mainnet and xDai chain.
+
+Demo: https://niklr.github.io/hopr-network-graph/ (data collected on 05/05/2021)
 
 Table of Content
 1. [Configure](#configure)
@@ -97,4 +101,3 @@ Run `ng generate component component-name` to generate a new component. You can 
 
 - filter based on event type
 - stop simulation button for d3
-- documentation
