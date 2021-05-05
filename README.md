@@ -1,4 +1,4 @@
-# HoprGraphs
+# hopr-network-graphs
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 11.2.11.
 
@@ -28,20 +28,19 @@ To get more help on the Angular CLI use `ng help` or go check out the [Angular C
 
 ## Configuration
 
-### \src\assets\config.json
+Location: \src\assets\config.json
 
+```js
 {
   "eth": {
-    "rpcProviderUrl": "https://eth-mainnet.alchemyapi.io/v2/...",
-    "tokenContract": "0xf5581dfefd8fb0e4aec526be659cfab1f8c781da"
+    "rpcProviderUrl": "https://eth-mainnet.alchemyapi.io/v2/..."
   },
   "xdai": {
-    "rpcProviderUrl": "https://rpc.xdaichain.com/",
-    "tokenContract": "0xD057604A14982FE8D88c5fC25Aac3267eA142a08"
+    "rpcProviderUrl": "https://rpc.xdaichain.com/"
   }
 }
+```
 
-- create github project
 - extract chain data with cli
 - filter based on event type
 - stop simulation button for d3
