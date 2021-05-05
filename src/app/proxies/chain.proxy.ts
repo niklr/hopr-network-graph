@@ -48,13 +48,6 @@ export class ChainProxy {
     return events;
   }
 
-  public async getAllTransfersAsync(contract: ethers.Contract): Promise<ethers.Event[]> {
-    const blockNumber = await this.getBlockNumberAsync(contract.provider);
-    const filter = contract.filters.Transfer();
-    const transfers = await this.getEventsByBlockAsync(contract, filter, 0, blockNumber);
-    return transfers;
-  }
-
   public async getEventsByBlockAsync(
     contract: ethers.Contract, filter: ethers.EventFilter, fromBlock: number, toBlock: number
   ): Promise<ethers.Event[]> {
@@ -72,11 +65,6 @@ export class ChainProxy {
       }
     }
     return [];
-  }
-
-  public async getTransfersByAddressAsync(contract: ethers.Contract, from: string, to: string): Promise<ethers.Event[]> {
-    const filter = contract.filters.Transfer(from, to);
-    return await contract.queryFilter(filter);
   }
 
   public async loadRawData(chain: ConfigChainModel): Promise<any> {

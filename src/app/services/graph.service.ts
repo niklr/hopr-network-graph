@@ -111,17 +111,6 @@ export class GraphService {
     return undefined;
   }
 
-  private createNode(address: string): any {
-    return {
-      group: 'nodes',
-      data: {
-        id: address,
-        name: address.substring(0, 4),
-        weight: 1
-      }
-    };
-  }
-
   private createNodeModel(address: string): NodeGraphModel {
     return new NodeGraphModel({
       data: new NodeDataModel({
@@ -129,17 +118,6 @@ export class GraphService {
         name: address.substring(0, 4)
       })
     });
-  }
-
-  private createEdge(transfer: TransferModel): any {
-    return {
-      group: 'edges',
-      data: {
-        source: transfer.args.from,
-        target: transfer.args.to,
-        strength: 1
-      }
-    };
   }
 
   private createEdgeModel(transfer: TransferModel): EdgeGraphModel {

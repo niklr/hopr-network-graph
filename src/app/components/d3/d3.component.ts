@@ -1,6 +1,8 @@
 import { Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import * as d3 from 'd3';
 import { Subject, Subscription } from 'rxjs';
+import { AppConstants } from 'src/app/app.constants';
+import { ChainTxEventType } from 'src/app/enums/chain.enum';
 import { GraphElementType } from '../../enums/graph.enum';
 import { EdgeDataModel, EdgeGraphModel, GraphScratchModel, NodeDataModel, NodeGraphModel } from '../../models/graph.model';
 
@@ -97,7 +99,19 @@ export class D3Component implements OnInit, OnDestroy {
         .selectAll('line')
         .data(edges)
         .join('line')
-        .attr('stroke', '#999')
+        .attr('stroke', (d: any) => {
+          if (d?.transfer?.type) {
+            switch (d.transfer.type) {
+              case ChainTxEventType.MINT:
+                return AppConstants.TX_EVENT_MINT_COLOR;
+              case ChainTxEventType.BURN:
+                return AppConstants.TX_EVENT_BURN_COLOR;
+              default:
+                break;
+            }
+          }
+          return AppConstants.TX_EVENT_TRANSFER_COLOR;
+        })
         .attr('stroke-opacity', 0.6)
         .attr('class', 'graphElement')
         .attr('stroke-width', 2)
@@ -111,7 +125,7 @@ export class D3Component implements OnInit, OnDestroy {
         .attr('stroke-width', 1.5)
         .attr('class', 'graphElement')
         .attr('r', (d: any) => Math.max(5, (d.weight / 10) + 5))
-        .attr('fill', '#d04a35')
+        .attr('fill', AppConstants.NODE_COLOR)
         .on('click', this.handleNodeClick)
         .call(this.drag());
 
