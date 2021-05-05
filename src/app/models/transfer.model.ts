@@ -1,3 +1,4 @@
+import { ChainTxEventType } from '../enums/chain.enum';
 import { CommonUtil } from '../utils/common.util';
 
 export class TransferModel {
@@ -11,6 +12,7 @@ export class TransferModel {
   transactionHash: string;
   logIndex: number;
   event: string;
+  type: ChainTxEventType;
   eventSignature: string;
   args: TransferArgsModel;
 

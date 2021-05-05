@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
-import { ChainType } from '../enums/chain.enum';
+import { AppConstants } from '../app.constants';
+import { ChainTxEventType, ChainType } from '../enums/chain.enum';
 import { ConfigChainModel } from '../models/config.model';
 import {
   EdgeDataModel,
@@ -61,12 +62,12 @@ export class GraphService {
     const nodeMap = new Map<string, NodeGraphModel>();
     if (rawData && Array.isArray(rawData)) {
       for (const element of rawData) {
-        this.addGraphElements(new TransferModel(element), nodeMap, data);
+        if (element.event === 'Transfer') {
+          this.addGraphElements(this.createTransferModel(element), nodeMap, data);
+        }
       }
     }
     this.filterByWeight(data, nodeMap, this.configService.config.minWeight);
-    // data.edges.length = 1000;
-    // return [];
     return data;
   }
 
@@ -94,6 +95,20 @@ export class GraphService {
     data.edges = data.edges.filter(
       (e: any) => nodeMap.get(e.data.source).data.weight > minWeight && nodeMap.get(e.data.target).data.weight > minWeight);
     console.log('nodes/edges after filterByWeight', data.nodes.length, '/', data.edges.length);
+  }
+
+  private createTransferModel(element: any): TransferModel {
+    if (element) {
+      const model = new TransferModel(element);
+      model.type = ChainTxEventType.TRANSFER;
+      if (model.args.from === AppConstants.VOID_ADDRESS) {
+        model.type = ChainTxEventType.MINT;
+      } else if (model.args.to === AppConstants.VOID_ADDRESS) {
+        model.type = ChainTxEventType.BURN;
+      }
+      return model;
+    }
+    return undefined;
   }
 
   private createNode(address: string): any {
