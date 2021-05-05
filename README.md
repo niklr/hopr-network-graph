@@ -12,12 +12,28 @@ Location: `\src\assets\config.json`
 
 ```js
 {
-  "eth": {
-    "rpcProviderUrl": "https://eth-mainnet.alchemyapi.io/v2/..."
-  },
-  "xdai": {
-    "rpcProviderUrl": "https://rpc.xdaichain.com/"
-  }
+  // The minimum weight of a node required to be rendered. (0-100)
+  // A node represents a smart contract address and weight is simply the amount of transfers. (capped at 100)
+  "minWeight": 20
+  // The pre-selected chain when running the application.
+  // 0 = Test (for development only)
+  // 1 = Ethereum mainnet
+  // 2 = xDai chain
+  "selectedChainType": 1,
+  // The pre-selected library used to render the graph.
+  // 0 = D3
+  // 1 = Cytoscape
+  "selectedGraphLibraryType": 0,
+  // Contains the configuration for each chain.
+  "chains": [
+    {
+      // The chain type. (1 = Ethereum mainnet, 2 = xDai chain)
+      "type": 1,
+      // The URL used to establish a connection with the chain. 
+      // (e.g. Alchemy, Infura, localhost, etc.)
+      "rpcProviderUrl": "https://eth-mainnet.alchemyapi.io/v2/..."
+    }
+  ]
 }
 ```
 
@@ -79,7 +95,6 @@ To get more help on the Angular CLI use `ng help` or go check out the [Angular C
 
 Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
 
-- extract chain data with cli
 - filter based on event type
 - stop simulation button for d3
 - documentation
