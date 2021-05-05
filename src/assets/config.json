@@ -26,11 +26,11 @@
         "TRANSFER": "Transfer",
         "BURN": "Burned"
       },
-      "jsonPath": "./assets/data/hopr_transfers.json"
+      "jsonPath": "./assets/data/ETH_MAIN_EVENTS.json"
     },
     {
       "type": 2,
-      "rpcProviderUrl": "",
+      "rpcProviderUrl": "https://rpc.xdaichain.com/",
       "addressUrl": "https://blockscout.com/xdai/mainnet/address/{address}",
       "txUrl": "https://blockscout.com/xdai/mainnet/tx/{transactionHash}",
       "tokenContractAbi": [
@@ -47,7 +47,7 @@
         "TRANSFER": "Transfer",
         "BURN": "Burn"
       },
-      "jsonPath": "./assets/data/xhopr_transfers.json"
+      "jsonPath": "./assets/data/XDAI_MAIN_EVENTS.json"
     }
   ]
 }
