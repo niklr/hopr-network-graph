@@ -11,7 +11,6 @@ import {
   NodeGraphModel
 } from '../models/graph.model';
 import { TransferModel } from '../models/transfer.model';
-import { ChainProxy } from '../proxies/chain.proxy';
 import { Ensure } from '../utils/ensure.util';
 import { JsonUtil } from '../utils/json.util';
 import { ConfigService } from './config.service';
@@ -23,7 +22,7 @@ export class GraphService {
 
   private _onDataChangeSubject: Subject<any>;
 
-  constructor(private configService: ConfigService, private chainProxy: ChainProxy) {
+  constructor(private configService: ConfigService) {
     this._onDataChangeSubject = new Subject<any>();
   }
 

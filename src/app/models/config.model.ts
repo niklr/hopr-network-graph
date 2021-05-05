@@ -45,12 +45,16 @@ export class ConfigChainModel {
   txUrl: string;
   tokenContractAbi: string[];
   tokenContractAddress: string;
+  txEventNames: { [key: string]: string };
   jsonPath: string;
 
   public constructor(init?: Partial<ConfigChainModel>) {
     Object.assign(this, init);
     if (!this.tokenContractAbi) {
       this.tokenContractAbi = [];
+    }
+    if (!this.txEventNames) {
+      this.txEventNames = {};
     }
   }
 }

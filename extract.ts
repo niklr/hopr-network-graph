@@ -1,31 +1,38 @@
 import * as fs from 'fs';
 import { ChainType } from './src/app/enums/chain.enum';
 import { ConfigChainModel, ConfigModel } from './src/app/models/config.model';
+import { ChainProxy } from './src/app/proxies/chain.proxy';
 import { CommonUtil } from './src/app/utils/common.util';
-// import { JsonUtil } from '../app/utils/json.util';
-//const JsonUtil = require('../app/utils/json.util');
 
 class Extractor {
 
-  public async extract(): Promise<void> {
+  private proxy: ChainProxy;
+
+  constructor() {
+    this.proxy = new ChainProxy();
+  }
+
+  public async extractAsync(): Promise<void> {
     const config = new ConfigModel(JSON.parse(fs.readFileSync('./src/assets/config.json', 'utf8')));
-    config.chains.forEach((e: ConfigChainModel) => {
+    config.chains.forEach(async (e: ConfigChainModel) => {
       if (e.type !== ChainType.TEST) {
-        this.extractChain(e);
+        await this.extractChainAsync(e);
       }
     });
   }
 
-  private extractChain(config: ConfigChainModel): void {
-    if (CommonUtil.isNullOrWhitespace(config.rpcProviderUrl)) {
-      console.log(`Skipping ${ChainType[config.type]} because rpcProviderUrl is empty.`);
+  private async extractChainAsync(chain: ConfigChainModel): Promise<void> {
+    if (CommonUtil.isNullOrWhitespace(chain.rpcProviderUrl)) {
+      console.log(`Skipping ${ChainType[chain.type]} because rpcProviderUrl is empty.`);
       return;
     }
-    console.log(config.rpcProviderUrl);
+    console.log(chain.rpcProviderUrl);
+    const events = await this.proxy.loadRawData(chain);
+    console.log(events);
   }
 }
 
 const extractor = new Extractor();
-extractor.extract().finally(() => {
+extractor.extractAsync().finally(() => {
   console.log('Data extraction finished.');
 });

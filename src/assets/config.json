@@ -21,6 +21,11 @@
         "event Burned(address indexed operator, address indexed from, uint256 amount, bytes data, bytes operatorData)"
       ],
       "tokenContractAddress": "0xf5581dfefd8fb0e4aec526be659cfab1f8c781da",
+      "txEventNames": {
+        "MINT": "Minted",
+        "TRANSFER": "Transfer",
+        "BURN": "Burned"
+      },
       "jsonPath": "./assets/data/hopr_transfers.json"
     },
     {
@@ -37,6 +42,11 @@
         "event Burn(address indexed burner, uint256 value)"
       ],
       "tokenContractAddress": "0xD057604A14982FE8D88c5fC25Aac3267eA142a08",
+      "txEventNames": {
+        "MINT": "Mint",
+        "TRANSFER": "Transfer",
+        "BURN": "Burn"
+      },
       "jsonPath": "./assets/data/xhopr_transfers.json"
     }
   ]

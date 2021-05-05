@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ethers } from 'ethers';
+import { ChainTxEventType } from '../enums/chain.enum';
 import { ConfigChainModel } from '../models/config.model';
 import { CommonUtil } from '../utils/common.util';
 
@@ -7,6 +8,13 @@ import { CommonUtil } from '../utils/common.util';
   providedIn: 'root'
 })
 export class ChainProxy {
+
+  public createEthersProvider(url: string): ethers.providers.Provider {
+    if (CommonUtil.isNullOrWhitespace(url)) {
+      return null;
+    }
+    return new ethers.providers.JsonRpcProvider(url);
+  }
 
   public async getBlockNumberAsync(provider: ethers.providers.Provider): Promise<number> {
     const blockNumber = await provider.getBlockNumber();
@@ -25,6 +33,11 @@ export class ChainProxy {
     const balanceFormatted = ethers.utils.formatUnits(balance, 18);
     console.log('balance', balanceFormatted);
     return balanceFormatted;
+  }
+
+  public async getAllEventsByTypeAsync(
+    chain: ConfigChainModel, contract: ethers.Contract, type: ChainTxEventType): Promise<ethers.Event[]> {
+    return null;
   }
 
   public async getAllTransfersAsync(contract: ethers.Contract): Promise<ethers.Event[]> {
@@ -62,7 +75,18 @@ export class ChainProxy {
     contract.name().then((res: any) => {
       console.log('name: ', res);
     });
-    return await this.getAllTransfersAsync(contract);
+    const events = [];
+    events.concat(await this.getAllEventsByTypeAsync(chain, contract, ChainTxEventType.MINT));
+    return events;
+    // return await this.getAllTransfersAsync(contract);
+  }
+
+  public getTxEventName(chain: ConfigChainModel, type: ChainTxEventType): string {
+    const typeName = ChainTxEventType[type];
+    if (chain?.txEventNames && chain.txEventNames.hasOwnProperty(typeName)) {
+      return chain.txEventNames[typeName];
+    }
+    return undefined;
   }
 
   public async test(contract: ethers.Contract): Promise<void> {
@@ -73,12 +97,5 @@ export class ChainProxy {
       const test = events[0];
       console.log(test.decode(test.data, test.topics));
     }
-  }
-
-  private createEthersProvider(url: string): ethers.providers.Provider {
-    if (CommonUtil.isNullOrWhitespace(url)) {
-      return null;
-    }
-    return new ethers.providers.JsonRpcProvider(url);
   }
 }
