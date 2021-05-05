@@ -3,6 +3,7 @@ import { ChainType } from './src/app/enums/chain.enum';
 import { ConfigChainModel, ConfigModel } from './src/app/models/config.model';
 import { ChainProxy } from './src/app/proxies/chain.proxy';
 import { CommonUtil } from './src/app/utils/common.util';
+import { JsonUtil } from './src/app/utils/json.util';
 
 class Extractor {
 
@@ -14,21 +15,23 @@ class Extractor {
 
   public async extractAsync(): Promise<void> {
     const config = new ConfigModel(JSON.parse(fs.readFileSync('./src/assets/config.json', 'utf8')));
-    config.chains.forEach(async (e: ConfigChainModel) => {
-      if (e.type !== ChainType.TEST) {
-        await this.extractChainAsync(e);
+    for (const chain of config.chains) {
+      if (chain.type !== ChainType.TEST) {
+        await this.extractChainAsync(chain);
       }
-    });
+    }
   }
 
   private async extractChainAsync(chain: ConfigChainModel): Promise<void> {
+    const chainName = ChainType[chain.type];
     if (CommonUtil.isNullOrWhitespace(chain.rpcProviderUrl)) {
-      console.log(`Skipping ${ChainType[chain.type]} because rpcProviderUrl is empty.`);
+      console.log(`Skipping ${chainName} because rpcProviderUrl is empty.`);
       return;
     }
-    console.log(chain.rpcProviderUrl);
+    console.log(`Extract ${chainName} started.`);
     const events = await this.proxy.loadRawData(chain);
-    console.log(events);
+    console.log(`Extract ${chainName} ended.`);
+    fs.writeFileSync(`./src/assets/data/${chainName}_EVENTS.json`, JsonUtil.toString(events), 'utf8');
   }
 }
 

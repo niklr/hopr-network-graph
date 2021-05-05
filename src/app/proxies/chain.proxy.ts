@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ethers } from 'ethers';
-import { ChainTxEventType } from '../enums/chain.enum';
+import { ChainTxEventType, ChainType } from '../enums/chain.enum';
 import { ConfigChainModel } from '../models/config.model';
 import { CommonUtil } from '../utils/common.util';
 
@@ -36,18 +36,28 @@ export class ChainProxy {
   }
 
   public async getAllEventsByTypeAsync(
-    chain: ConfigChainModel, contract: ethers.Contract, type: ChainTxEventType): Promise<ethers.Event[]> {
-    return null;
+    chain: ConfigChainModel,
+    contract: ethers.Contract,
+    type: ChainTxEventType,
+    blockNumber: number
+  ): Promise<ethers.Event[]> {
+    const eventName = this.getTxEventName(chain, type);
+    // Create a filter e.g. contract.filters.Transfer() if the eventName is equal to Transfer
+    const filter = contract.filters[eventName]();
+    const events = await this.getEventsByBlockAsync(contract, filter, 0, blockNumber);
+    return events;
   }
 
   public async getAllTransfersAsync(contract: ethers.Contract): Promise<ethers.Event[]> {
     const blockNumber = await this.getBlockNumberAsync(contract.provider);
-    const transfers = await this.getTransfersByBlockAsync(contract, 0, blockNumber);
+    const filter = contract.filters.Transfer();
+    const transfers = await this.getEventsByBlockAsync(contract, filter, 0, blockNumber);
     return transfers;
   }
 
-  public async getTransfersByBlockAsync(contract: ethers.Contract, fromBlock: number, toBlock: number): Promise<ethers.Event[]> {
-    const filter = contract.filters.Transfer();
+  public async getEventsByBlockAsync(
+    contract: ethers.Contract, filter: ethers.EventFilter, fromBlock: number, toBlock: number
+  ): Promise<ethers.Event[]> {
     if (fromBlock <= toBlock) {
       try {
         return await contract.queryFilter(filter, fromBlock, toBlock);
@@ -55,9 +65,9 @@ export class ChainProxy {
       catch (error) {
         // tslint:disable-next-line: no-bitwise
         const midBlock = (fromBlock + toBlock) >> 1;
-        console.log('getTransfers midBlock', midBlock);
-        const arr1 = await this.getTransfersByBlockAsync(contract, fromBlock, midBlock);
-        const arr2 = await this.getTransfersByBlockAsync(contract, midBlock + 1, toBlock);
+        console.log('getEventsByBlockAsync midBlock', midBlock);
+        const arr1 = await this.getEventsByBlockAsync(contract, filter, fromBlock, midBlock);
+        const arr2 = await this.getEventsByBlockAsync(contract, filter, midBlock + 1, toBlock);
         return [...arr1, ...arr2];
       }
     }
@@ -72,13 +82,17 @@ export class ChainProxy {
   public async loadRawData(chain: ConfigChainModel): Promise<any> {
     const provider = this.createEthersProvider(chain.rpcProviderUrl);
     const contract = new ethers.Contract(chain.tokenContractAddress, chain.tokenContractAbi, provider);
-    contract.name().then((res: any) => {
-      console.log('name: ', res);
-    });
-    const events = [];
-    events.concat(await this.getAllEventsByTypeAsync(chain, contract, ChainTxEventType.MINT));
+    const blockNumber = await this.getBlockNumberAsync(contract.provider);
+    const chainName = ChainType[chain.type];
+    console.log(chain.tokenContractAddress, await contract.name());
+    let events = [];
+    for (const eventType of [ChainTxEventType.MINT, ChainTxEventType.TRANSFER, ChainTxEventType.BURN]) {
+      const eventName = ChainTxEventType[eventType];
+      console.log(`Extract ${eventName} events of ${chainName} started.`);
+      events = events.concat(await this.getAllEventsByTypeAsync(chain, contract, eventType, blockNumber));
+      console.log(`Extract ${eventName} events of ${chainName} ended.`);
+    }
     return events;
-    // return await this.getAllTransfersAsync(contract);
   }
 
   public getTxEventName(chain: ConfigChainModel, type: ChainTxEventType): string {
