@@ -8,7 +8,7 @@ Table of Content
 
 ## Configure <a name="configure"></a>
 
-Location: \src\assets\config.json
+Location: `\src\assets\config.json`
 
 ```js
 {
@@ -45,8 +45,12 @@ npm install
 
 ## Extract data <a name="extract"></a>
 
-Run the following command to extract all events from Ethereum mainnet and xDai chain.
-The output will be stored in the `\src\assets\data` folder which is excluded in the .gitignore file.
+Extract `\src\assets\data\events.zip` if you don't need the latest data otherwise
+run the following command to extract all events from Ethereum mainnet and xDai chain.
+This process takes serveral minutes to complete.
+Finally the output will be stored in the `\src\assets\data` folder which is excluded in the .gitignore file.
+
+IMPORTANT: Don't forget to set `rpcProviderUrl` for Ethereum mainnet in the `config.json` file. (e.g. https://eth-mainnet.alchemyapi.io/v2/...)
 
 ```bash
 npx ts-node -P tsconfig.commonjs.json .\extract.ts

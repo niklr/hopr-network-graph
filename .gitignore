@@ -47,4 +47,4 @@ Thumbs.db
 
 # Custom
 /src/assets/config.prod.json
-/src/assets/data/*
+/src/assets/data/*.json
