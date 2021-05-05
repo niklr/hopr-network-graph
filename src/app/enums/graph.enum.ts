@@ -10,5 +10,5 @@ export enum GraphLibraryType {
 
 export enum GraphEventType {
   DATA_CHANGED = 0,
-  TOGGLE_SIMULATION = 1
+  STOP_SIMULATION = 1
 }

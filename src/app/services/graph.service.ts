@@ -2,11 +2,13 @@ import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
 import { AppConstants } from '../app.constants';
 import { ChainTxEventType, ChainType } from '../enums/chain.enum';
+import { GraphEventType } from '../enums/graph.enum';
 import { ConfigChainModel } from '../models/config.model';
 import {
   EdgeDataModel,
   EdgeGraphModel,
   GraphContainerModel,
+  GraphEventModel,
   GraphScratchModel,
   NodeDataModel,
   NodeGraphModel
@@ -21,18 +23,23 @@ import { ConfigService } from './config.service';
 })
 export class GraphService {
 
-  private _onDataChangeSubject: Subject<any>;
+  private _onChangeSubject: Subject<any>;
+
+  public isSimulating: boolean;
 
   constructor(private configService: ConfigService) {
-    this._onDataChangeSubject = new Subject<any>();
+    this._onChangeSubject = new Subject<any>();
   }
 
-  public get onDataChangeSubject(): Subject<any> {
-    return this._onDataChangeSubject;
+  public get onChangeSubject(): Subject<GraphEventModel> {
+    return this._onChangeSubject;
   }
 
   public load(): void {
-    this._onDataChangeSubject.next(undefined);
+    this._onChangeSubject.next(new GraphEventModel({
+      type: GraphEventType.DATA_CHANGED,
+      payload: undefined
+    }));
     this.loadAsync().finally();
   }
 
@@ -41,7 +48,10 @@ export class GraphService {
     if (this.configService.config?.selectedChain) {
       data = await this.init(this.configService.config?.selectedChain);
     }
-    this._onDataChangeSubject.next(data);
+    this._onChangeSubject.next(new GraphEventModel({
+      type: GraphEventType.DATA_CHANGED,
+      payload: data
+    }));
   }
 
   public async init(chain: ConfigChainModel): Promise<any> {
@@ -52,6 +62,13 @@ export class GraphService {
     } else {
       return this.convertRawData(data);
     }
+  }
+
+  public stopSimulation(): void {
+    this.onChangeSubject.next(new GraphEventModel({
+      type: GraphEventType.STOP_SIMULATION,
+      payload: undefined
+    }));
   }
 
   private convertRawData(rawData: any): any {

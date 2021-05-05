@@ -1,9 +1,8 @@
 <div id="graphContainer">
-  <hopr-cytoscape [subject]="onDataChangeSubject" (selectEmitter)="nodeChange($event)"
-    *ngIf="useCytoscapeLibrary; else showD3Block">
+  <hopr-cytoscape (selectEmitter)="nodeChange($event)" *ngIf="useCytoscapeLibrary; else showD3Block">
   </hopr-cytoscape>
   <ng-template #showD3Block>
-    <hopr-d3 [subject]="onDataChangeSubject" (selectEmitter)="nodeChange($event)"></hopr-d3>
+    <hopr-d3 (selectEmitter)="nodeChange($event)"></hopr-d3>
   </ng-template>
 </div>
 

@@ -2,8 +2,10 @@ import { Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, 
 import cytoscape from 'cytoscape';
 import fcose from 'cytoscape-fcose';
 import klay from 'cytoscape-klay';
-import { Subject, Subscription } from 'rxjs';
-import { EdgeDataModel, EdgeGraphModel, GraphScratchModel, NodeDataModel, NodeGraphModel } from '../../models/graph.model';
+import { Subscription } from 'rxjs';
+import { GraphEventType } from '../../enums/graph.enum';
+import { EdgeDataModel, EdgeGraphModel, GraphEventModel, GraphScratchModel, NodeDataModel, NodeGraphModel } from '../../models/graph.model';
+import { GraphService } from '../../services/graph.service';
 
 @Component({
   selector: 'hopr-cytoscape',
@@ -16,7 +18,6 @@ export class CytoscapeComponent implements OnInit, OnDestroy {
   @Input() public style: any;
   @Input() public layout: any;
   @Input() public zoom: any;
-  @Input() public subject: Subject<any>;
 
   @Output() selectEmitter: EventEmitter<any> = new EventEmitter<any>();
 
@@ -24,7 +25,7 @@ export class CytoscapeComponent implements OnInit, OnDestroy {
 
   private subs: Subscription[] = [];
 
-  public constructor() {
+  constructor(private graphService: GraphService) {
 
     cytoscape.use(fcose);
     cytoscape.use(klay);
@@ -82,9 +83,19 @@ export class CytoscapeComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    if (this.subject) {
-      const sub1 = this.subject.subscribe({
-        next: (data) => this.render(data)
+    if (this.graphService.onChangeSubject) {
+      const sub1 = this.graphService.onChangeSubject.subscribe({
+        next: (data: GraphEventModel) => {
+          if (data) {
+            switch (data.type) {
+              case GraphEventType.DATA_CHANGED:
+                this.render(data.payload);
+                break;
+              default:
+                break;
+            }
+          }
+        }
       });
       this.subs.push(sub1);
     }

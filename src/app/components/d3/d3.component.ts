@@ -1,10 +1,11 @@
-import { Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import * as d3 from 'd3';
-import { Subject, Subscription } from 'rxjs';
-import { AppConstants } from 'src/app/app.constants';
-import { ChainTxEventType } from 'src/app/enums/chain.enum';
-import { GraphElementType } from '../../enums/graph.enum';
-import { EdgeDataModel, EdgeGraphModel, GraphScratchModel, NodeDataModel, NodeGraphModel } from '../../models/graph.model';
+import { Subscription } from 'rxjs';
+import { AppConstants } from '../../app.constants';
+import { ChainTxEventType } from '../../enums/chain.enum';
+import { GraphElementType, GraphEventType } from '../../enums/graph.enum';
+import { EdgeDataModel, EdgeGraphModel, GraphEventModel, GraphScratchModel, NodeDataModel, NodeGraphModel } from '../../models/graph.model';
+import { GraphService } from '../../services/graph.service';
 
 @Component({
   selector: 'hopr-d3',
@@ -12,8 +13,6 @@ import { EdgeDataModel, EdgeGraphModel, GraphScratchModel, NodeDataModel, NodeGr
   styleUrls: ['./d3.component.css']
 })
 export class D3Component implements OnInit, OnDestroy {
-
-  @Input() public subject: Subject<any>;
 
   @Output() selectEmitter: EventEmitter<any> = new EventEmitter<any>();
 
@@ -27,21 +26,29 @@ export class D3Component implements OnInit, OnDestroy {
   private edge: d3.Selection<d3.BaseType | SVGLineElement, unknown, SVGGElement, unknown>;
   private node: d3.Selection<d3.BaseType | SVGCircleElement, unknown, SVGGElement, unknown>;
   private simulation: d3.Simulation<d3.SimulationNodeDatum, undefined>;
-  private isSimulating = false;
   private isDestroyed = false;
   private connectedLookup: any = {};
   private subs: Subscription[] = [];
 
-  constructor() {
+  constructor(private graphService: GraphService) {
 
   }
 
   ngOnInit(): void {
-    if (this.subject) {
-      const sub1 = this.subject.subscribe({
-        next: (data) => {
-          if (!this.isDestroyed) {
-            this.render(data);
+    if (this.graphService.onChangeSubject) {
+      const sub1 = this.graphService.onChangeSubject.subscribe({
+        next: (data: GraphEventModel) => {
+          if (data && !this.isDestroyed) {
+            switch (data.type) {
+              case GraphEventType.DATA_CHANGED:
+                this.render(data.payload);
+                break;
+              case GraphEventType.STOP_SIMULATION:
+                this.stopSimulation();
+                break;
+              default:
+                break;
+            }
           }
         }
       });
@@ -51,12 +58,16 @@ export class D3Component implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     console.log('D3 destroy called.');
-    this.simulation?.stop();
+    this.stopSimulation();
     this.isDestroyed = true;
     this.subs.forEach(sub => {
       sub.unsubscribe();
     });
     this.subs = [];
+  }
+
+  private stopSimulation(): void {
+    this.simulation?.stop();
   }
 
   private render(data: any): void {
@@ -91,9 +102,9 @@ export class D3Component implements OnInit, OnDestroy {
         .force('x', d3.forceX())
         .force('y', d3.forceY())
         .on('end', () => {
-          this.isSimulating = false;
+          this.graphService.isSimulating = false;
         });
-      this.isSimulating = true;
+      this.graphService.isSimulating = true;
 
       this.edge = this.g
         .selectAll('line')
@@ -133,7 +144,7 @@ export class D3Component implements OnInit, OnDestroy {
         .text((d: any) => d.id);
 
       this.simulation.on('tick', () => {
-        this.isSimulating = true;
+        this.graphService.isSimulating = true;
         this.edge
           .attr('x1', (d: any) => d.source.x)
           .attr('y1', (d: any) => d.source.y)
@@ -285,7 +296,7 @@ export class D3Component implements OnInit, OnDestroy {
             .call(this.zoom.transform, d3.zoomIdentity.translate(0, 0).scale(scale));
         }
       }
-      if (this.isSimulating && count < 5) {
+      if (this.graphService.isSimulating && count < 5) {
         setTimeout(() => {
           this.center(++count);
         }, 1000);
