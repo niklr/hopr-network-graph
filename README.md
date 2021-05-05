@@ -45,7 +45,13 @@ npm install
 
 ## Extract data <a name="extract"></a>
 
+Run the following command to extract all events from Ethereum mainnet and xDai chain.
+The output will be stored in the `\src\assets\data` folder which is excluded in the .gitignore file.
+
+```bash
 npx ts-node -P tsconfig.commonjs.json .\extract.ts
+```
+[ts-node](https://github.com/TypeStrong/ts-node) compiles the code on the fly and runs it through node.
 
 ## Build <a name="build"></a>
 
