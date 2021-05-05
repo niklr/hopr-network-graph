@@ -4,7 +4,7 @@ A visualization approach to gain a bird view on the HOPR token transfers on Ethe
 
 Demo: https://niklr.github.io/hopr-network-graph/ (data collected on 05/05/2021)
 
-Table of Content
+#### Table of Content
 1. [Configure](#configure)
 2. [Install](#install)
 3. [Extract data](#extract)
@@ -100,4 +100,3 @@ To get more help on the Angular CLI use `ng help` or go check out the [Angular C
 Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
 
 - filter based on event type
-- stop simulation button for d3
