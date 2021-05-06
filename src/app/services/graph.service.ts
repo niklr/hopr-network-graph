@@ -70,10 +70,7 @@ export class GraphService {
   }
 
   public load(): void {
-    this._onChangeSubject.next(new GraphEventModel({
-      type: GraphEventType.DATA_CHANGED,
-      payload: undefined
-    }));
+    this.isLoading = true;
     this.loadAsync().finally();
   }
 
@@ -99,13 +96,14 @@ export class GraphService {
   }
 
   public stopSimulation(): void {
-    this.onChangeSubject.next(new GraphEventModel({
+    this._onChangeSubject.next(new GraphEventModel({
       type: GraphEventType.STOP_SIMULATION,
       payload: undefined
     }));
   }
 
   public changeFilter(id: string): void {
+    this.isLoading = true;
     const item = this.filter.get(id);
     if (item) {
       item.isSelected = !item.isSelected;

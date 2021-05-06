@@ -1,4 +1,4 @@
-import { AfterViewInit, Component } from '@angular/core';
+import { Component } from '@angular/core';
 import { ChainType } from './enums/chain.enum';
 import { GraphLibraryType } from './enums/graph.enum';
 import { ChainModel } from './models/chain.model';
@@ -11,7 +11,7 @@ import { GraphService } from './services/graph.service';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent implements AfterViewInit {
+export class AppComponent {
 
   public minWeight = 0;
   public selectedLibraryType: GraphLibraryType = GraphLibraryType.D3;
@@ -41,9 +41,6 @@ export class AppComponent implements AfterViewInit {
     this.setMinWeight();
     this.setSelectedLibraryType();
     this.setSelectedChainType();
-  }
-
-  ngAfterViewInit(): void {
     this.load();
   }
 

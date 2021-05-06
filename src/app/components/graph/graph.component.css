@@ -5,6 +5,11 @@
   position: relative;
 }
 
+.loading {
+  background-color: black;
+  opacity: 0.5;
+}
+
 #infoContainer {
   float: left;
   width: 100%;

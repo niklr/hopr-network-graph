@@ -1,4 +1,4 @@
-<div id="graphContainer">
+<div id="graphContainer" [ngClass]="{'loading': isLoading}">
   <hopr-cytoscape (selectEmitter)="nodeChange($event)" *ngIf="useCytoscapeLibrary; else showD3Block">
   </hopr-cytoscape>
   <ng-template #showD3Block>
