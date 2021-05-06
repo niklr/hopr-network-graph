@@ -6,23 +6,37 @@
   </ng-template>
 </div>
 
-<div *ngIf="node || edge">
-  <div *ngIf="node; else showEdgeBlock">
-    Selected node
-    <ul>
-      <li>address: <a [href]="buildAddressUrl(node?.data?.id)" target="_blank">{{node?.data?.id}}</a></li>
-      <li>weight: {{node?.data?.weight}}</li>
-    </ul>
+<div id="infoContainer">
+  <div *ngIf="isLoading; else showMessageBlock">
+    Loading...
   </div>
-
-  <ng-template #showEdgeBlock>
-    Selected edge (transactionHash:
-    <a [href]="buildTxUrl(edge?.scratch?.transfer?.transactionHash)"
-      target="_blank">{{edge?.scratch?.transfer?.transactionHash}})</a>
-    <ul>
-      <li>source: <a [href]="buildAddressUrl(edge?.data?.source)" target="_blank">{{edge?.data?.source}}</a></li>
-      <li>target: <a [href]="buildAddressUrl(edge?.data?.target)" target="_blank">{{edge?.data?.target}}</a></li>
-      <li>amount: {{edge?.scratch?.transfer?.args?.amount}}</li>
-    </ul>
+  <ng-template #showMessageBlock>
+    {{message}}
   </ng-template>
+  <div *ngIf="node || edge">
+    <div *ngIf="node; else showEdgeBlock">
+      Selected node
+      <ul>
+        <li>address: <a [href]="buildAddressUrl(node?.data?.id)" target="_blank">{{node?.data?.id}}</a></li>
+        <li>weight: {{node?.data?.weight}}</li>
+      </ul>
+    </div>
+
+    <ng-template #showEdgeBlock>
+      Selected edge (transactionHash:
+      <a [href]="buildTxUrl(edge?.scratch?.transfer?.transactionHash)"
+        target="_blank">{{edge?.scratch?.transfer?.transactionHash}})</a>
+      <ul>
+        <li>source: <a [href]="buildAddressUrl(edge?.data?.source)" target="_blank">{{edge?.data?.source}}</a></li>
+        <li>target: <a [href]="buildAddressUrl(edge?.data?.target)" target="_blank">{{edge?.data?.target}}</a></li>
+        <li>amount: {{edge?.scratch?.transfer?.args?.amount}}</li>
+      </ul>
+    </ng-template>
+  </div>
+  <div id="filter">
+    <input type="checkbox" id="scales" name="scales" checked>
+    <label for="scales">Scales</label>
+    <input type="checkbox" id="horns" name="horns">
+    <label for="horns">Horns</label>
+  </div>
 </div>

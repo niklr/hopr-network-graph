@@ -38,18 +38,9 @@ export class D3Component implements OnInit, OnDestroy {
     if (this.graphService.onChangeSubject) {
       const sub1 = this.graphService.onChangeSubject.subscribe({
         next: (data: GraphEventModel) => {
-          if (data && !this.isDestroyed) {
-            switch (data.type) {
-              case GraphEventType.DATA_CHANGED:
-                this.render(data.payload);
-                break;
-              case GraphEventType.STOP_SIMULATION:
-                this.stopSimulation();
-                break;
-              default:
-                break;
-            }
-          }
+          setTimeout(() => {
+            this.handleOnChangeSubject(data);
+          }, 0);
         }
       });
       this.subs.push(sub1);
@@ -66,6 +57,21 @@ export class D3Component implements OnInit, OnDestroy {
     this.subs = [];
   }
 
+  private handleOnChangeSubject(data: GraphEventModel) {
+    if (data && !this.isDestroyed) {
+      switch (data.type) {
+        case GraphEventType.DATA_CHANGED:
+          this.render(data.payload);
+          break;
+        case GraphEventType.STOP_SIMULATION:
+          this.stopSimulation();
+          break;
+        default:
+          break;
+      }
+    }
+  }
+
   private stopSimulation(): void {
     console.log('D3 stop simulation called.');
     this.simulation?.stop();
@@ -73,7 +79,7 @@ export class D3Component implements OnInit, OnDestroy {
   }
 
   private render(data: any): void {
-    console.log('D3 render started.');
+    this.graphService.isLoading = true;
     this.width = this.containerElementRef.nativeElement.clientWidth;
     this.height = this.containerElementRef.nativeElement.clientHeight;
     this.createSvg();
@@ -163,6 +169,7 @@ export class D3Component implements OnInit, OnDestroy {
       });
 
       this.center(0);
+      this.graphService.isLoading = false;
     }
   }
 

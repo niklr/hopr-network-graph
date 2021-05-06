@@ -4,3 +4,15 @@
   width: 100%;
   position: relative;
 }
+
+#infoContainer {
+  float: left;
+  width: 100%;
+  position: relative;
+}
+
+#filter {
+  position: absolute;
+  top: 0;
+  right: 0;
+}

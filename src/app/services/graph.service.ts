@@ -25,7 +25,8 @@ export class GraphService {
 
   private _onChangeSubject: Subject<any>;
 
-  public isSimulating: boolean;
+  public isLoading = false;
+  public isSimulating = false;
 
   constructor(private configService: ConfigService) {
     this._onChangeSubject = new Subject<any>();

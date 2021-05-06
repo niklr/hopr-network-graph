@@ -3,6 +3,8 @@ import cytoscape from 'cytoscape';
 import fcose from 'cytoscape-fcose';
 import klay from 'cytoscape-klay';
 import { Subscription } from 'rxjs';
+import { AppConstants } from '../../app.constants';
+import { ChainTxEventType } from '../../enums/chain.enum';
 import { GraphEventType } from '../../enums/graph.enum';
 import { EdgeDataModel, EdgeGraphModel, GraphEventModel, GraphScratchModel, NodeDataModel, NodeGraphModel } from '../../models/graph.model';
 import { GraphService } from '../../services/graph.service';
@@ -23,6 +25,7 @@ export class CytoscapeComponent implements OnInit, OnDestroy {
 
   @ViewChild('containerElementRef') containerElementRef: ElementRef;
 
+  private cy: cytoscape.Core;
   private subs: Subscription[] = [];
 
   constructor(private graphService: GraphService) {
@@ -50,14 +53,15 @@ export class CytoscapeComponent implements OnInit, OnDestroy {
           'font-size': 'mapData(weight, 1, 100, 5, 10)',
           // 'content': 'data(name)',
           'text-valign': 'center',
-          'color': '#fff'
+          'background-color': AppConstants.NODE_COLOR
         }
       },
       {
         selector: ':selected',
         style: {
           'border-width': 3,
-          'border-color': 'black'
+          'border-color': 'black',
+          'background-color': '#999'
         }
       },
       {
@@ -70,6 +74,17 @@ export class CytoscapeComponent implements OnInit, OnDestroy {
           'width': 1,
           // 'width': 'mapData(strength, 1, 100, 1, 10)',
           // 'target-arrow-shape': 'triangle'
+          'line-color': (d: any) => {
+            switch (d?.scratch('transfer')?.type || ChainTxEventType.UNKNOWN) {
+              case ChainTxEventType.MINT:
+                return AppConstants.TX_EVENT_MINT_COLOR;
+              case ChainTxEventType.BURN:
+                return AppConstants.TX_EVENT_BURN_COLOR;
+              default:
+                break;
+            }
+            return AppConstants.TX_EVENT_TRANSFER_COLOR;
+          }
         }
       },
       {
@@ -86,91 +101,103 @@ export class CytoscapeComponent implements OnInit, OnDestroy {
     if (this.graphService.onChangeSubject) {
       const sub1 = this.graphService.onChangeSubject.subscribe({
         next: (data: GraphEventModel) => {
-          if (data) {
-            switch (data.type) {
-              case GraphEventType.DATA_CHANGED:
-                this.render(data.payload);
-                break;
-              default:
-                break;
-            }
-          }
+          setTimeout(() => {
+            this.handleOnChangeSubject(data);
+          }, 0);
         }
       });
       this.subs.push(sub1);
     }
   }
 
-  public ngOnDestroy(): any {
+  ngOnDestroy(): any {
     console.log('Cytoscape destroy called.');
+    this.cy.destroy();
     this.subs.forEach(sub => {
       sub.unsubscribe();
     });
     this.subs = [];
   }
 
-  public render(data: any): void {
-    console.log('Cytoscape render started.');
-    const cy = cytoscape({
-      container: this.containerElementRef.nativeElement,
-      layout: this.layout,
-      minZoom: this.zoom.min,
-      maxZoom: this.zoom.max,
-      style: this.style,
-      elements: data,
-    });
-
-    cy.on('tap', 'node', (e: any) => {
-      const node: cytoscape.NodeSingular = e.target;
-      if (node.selected()) {
-        node.unselect();
-        this.unselectAll(cy);
-      } else {
-        const neighborhood = node.neighborhood().add(node);
-        cy.elements().addClass('faded');
-        neighborhood.removeClass('faded');
-        this.selectEmitter.emit(new NodeGraphModel({
-          data: new NodeDataModel({
-            id: node.data('id'),
-            name: node.data('name'),
-            weight: node.data('weight')
-          })
-        }));
+  private handleOnChangeSubject(data: GraphEventModel) {
+    if (data) {
+      switch (data.type) {
+        case GraphEventType.DATA_CHANGED:
+          this.render(data.payload);
+          break;
+        default:
+          break;
       }
-    });
-
-    cy.on('tap', 'edge', (e: any) => {
-      const edge: cytoscape.EdgeSingular = e.target;
-      if (edge.selected()) {
-        edge.unselect();
-        this.unselectAll(cy);
-      } else {
-        cy.elements().addClass('faded');
-        edge.removeClass('faded');
-        edge.source().removeClass('faded');
-        edge.target().removeClass('faded');
-        this.selectEmitter.emit(new EdgeGraphModel({
-          data: new EdgeDataModel({
-            source: edge.data('source'),
-            target: edge.data('target'),
-            strength: edge.data('strength')
-          }),
-          scratch: new GraphScratchModel({
-            transfer: edge.scratch('transfer')
-          })
-        }));
-      }
-    });
-
-    cy.on('tap', (e: any) => {
-      if (e.target === cy) {
-        this.unselectAll(cy);
-      }
-    });
+    }
   }
 
-  private unselectAll(cy: cytoscape.Core): void {
-    cy.elements().removeClass('faded');
+  public render(data: any): void {
+    this.graphService.isLoading = true;
+
+    if (data) {
+      this.cy = cytoscape({
+        container: this.containerElementRef.nativeElement,
+        layout: this.layout,
+        minZoom: this.zoom.min,
+        maxZoom: this.zoom.max,
+        style: this.style,
+        elements: data,
+      });
+
+      this.cy.on('tap', 'node', (e: any) => {
+        const node: cytoscape.NodeSingular = e.target;
+        if (node.selected()) {
+          node.unselect();
+          this.unselectAll();
+        } else {
+          const neighborhood = node.neighborhood().add(node);
+          this.cy.elements().addClass('faded');
+          neighborhood.removeClass('faded');
+          this.selectEmitter.emit(new NodeGraphModel({
+            data: new NodeDataModel({
+              id: node.data('id'),
+              name: node.data('name'),
+              weight: node.data('weight')
+            })
+          }));
+        }
+      });
+
+      this.cy.on('tap', 'edge', (e: any) => {
+        const edge: cytoscape.EdgeSingular = e.target;
+        if (edge.selected()) {
+          edge.unselect();
+          this.unselectAll();
+        } else {
+          this.cy.elements().addClass('faded');
+          edge.removeClass('faded');
+          edge.source().removeClass('faded');
+          edge.target().removeClass('faded');
+          this.selectEmitter.emit(new EdgeGraphModel({
+            data: new EdgeDataModel({
+              source: edge.data('source'),
+              target: edge.data('target'),
+              strength: edge.data('strength')
+            }),
+            scratch: new GraphScratchModel({
+              transfer: edge.scratch('transfer')
+            })
+          }));
+        }
+      });
+
+      this.cy.on('tap', (e: any) => {
+        if (e.target === this.cy) {
+          this.unselectAll();
+        }
+      });
+    }
+
+    this.graphService.isLoading = false;
+  }
+
+  private unselectAll(): void {
+    this.cy.elements().removeClass('faded');
     this.selectEmitter.emit(undefined);
   }
 }
