@@ -35,7 +35,7 @@ export class CytoscapeComponent implements OnInit, OnDestroy {
 
     this.layout = this.layout || {
       name: 'grid',
-      animtae: false,
+      animate: false,
       spacingFactor: 2
     };
 
@@ -73,7 +73,7 @@ export class CytoscapeComponent implements OnInit, OnDestroy {
           'opacity': 0.666,
           'width': 1,
           // 'width': 'mapData(strength, 1, 100, 1, 10)',
-          // 'target-arrow-shape': 'triangle'
+          'target-arrow-shape': 'triangle',
           'line-color': (d: any) => {
             switch (d?.scratch('transfer')?.type || ChainTxEventType.UNKNOWN) {
               case ChainTxEventType.MINT:
@@ -133,8 +133,10 @@ export class CytoscapeComponent implements OnInit, OnDestroy {
 
   public render(data: any): void {
     this.graphService.isLoading = true;
-
     if (data) {
+      if (this.cy) {
+        this.cy.destroy();
+      }
       this.cy = cytoscape({
         container: this.containerElementRef.nativeElement,
         layout: this.layout,
