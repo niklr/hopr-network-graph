@@ -4,6 +4,10 @@ A visualization approach to gain a bird view on the HOPR token transfers on Ethe
 
 Demo: https://niklr.github.io/hopr-network-graph/ (data collected on 05/05/2021)
 
+<h1 align="center">
+	<img src="images/hopr_network_graph_xdai_chain_1.gif" alt="HOPR network graph xDai chain">
+</h1>
+
 #### Table of Content
 1. [Configure](#configure)
 2. [Install](#install)
@@ -75,6 +79,7 @@ IMPORTANT: Don't forget to set `rpcProviderUrl` for Ethereum mainnet in the `con
 ```bash
 npx ts-node -P tsconfig.commonjs.json .\extract.ts
 ```
+[npx](https://docs.npmjs.com/cli/v7/commands/npx) runs a command from a local or remote npm package.
 [ts-node](https://github.com/TypeStrong/ts-node) compiles the code on the fly and runs it through node.
 
 ## Build <a name="build"></a>
@@ -98,5 +103,3 @@ To get more help on the Angular CLI use `ng help` or go check out the [Angular C
 ### Code scaffolding
 
 Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
-
-- filter based on event type
