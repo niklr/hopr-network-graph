@@ -34,9 +34,10 @@
     </ng-template>
   </div>
   <div id="filter">
-    <input type="checkbox" id="scales" name="scales" checked>
-    <label for="scales">Scales</label>
-    <input type="checkbox" id="horns" name="horns">
-    <label for="horns">Horns</label>
+    <ng-container *ngFor="let kvp of filter | keyvalue">
+      <input type="checkbox" [id]="kvp.key" [name]="kvp.key" [checked]="kvp.value.isSelected"
+        (change)="changeFilter(kvp.key,$event)">
+      <label [for]="kvp.key"><b [style.color]="kvp.value.color">{{kvp.value.name}}</b></label>
+    </ng-container>
   </div>
 </div>

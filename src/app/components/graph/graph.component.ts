@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { GraphEventType, GraphLibraryType } from '../../enums/graph.enum';
+import { ChainFilterItemModel } from '../../models/chain.model';
 import { BaseGraphModel, EdgeGraphModel, GraphEventModel, NodeGraphModel } from '../../models/graph.model';
 import { ConfigService } from '../../services/config.service';
 import { GraphService } from '../../services/graph.service';
@@ -83,6 +84,10 @@ export class GraphComponent implements OnInit, OnDestroy {
     return this.configService.config.selectedGraphLibraryType === GraphLibraryType.CYTOSCAPE;
   }
 
+  public get filter(): Map<string, ChainFilterItemModel> {
+    return this.graphService.filter;
+  }
+
   public buildAddressUrl(address: string): string {
     if (address && this.configService.config?.selectedChain?.addressUrl) {
       return this.configService.config.selectedChain.addressUrl.replace('{address}', address);
@@ -95,5 +100,9 @@ export class GraphComponent implements OnInit, OnDestroy {
       return this.configService.config.selectedChain.txUrl.replace('{transactionHash}', transactionHash);
     }
     return undefined;
+  }
+
+  public changeFilter(id: string, event: any): void {
+    this.graphService.changeFilter(id);
   }
 }
