@@ -103,3 +103,13 @@ To get more help on the Angular CLI use `ng help` or go check out the [Angular C
 ### Code scaffolding
 
 Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+
+#### Ethereum mainnet using d3
+<h1 align="center">
+	<img src="images/hopr_network_graph_eth_d3.png" alt="HOPR network graph Ethereum mainnet using d3">
+</h1>
+
+#### Ethereum mainnet using cytoscape
+<h1 align="center">
+	<img src="images/hopr_network_graph_eth_cytoscape.png" alt="HOPR network graph Ethereum mainnet using cytoscape">
+</h1>
