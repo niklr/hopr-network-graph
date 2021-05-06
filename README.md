@@ -113,3 +113,13 @@ Run `ng generate component component-name` to generate a new component. You can 
 <h1 align="center">
 	<img src="images/hopr_network_graph_eth_cytoscape.png" alt="HOPR network graph Ethereum mainnet using cytoscape">
 </h1>
+
+#### xDai chain using d3
+<h1 align="center">
+	<img src="images/hopr_network_grap_xdai_d3.png" alt="HOPR network graph xDai chain using d3">
+</h1>
+
+#### xDai chain using cytoscape
+<h1 align="center">
+	<img src="images/hopr_network_graph_xdai_cytoscape.png" alt="HOPR network graph xDai chain using cytoscape">
+</h1>
