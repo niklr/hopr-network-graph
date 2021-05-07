@@ -56,6 +56,8 @@ export class GraphComponent implements OnInit, OnDestroy {
   }
 
   private onDataChanged(data: any): void {
+    this.node = undefined;
+    this.edge = undefined;
     if (Array.isArray(data?.nodes) && data.nodes.length > 0) {
       this.message = undefined;
     } else {

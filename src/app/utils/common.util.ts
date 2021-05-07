@@ -1,4 +1,5 @@
 import { BigNumber } from '@ethersproject/bignumber';
+import { ethers } from 'ethers';
 
 export class CommonUtil {
 
@@ -35,6 +36,10 @@ export class CommonUtil {
 
   public static toBigNumber(bn: any): BigNumber {
     return BigNumber.from(bn);
+  }
+
+  public static formatBigNumber(bn: any): string {
+    return ethers.utils.formatUnits(BigNumber.from(bn), 18);
   }
 
 }

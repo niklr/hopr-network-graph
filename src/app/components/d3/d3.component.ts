@@ -24,7 +24,9 @@ export class D3Component implements OnInit, OnDestroy {
   private g: d3.Selection<SVGGElement, unknown, HTMLElement, any>;
   private zoom: d3.ZoomBehavior<Element, unknown>;
   private edge: d3.Selection<d3.BaseType | SVGLineElement, unknown, SVGGElement, unknown>;
+  private edgeLabel: d3.Selection<SVGTextElement, unknown, SVGGElement, unknown>;
   private node: d3.Selection<d3.BaseType | SVGCircleElement, unknown, SVGGElement, unknown>;
+  private nodeLabel: d3.Selection<SVGTextElement, unknown, SVGGElement, unknown>;
   private simulation: d3.Simulation<d3.SimulationNodeDatum, undefined>;
   private isDestroyed = false;
   private connectedLookup: any = {};
@@ -107,6 +109,7 @@ export class D3Component implements OnInit, OnDestroy {
       this.simulation = d3.forceSimulation(nodes)
         .force('link', d3.forceLink(edges).id((d: any) => d.id))
         .force('charge', d3.forceManyBody().strength(-400))
+        .force('center', d3.forceCenter(this.width / 2, this.height / 2))
         .force('x', d3.forceX())
         .force('y', d3.forceY())
         .on('end', () => {
@@ -115,9 +118,11 @@ export class D3Component implements OnInit, OnDestroy {
       this.graphService.isSimulating = true;
 
       this.edge = this.g
-        .selectAll('line')
+        .selectAll('.edge')
         .data(edges)
         .join('line')
+        .attr('class', 'graphElement')
+        .attr('marker-end', 'url(#arrowhead)')
         .attr('stroke', (d: any) => {
           if (d?.transfer?.type) {
             switch (d.transfer.type) {
@@ -132,24 +137,55 @@ export class D3Component implements OnInit, OnDestroy {
           return AppConstants.TX_EVENT_TRANSFER_COLOR;
         })
         .attr('stroke-opacity', 0.6)
-        .attr('class', 'graphElement')
         .attr('stroke-width', 2)
-        .on('click', this.handleEdgeClick);
+        .on('click', this.handleClick);
+
+      if (this.graphService.drawEdgeLabel) {
+        this.edgeLabel = this.g
+          .selectAll('.edgeLabel')
+          .data(edges)
+          .enter()
+          .append('text')
+          .style('pointer-events', 'none')
+          .attr('font-size', 5)
+          .attr('fill', 'black')
+          .attr('class', 'graphElement')
+          .text((d: any) => d.transfer?.args?.amount ?? d.type);
+      }
 
       this.node = this.g
-        .selectAll('circle')
+        .selectAll('.node')
         .data(nodes)
         .join('circle')
         .attr('stroke', '#fff')
         .attr('stroke-width', 1.5)
-        .attr('class', 'graphElement')
         .attr('r', (d: any) => Math.max(5, (d.weight / 10) + 5))
         .attr('fill', AppConstants.NODE_COLOR)
-        .on('click', this.handleNodeClick)
+        .attr('class', 'graphElement')
+        .on('click', this.handleClick)
         .call(this.drag());
+
+      if (this.graphService.drawNodeLabel) {
+        this.nodeLabel = this.g
+          .selectAll('.nodeLabel')
+          .data(nodes)
+          .enter()
+          .append('text')
+          .attr('font-size', 10)
+          .attr('fill', 'black')
+          .attr('class', 'graphElement')
+          .text((d: any) => d.name);
+      }
 
       this.node.append('title')
         .text((d: any) => d.id);
+
+      this.node.append('text')
+        .attr('font-size', 10)
+        .attr('fill', 'black')
+        .text((d: any) => {
+          return d.name;
+        });
 
       this.simulation.on('tick', () => {
         this.graphService.isSimulating = true;
@@ -158,9 +194,19 @@ export class D3Component implements OnInit, OnDestroy {
           .attr('y1', (d: any) => d.source.y)
           .attr('x2', (d: any) => d.target.x)
           .attr('y2', (d: any) => d.target.y);
+        if (this.graphService.drawEdgeLabel) {
+          this.edgeLabel
+            .attr('x', (d: any) => (d.source.x + d.target.x) / 2)
+            .attr('y', (d: any) => (d.source.y + d.target.y) / 2);
+        }
         this.node
           .attr('cx', (d: any) => d.x)
           .attr('cy', (d: any) => d.y);
+        if (this.graphService.drawNodeLabel) {
+          this.nodeLabel
+            .attr('x', (d: any) => d.x)
+            .attr('y', (d: any) => d.y);
+        }
       });
 
       this.connectedLookup = {};
@@ -180,11 +226,28 @@ export class D3Component implements OnInit, OnDestroy {
       .attr('id', 'svgContainer')
       .attr('width', this.width)
       .attr('height', this.height)
-      .attr('viewBox', [-this.width / 2, -this.height / 2, this.width, this.height].toString())
       .on('click', () => {
-        this.g.selectAll('g > .graphElement').style('opacity', 1);
+        this.g.selectAll('.graphElement').style('opacity', 1);
         this.selectEmitter.emit(undefined);
       });
+
+    // Draw arrows
+    if (this.graphService.drawArrow) {
+      this.svg.append('defs')
+        .append('marker')
+        .attr('id', 'arrowhead')
+        .attr('viewBox', '-0 -5 10 10')
+        .attr('refX', 10)
+        .attr('refY', 0)
+        .attr('orient', 'auto')
+        .attr('markerWidth', 10)
+        .attr('markerHeight', 10)
+        .attr('xoverflow', 'visible')
+        .append('svg:path')
+        .attr('d', 'M 0,-2.5 L 5,0 L 0,2.5')
+        .attr('fill', '#ccc')
+        .attr('stroke', '#ccc');
+    }
 
     this.g = this.svg.append('g');
 
@@ -237,61 +300,64 @@ export class D3Component implements OnInit, OnDestroy {
     return this.connectedLookup[`${b},${a}`];
   }
 
-  private handleClick(event: any): void {
+  private handleClick = (event: any, d: any) => {
     event.stopPropagation();
-    this.g.selectAll('.graphElement').style('opacity', 0);
+    this.g.selectAll('.graphElement').style('opacity', (o: any) => {
+      if (d.type === GraphElementType.EDGE) {
+        if (o.type === GraphElementType.EDGE) {
+          // d = EDGE and o = EDGE
+          if (o === d) {
+            return 1.0;
+          }
+          return 0;
+        } else {
+          // d = EDGE and o = NODE
+          if (o.id === d.source.id || o.id === d.target.id) {
+            return 1.0;
+          }
+          return 0;
+        }
+      } else {
+        if (o.type === GraphElementType.EDGE) {
+          // d = NODE and o = EDGE
+          if (o.source.id === d.id || o.target.id === d.id) {
+            return 1.0;
+          }
+          return 0;
+        } else {
+          // d = NODE and o = NODE
+          if (o.id === d.id) {
+            return 1;
+          }
+          if (this.isConnected(o.id, d.id)) {
+            return 0.5;
+          }
+          return 0;
+        }
+      }
+    });
     d3.select(event.target).style('opacity', 1);
-  }
 
-  private handleNodeClick = (event: any, d: any) => {
-    this.handleClick(event);
-
-    this.node.style('opacity', (o: any) => {
-      if (o.id === d.id) {
-        return 1;
-      }
-      if (this.isConnected(o.id, d.id)) {
-        return 0.5;
-      }
-      return 0;
-    });
-
-    this.edge.style('opacity', (o: any) => {
-      if (o.source.id === d.id || o.target.id === d.id) {
-        return 1.0;
-      }
-      return 0;
-    });
-
-    this.selectEmitter.emit(new NodeGraphModel({
-      data: new NodeDataModel({
-        id: d.id,
-        name: d.name,
-        weight: d.weight
-      })
-    }));
-  }
-
-  private handleEdgeClick = (event: any, d: any) => {
-    this.handleClick(event);
-
-    this.node.style('opacity', (o: any) => {
-      if (o.id === d.source.id || o.id === d.target.id) {
-        return 1.0;
-      }
-      return 0;
-    });
-
-    this.selectEmitter.emit(new EdgeGraphModel({
-      data: new EdgeDataModel({
-        source: d.source.id,
-        target: d.target.id,
-        strength: d.strength
-      }),
-      scratch: new GraphScratchModel({
-        transfer: d.transfer
-      })
-    }));
+    if (d.type === GraphElementType.EDGE) {
+      this.selectEmitter.emit(new EdgeGraphModel({
+        data: new EdgeDataModel({
+          source: d.source.id,
+          target: d.target.id,
+          strength: d.strength
+        }),
+        scratch: new GraphScratchModel({
+          transfer: d.transfer
+        })
+      }));
+    } else if (d.type === GraphElementType.NODE) {
+      this.selectEmitter.emit(new NodeGraphModel({
+        data: new NodeDataModel({
+          id: d.id,
+          name: d.name,
+          weight: d.weight
+        })
+      }));
+    }
   }
 
   private center(count: number): void {
@@ -299,10 +365,10 @@ export class D3Component implements OnInit, OnDestroy {
       const { width, height } = this.g.node().getBBox();
       if (width && height) {
         const scale = Math.min(this.width / width, this.height / height) * 0.8;
-        if (scale < 10) {
+        if (count > 0) {
           this.svg.transition()
             .duration(750)
-            .call(this.zoom.transform, d3.zoomIdentity.translate(0, 0).scale(scale));
+            .call(this.zoom.scaleTo, scale);
         }
       }
       if (this.graphService.isSimulating && count < 5) {

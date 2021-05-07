@@ -30,6 +30,9 @@ export class GraphService {
 
   public isLoading = false;
   public isSimulating = false;
+  public drawArrow = false;
+  public drawEdgeLabel = false;
+  public drawNodeLabel = false;
   public readonly filter: Map<string, ChainFilterItemModel>;
 
   constructor(private configService: ConfigService) {

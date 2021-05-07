@@ -41,7 +41,7 @@ export class TransferArgsModel {
     return new TransferArgsModel({
       from: items[0],
       to: items[1],
-      amount: CommonUtil.toBigNumber(items[2]).toString()
+      amount: CommonUtil.formatBigNumber(items[2])
     });
   }
 }
