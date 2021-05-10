@@ -43,16 +43,13 @@ export class ConfigChainModel {
   rpcProviderUrl: string;
   addressUrl: string;
   txUrl: string;
-  tokenContractAbi: string[];
+  tokenContractAbiPath: string;
   tokenContractAddress: string;
   txEventNames: { [key: string]: string };
-  jsonPath: string;
+  eventsPath: string;
 
   public constructor(init?: Partial<ConfigChainModel>) {
     Object.assign(this, init);
-    if (!this.tokenContractAbi) {
-      this.tokenContractAbi = [];
-    }
     if (!this.txEventNames) {
       this.txEventNames = {};
     }

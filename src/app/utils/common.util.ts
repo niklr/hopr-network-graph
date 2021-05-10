@@ -16,26 +16,12 @@ export class CommonUtil {
     }
   }
 
-  public static download(blob: Blob): void {
-    const textFile = window.URL.createObjectURL(blob);
-
-    const link = document.createElement('a');
-    link.setAttribute('download', 'data.json');
-    link.href = textFile;
-    document.body.appendChild(link);
-
-    // wait for the link to be added to the document
-    window.requestAnimationFrame(() => {
-      const event = new MouseEvent('click');
-      link.dispatchEvent(event);
-      document.body.removeChild(link);
-      // revoke the object URL to avoid memory leaks.
-      window.URL.revokeObjectURL(textFile);
-    });
-  }
-
   public static toBigNumber(bn: any): BigNumber {
     return BigNumber.from(bn);
+  }
+
+  public static toJsonString(data: any): string {
+    return JSON.stringify(data, null, 2);
   }
 
   public static formatBigNumber(bn: any): string {

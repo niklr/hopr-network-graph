@@ -16,7 +16,7 @@ import {
 } from '../models/graph.model';
 import { TransferModel } from '../models/transfer.model';
 import { Ensure } from '../utils/ensure.util';
-import { JsonUtil } from '../utils/json.util';
+import { FileUtil } from '../utils/file.util';
 import { ConfigService } from './config.service';
 
 @Injectable({
@@ -35,7 +35,7 @@ export class GraphService {
   public drawNodeLabel = false;
   public readonly filter: Map<string, ChainFilterItemModel>;
 
-  constructor(private configService: ConfigService) {
+  constructor(private configService: ConfigService, private fileUtil: FileUtil) {
     this._onChangeSubject = new Subject<any>();
     this.filter = new Map<string, ChainFilterItemModel>([
       [
@@ -74,7 +74,9 @@ export class GraphService {
 
   public load(): void {
     this.isLoading = true;
-    this.loadAsync().finally();
+    this.loadAsync().catch(() => {
+      this.isLoading = false;
+    }).finally();
   }
 
   public async loadAsync(): Promise<void> {
@@ -89,13 +91,18 @@ export class GraphService {
 
   public async init(chain: ConfigChainModel): Promise<GraphContainerModel> {
     Ensure.notNull(chain, ConfigChainModel.name);
-    const rawData = await JsonUtil.loadLocalAsync(chain.jsonPath);
-    if (chain.type === ChainType.TEST) {
-      this._data = this.convertTestData(rawData);
-    } else {
-      this._data = this.convertChainData(rawData);
+    try {
+      let rawData = await this.fileUtil.readFileAsync(chain.eventsPath);
+      rawData = JSON.parse(rawData);
+      if (chain.type === ChainType.TEST) {
+        this._data = this.convertTestData(rawData);
+      } else {
+        this._data = this.convertChainData(rawData);
+      }
+      return this.applyFilters(this._data);
+    } catch (error) {
+      return Promise.reject(error);
     }
-    return this.applyFilters(this._data);
   }
 
   public stopSimulation(): void {

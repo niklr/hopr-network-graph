@@ -3,11 +3,16 @@ import { ethers } from 'ethers';
 import { ChainTxEventType, ChainType } from '../enums/chain.enum';
 import { ConfigChainModel } from '../models/config.model';
 import { CommonUtil } from '../utils/common.util';
+import { FileUtil } from '../utils/file.util';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ChainProxy {
+
+  constructor(private fileUtil: FileUtil) {
+
+  }
 
   public createEthersProvider(url: string): ethers.providers.Provider {
     if (CommonUtil.isNullOrWhitespace(url)) {
@@ -69,7 +74,8 @@ export class ChainProxy {
 
   public async loadRawData(chain: ConfigChainModel): Promise<any> {
     const provider = this.createEthersProvider(chain.rpcProviderUrl);
-    const contract = new ethers.Contract(chain.tokenContractAddress, chain.tokenContractAbi, provider);
+    const abi = await this.fileUtil.readFileAsync(chain.tokenContractAbiPath);
+    const contract = new ethers.Contract(chain.tokenContractAddress, JSON.parse(abi), provider);
     const blockNumber = await this.getBlockNumberAsync(contract.provider);
     const chainName = ChainType[chain.type];
     console.log(chain.tokenContractAddress, await contract.name());
