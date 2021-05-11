@@ -21,3 +21,7 @@ min. weight <input type="range" min="0" max="100" step="1" [value]="minWeight" (
 <p *ngIf="!isLoading && stat">
   {{stat.fetchedDate}} <button (click)="reload()">Reload</button>
 </p>
+
+<div id="appVersion">
+  {{appVersion}}
+</div>

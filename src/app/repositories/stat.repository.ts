@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import PouchDB from 'pouchdb';
 import { ChainType } from '../enums/chain.enum';
 import { StatModel } from '../models/stat.model';
+import { ConfigService } from '../services/config.service';
 import { BaseRepository } from './base.repository';
 
 @Injectable({
@@ -9,7 +10,7 @@ import { BaseRepository } from './base.repository';
 })
 export class StatRepository extends BaseRepository<StatModel> {
 
-  constructor() {
+  constructor(private configService: ConfigService) {
     super();
   }
 
@@ -27,7 +28,8 @@ export class StatRepository extends BaseRepository<StatModel> {
     }).catch(error1 => {
       if (error1?.status === 404) {
         const result = new StatModel({
-          _id: id
+          _id: id,
+          version: this.configService.config.version
         });
         return this._db.put(result).then(result2 => {
           return result;

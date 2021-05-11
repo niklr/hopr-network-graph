@@ -2,6 +2,7 @@ import { ChainType } from '../enums/chain.enum';
 
 export class StatModel {
   _id: string;
+  version: string;
   fetchedDate: Date;
   fetchSuccess: boolean;
 

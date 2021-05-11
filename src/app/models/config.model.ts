@@ -6,6 +6,8 @@ export class ConfigModel {
   private _selectedChainType: ChainType;
   private _selectedChain: ConfigChainModel;
 
+  isDevelopment: boolean;
+  version: string;
   minWeight: number;
   chains: ConfigChainModel[];
   selectedGraphLibraryType: GraphLibraryType;

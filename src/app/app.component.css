@@ -1,3 +1,10 @@
 button {
   margin: 0 5px 0 5px;
 }
+
+#appVersion {
+  position: absolute;
+  bottom:0;
+  right:0;
+  padding: 5px;
+}

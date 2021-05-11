@@ -76,6 +76,10 @@ export class AppComponent {
     return this.chainService.stat;
   }
 
+  public get appVersion(): string {
+    return 'v' + this.configService.config.version;
+  }
+
   public stopSimulation(): void {
     this.graphService.stopSimulation();
   }
