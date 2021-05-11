@@ -15,10 +15,14 @@
       "txUrl": "https://etherscan.io/tx/{transactionHash}",
       "tokenContractAbiPath": "./assets/abis/HOPR.json",
       "tokenContractAddress": "0xf5581dfefd8fb0e4aec526be659cfab1f8c781da",
+      "bridgeContractAbiPath": "./assets/abis/eth_omnibridge.json",
+      "bridgeContractAddress": "0x88ad09518695c6c3712AC10a214bE5109a655671",
       "txEventNames": {
         "MINT": "Minted",
         "TRANSFER": "Transfer",
-        "BURN": "Burned"
+        "BURN": "Burned",
+        "BRIDGE_START": "TokensBridgingInitiated",
+        "BRIDGE_END": "TokensBridged"
       },
       "eventsPath": "./assets/data/ETH_MAIN_EVENTS.json"
     },

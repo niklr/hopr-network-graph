@@ -32,7 +32,7 @@ class Extractor {
       return;
     }
     console.log(`Extract ${chainName} started.`);
-    const events = await this.proxy.loadRawData(chain);
+    const events = await this.proxy.getAllEvents(chain);
     console.log(`Extract ${chainName} ended.`);
     this.fileUtil.writeFile(CommonUtil.toJsonString(events), `./src/assets/data/${chainName}_EVENTS.json`);
   }

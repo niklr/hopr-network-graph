@@ -40,16 +40,64 @@ export class ChainProxy {
     return balanceFormatted;
   }
 
-  public async getAllEventsByTypeAsync(
+  public async getAllEvents(chain: ConfigChainModel): Promise<any> {
+    let events = [];
+    events = events.concat(await this.getTokenEvents(chain));
+    events = events.concat(await this.getBridgeEvents(chain));
+    return events;
+  }
+
+  public async getTokenEvents(chain: ConfigChainModel): Promise<any> {
+    const provider = this.createEthersProvider(chain.rpcProviderUrl);
+    const blockNumber = await this.getBlockNumberAsync(provider);
+    const abi = await this.fileUtil.readFileAsync(chain.tokenContractAbiPath);
+    const contract = new ethers.Contract(chain.tokenContractAddress, JSON.parse(abi), provider);
+    console.log(chain.tokenContractAddress, await contract.name());
+    let events = [];
+    for (const eventType of [ChainTxEventType.MINT, ChainTxEventType.TRANSFER, ChainTxEventType.BURN]) {
+      events = events.concat(await this.getEventsByTypeAsync(chain, contract, eventType, blockNumber));
+    }
+    return events;
+  }
+
+  public async getBridgeEvents(chain: ConfigChainModel): Promise<any> {
+    const provider = this.createEthersProvider(chain.rpcProviderUrl);
+    const blockNumber = await this.getBlockNumberAsync(provider);
+    const abi = await this.fileUtil.readFileAsync(chain.bridgeContractAbiPath);
+    const contract = new ethers.Contract(chain.bridgeContractAddress, JSON.parse(abi), provider);
+    console.log(chain.bridgeContractAddress);
+    let events = [];
+    for (const eventType of [ChainTxEventType.BRIDGE_START, ChainTxEventType.BRIDGE_END]) {
+      events = events.concat(await this.getEventsByTypeAsync(chain, contract, eventType, blockNumber));
+    }
+    return events;
+  }
+
+  public async getEventsByTypeAsync(
     chain: ConfigChainModel,
     contract: ethers.Contract,
     type: ChainTxEventType,
     blockNumber: number
   ): Promise<ethers.Event[]> {
+    const chainName = ChainType[chain.type];
     const eventName = this.getTxEventName(chain, type);
+    console.log(`Extract ${eventName} events of ${chainName} started.`);
     // Create a filter e.g. contract.filters.Transfer() if the eventName is equal to Transfer
-    const filter = contract.filters[eventName]();
+    let filter: ethers.EventFilter;
+    switch (type) {
+      case ChainTxEventType.BRIDGE_START:
+      case ChainTxEventType.BRIDGE_END:
+        // Filter by token smart contract address
+        // - TokensBridged(address indexed token, address indexed recipient, uint256 value, bytes32 indexed messageId)
+        // - TokensBridgingInitiated(index_topic_1 address token, index_topic_2 address sender, ...)
+        filter = contract.filters[eventName](chain.tokenContractAddress);
+        break;
+      default:
+        filter = contract.filters[eventName]();
+        break;
+    }
     const events = await this.getEventsByBlockAsync(contract, filter, chain.startBlock, blockNumber);
+    console.log(`Extract ${eventName} events of ${chainName} ended.`);
     return events;
   }
 
@@ -70,23 +118,6 @@ export class ChainProxy {
       }
     }
     return [];
-  }
-
-  public async loadRawData(chain: ConfigChainModel): Promise<any> {
-    const provider = this.createEthersProvider(chain.rpcProviderUrl);
-    const abi = await this.fileUtil.readFileAsync(chain.tokenContractAbiPath);
-    const contract = new ethers.Contract(chain.tokenContractAddress, JSON.parse(abi), provider);
-    const blockNumber = await this.getBlockNumberAsync(contract.provider);
-    const chainName = ChainType[chain.type];
-    console.log(chain.tokenContractAddress, await contract.name());
-    let events = [];
-    for (const eventType of [ChainTxEventType.MINT, ChainTxEventType.TRANSFER, ChainTxEventType.BURN]) {
-      const eventName = ChainTxEventType[eventType];
-      console.log(`Extract ${eventName} events of ${chainName} started.`);
-      events = events.concat(await this.getAllEventsByTypeAsync(chain, contract, eventType, blockNumber));
-      console.log(`Extract ${eventName} events of ${chainName} ended.`);
-    }
-    return events;
   }
 
   public getTxEventName(chain: ConfigChainModel, type: ChainTxEventType): string {
