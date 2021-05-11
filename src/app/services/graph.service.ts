@@ -79,32 +79,6 @@ export class GraphService {
     }).finally();
   }
 
-  public async loadAsync(): Promise<void> {
-    this._nodeMap = new Map<string, NodeGraphModel>();
-    if (this.configService.config?.selectedChain) {
-      const data = await this.init(this.configService.config?.selectedChain);
-      this.submitDataSubjectEvent(data);
-    } else {
-      this.submitDataSubjectEvent(undefined);
-    }
-  }
-
-  public async init(chain: ConfigChainModel): Promise<GraphContainerModel> {
-    Ensure.notNull(chain, ConfigChainModel.name);
-    try {
-      let rawData = await this.fileUtil.readFileAsync(chain.eventsPath);
-      rawData = JSON.parse(rawData);
-      if (chain.type === ChainType.TEST) {
-        this._data = this.convertTestData(rawData);
-      } else {
-        this._data = this.convertChainData(rawData);
-      }
-      return this.applyFilters(this._data);
-    } catch (error) {
-      return Promise.reject(error);
-    }
-  }
-
   public stopSimulation(): void {
     this._onChangeSubject.next(new GraphEventModel({
       type: GraphEventType.STOP_SIMULATION,
@@ -120,6 +94,32 @@ export class GraphService {
     }
     const data = this.applyFilters(this._data);
     this.submitDataSubjectEvent(data);
+  }
+
+  private async loadAsync(): Promise<void> {
+    this._nodeMap = new Map<string, NodeGraphModel>();
+    if (this.configService.config?.selectedChain) {
+      const data = await this.init(this.configService.config?.selectedChain);
+      this.submitDataSubjectEvent(data);
+    } else {
+      this.submitDataSubjectEvent(undefined);
+    }
+  }
+
+  private async init(chain: ConfigChainModel): Promise<GraphContainerModel> {
+    Ensure.notNull(chain, ConfigChainModel.name);
+    try {
+      let rawData = await this.fileUtil.readFileAsync(chain.eventsPath);
+      rawData = JSON.parse(rawData);
+      if (chain.type === ChainType.TEST) {
+        this._data = this.convertTestData(rawData);
+      } else {
+        this._data = this.convertChainData(rawData);
+      }
+      return this.applyFilters(this._data);
+    } catch (error) {
+      return Promise.reject(error);
+    }
   }
 
   private convertTestData(testData: any): GraphContainerModel {

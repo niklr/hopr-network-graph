@@ -1,18 +1,18 @@
+import { EthersClient } from 'src/app/clients/ethers.client';
 import { ChainType } from './src/app/enums/chain.enum';
 import { ConfigChainModel, ConfigModel } from './src/app/models/config.model';
-import { ChainProxy } from './src/app/proxies/chain.proxy';
 import { CommonUtil } from './src/app/utils/common.util';
 import { LocalFileUtil } from './src/app/utils/local-file.util';
 
 class Extractor {
 
   private fileUtil: LocalFileUtil;
-  private proxy: ChainProxy;
+  private client: EthersClient;
 
   constructor() {
     this.fileUtil = new LocalFileUtil();
     this.fileUtil.baseDir = __dirname;
-    this.proxy = new ChainProxy(this.fileUtil);
+    this.client = new EthersClient(this.fileUtil);
   }
 
   public async extractAsync(): Promise<void> {
@@ -32,7 +32,7 @@ class Extractor {
       return;
     }
     console.log(`Extract ${chainName} started.`);
-    const events = await this.proxy.getAllEvents(chain);
+    const events = await this.client.getAllEvents(chain);
     console.log(`Extract ${chainName} ended.`);
     this.fileUtil.writeFile(CommonUtil.toJsonString(events), `./src/assets/data/${chainName}_EVENTS.json`);
   }

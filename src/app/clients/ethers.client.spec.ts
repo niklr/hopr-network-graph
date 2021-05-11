@@ -2,28 +2,28 @@ import { TestBed } from '@angular/core/testing';
 import { AppModule } from '../app.module';
 import { ChainTxEventType } from '../enums/chain.enum';
 import { ConfigService } from '../services/config.service';
-import { ChainProxy } from './chain.proxy';
+import { EthersClient } from './ethers.client';
 
-describe('ChainProxy', () => {
-  let proxy: ChainProxy;
+describe('EthersClient', () => {
+  let client: EthersClient;
   let configService: ConfigService;
 
   beforeEach(async () => {
     TestBed.configureTestingModule({
       imports: [AppModule]
     });
-    proxy = TestBed.inject(ChainProxy);
+    client = TestBed.inject(EthersClient);
     configService = TestBed.inject(ConfigService);
     await configService.initAsync();
   });
 
   it('should be created', async () => {
-    expect(proxy).toBeTruthy();
+    expect(client).toBeTruthy();
   });
 
   it('should get transaction event name', async () => {
-    expect(proxy.getTxEventName(configService.config.chains[0], ChainTxEventType.BURN)).toBeUndefined();
-    expect(proxy.getTxEventName(configService.config.chains[1], ChainTxEventType.BURN)).toBe('Burned');
-    expect(proxy.getTxEventName(configService.config.chains[2], ChainTxEventType.BURN)).toBe('Burn');
+    expect(client.getTxEventName(configService.config.chains[0], ChainTxEventType.BURN)).toBeUndefined();
+    expect(client.getTxEventName(configService.config.chains[1], ChainTxEventType.BURN)).toBe('Burned');
+    expect(client.getTxEventName(configService.config.chains[2], ChainTxEventType.BURN)).toBe('Burn');
   });
 });

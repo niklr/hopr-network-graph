@@ -8,7 +8,7 @@ import { FileUtil } from '../utils/file.util';
 @Injectable({
   providedIn: 'root'
 })
-export class ChainProxy {
+export class EthersClient {
 
   constructor(private fileUtil: FileUtil) {
 

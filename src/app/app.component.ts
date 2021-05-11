@@ -3,6 +3,8 @@ import { ChainType } from './enums/chain.enum';
 import { GraphLibraryType } from './enums/graph.enum';
 import { ChainModel } from './models/chain.model';
 import { LibraryModel } from './models/library.model';
+import { StatModel } from './models/stat.model';
+import { ChainService } from './services/chain.service';
 import { ConfigService } from './services/config.service';
 import { GraphService } from './services/graph.service';
 
@@ -37,7 +39,7 @@ export class AppComponent {
     })
   ];
 
-  constructor(private configService: ConfigService, private graphService: GraphService) {
+  constructor(private configService: ConfigService, private chainService: ChainService, private graphService: GraphService) {
     this.setMinWeight();
     this.setSelectedLibraryType();
     this.setSelectedChainType();
@@ -62,12 +64,26 @@ export class AppComponent {
     this.load();
   }
 
+  public get isLoading(): boolean {
+    return this.chainService.isLoading;
+  }
+
   public get showStopSimulationButton(): boolean {
     return this.graphService.isSimulating && this.configService.config.selectedGraphLibraryType === GraphLibraryType.D3;
   }
 
+  public get stat(): StatModel {
+    return this.chainService.stat;
+  }
+
   public stopSimulation(): void {
     this.graphService.stopSimulation();
+  }
+
+  public reload(): void {
+    this.chainService.clearAllAsync().finally(() => {
+      this.chainService.loadAsync(this.configService.config.selectedChainType).finally();
+    });
   }
 
   private setMinWeight(): void {
@@ -83,6 +99,7 @@ export class AppComponent {
   }
 
   private load(): void {
+    // this.chainService.loadAsync(this.configService.config.selectedChainType).finally();
     this.graphService.load();
   }
 }
