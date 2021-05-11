@@ -5,6 +5,7 @@ import { ChainTxEventType, ChainType } from '../enums/chain.enum';
 import { GraphEventType } from '../enums/graph.enum';
 import { ChainFilterItemModel } from '../models/chain.model';
 import { ConfigChainModel } from '../models/config.model';
+import { TransferEventModel } from '../models/event.model';
 import {
   EdgeDataModel,
   EdgeGraphModel,
@@ -14,7 +15,6 @@ import {
   NodeDataModel,
   NodeGraphModel
 } from '../models/graph.model';
-import { TransferModel } from '../models/transfer.model';
 import { Ensure } from '../utils/ensure.util';
 import { FileUtil } from '../utils/file.util';
 import { ConfigService } from './config.service';
@@ -139,14 +139,14 @@ export class GraphService {
     if (Array.isArray(chainData)) {
       for (const element of chainData) {
         if (element.event === 'Transfer') {
-          this.addGraphElements(this.createTransferModel(element), data);
+          this.addGraphElements(this.createTransferEventModel(element), data);
         }
       }
     }
     return data;
   }
 
-  private addGraphElements(transfer: TransferModel, data: GraphContainerModel): void {
+  private addGraphElements(transfer: TransferEventModel, data: GraphContainerModel): void {
     this.tryAddNode(transfer.args.from, data);
     this.tryAddNode(transfer.args.to, data);
     data.edges.push(this.createEdgeModel(transfer));
@@ -225,9 +225,9 @@ export class GraphService {
     };
   }
 
-  private createTransferModel(element: any): TransferModel {
+  private createTransferEventModel(element: any): TransferEventModel {
     if (element) {
-      const model = new TransferModel(element);
+      const model = new TransferEventModel(element);
       model.type = ChainTxEventType.TRANSFER;
       if (model.args.from === AppConstants.VOID_ADDRESS) {
         model.type = ChainTxEventType.MINT;
@@ -248,7 +248,7 @@ export class GraphService {
     });
   }
 
-  private createEdgeModel(transfer: TransferModel): EdgeGraphModel {
+  private createEdgeModel(transfer: TransferEventModel): EdgeGraphModel {
     return new EdgeGraphModel({
       data: new EdgeDataModel({
         source: transfer.args.from,

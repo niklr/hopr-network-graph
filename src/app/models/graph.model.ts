@@ -1,6 +1,6 @@
 import { GraphEventType } from '../enums/graph.enum';
+import { TransferEventModel } from './event.model';
 import { PositionModel } from './position.model';
-import { TransferModel } from './transfer.model';
 
 export abstract class BaseGraphModel {
   selected = false; // whether the element is selected (default false)
@@ -83,7 +83,7 @@ export class GraphContainerModel {
 }
 
 export class GraphScratchModel {
-  transfer: TransferModel;
+  transfer: TransferEventModel;
 
   public constructor(init?: Partial<GraphScratchModel>) {
     Object.assign(this, init);

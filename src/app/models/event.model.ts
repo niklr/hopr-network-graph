@@ -1,7 +1,7 @@
 import { ChainTxEventType } from '../enums/chain.enum';
 import { CommonUtil } from '../utils/common.util';
 
-export class TransferModel {
+export abstract class EventModel {
   blockNumber: number;
   blockHash: string;
   transactionIndex: number;
@@ -14,31 +14,38 @@ export class TransferModel {
   event: string;
   type: ChainTxEventType;
   eventSignature: string;
-  args: TransferArgsModel;
 
-  public constructor(init?: Partial<TransferModel>) {
+  public constructor(init?: Partial<EventModel>) {
     Object.assign(this, init);
+  }
+}
+
+export class TransferEventModel extends EventModel {
+  args: TransferEventArgsModel;
+
+  public constructor(init?: Partial<TransferEventModel>) {
+    super(init);
 
     if (init?.args) {
-      this.args = TransferArgsModel.create(init?.args);
+      this.args = TransferEventArgsModel.create(init?.args);
     }
   }
 }
 
-export class TransferArgsModel {
+export class TransferEventArgsModel {
   from: string;
   to: string;
   amount: string;
 
-  public constructor(init?: Partial<TransferArgsModel>) {
+  public constructor(init?: Partial<TransferEventArgsModel>) {
     Object.assign(this, init);
   }
 
-  public static create(items: any): TransferArgsModel {
+  public static create(items: any): TransferEventArgsModel {
     if (!Array.isArray(items) || items.length !== 3) {
       throw new Error('Invalid transfer arguments.');
     }
-    return new TransferArgsModel({
+    return new TransferEventArgsModel({
       from: items[0],
       to: items[1],
       amount: CommonUtil.formatBigNumber(items[2])
