@@ -10,6 +10,7 @@
     {
       "type": 1,
       "rpcProviderUrl": "",
+      "startBlock": 11887000,
       "addressUrl": "https://etherscan.io/address/{address}",
       "txUrl": "https://etherscan.io/tx/{transactionHash}",
       "tokenContractAbiPath": "./assets/abis/HOPR.json",
@@ -24,14 +25,19 @@
     {
       "type": 2,
       "rpcProviderUrl": "https://rpc.xdaichain.com/",
+      "startBlock": 14635000,
       "addressUrl": "https://blockscout.com/xdai/mainnet/address/{address}",
       "txUrl": "https://blockscout.com/xdai/mainnet/tx/{transactionHash}",
       "tokenContractAbiPath": "./assets/abis/xHOPR.json",
       "tokenContractAddress": "0xD057604A14982FE8D88c5fC25Aac3267eA142a08",
+      "bridgeContractAbiPath": "./assets/abis/xdai_omnibridge.json",
+      "bridgeContractAddress": "0xf6A78083ca3e2a662D6dd1703c939c8aCE2e268d",
       "txEventNames": {
         "MINT": "Mint",
         "TRANSFER": "Transfer(address,address,uint256)",
-        "BURN": "Burn"
+        "BURN": "Burn",
+        "BRIDGE_START": "TokensBridgingInitiated",
+        "BRIDGE_END": "TokensBridged"
       },
       "eventsPath": "./assets/data/XDAI_MAIN_EVENTS.json"
     }

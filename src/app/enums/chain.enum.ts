@@ -8,5 +8,7 @@ export enum ChainTxEventType {
   UNKNOWN = 0,
   MINT = 1,
   TRANSFER = 2,
-  BURN = 3
+  BURN = 3,
+  BRIDGE_START = 4,
+  BRIDGE_END = 5
 }

@@ -49,7 +49,7 @@ export class ChainProxy {
     const eventName = this.getTxEventName(chain, type);
     // Create a filter e.g. contract.filters.Transfer() if the eventName is equal to Transfer
     const filter = contract.filters[eventName]();
-    const events = await this.getEventsByBlockAsync(contract, filter, 0, blockNumber);
+    const events = await this.getEventsByBlockAsync(contract, filter, chain.startBlock, blockNumber);
     return events;
   }
 

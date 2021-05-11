@@ -41,10 +41,13 @@ export class ConfigModel {
 export class ConfigChainModel {
   type: ChainType;
   rpcProviderUrl: string;
+  startBlock: number;
   addressUrl: string;
   txUrl: string;
   tokenContractAbiPath: string;
   tokenContractAddress: string;
+  bridgeContractAbiPath: string;
+  bridgeContractAddress: string;
   txEventNames: { [key: string]: string };
   eventsPath: string;
 
