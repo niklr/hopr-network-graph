@@ -24,7 +24,8 @@
               "cytoscape-klay",
               "cytoscape",
               "bn.js",
-              "hash.js"
+              "hash.js",
+              "immediate"
             ],
             "assets": [
               "src/favicon.ico",

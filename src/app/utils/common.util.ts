@@ -28,4 +28,7 @@ export class CommonUtil {
     return ethers.utils.formatUnits(BigNumber.from(bn), 18);
   }
 
+  public static timeout(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
 }
