@@ -20,14 +20,17 @@ export class StatRepository extends BaseRepository<StatModel> {
   public async getOrCreateByChainTypeAsync(type: ChainType): Promise<StatModel> {
     const id = ChainType[type];
     try {
-      return await this._db.get(id);
+      let result = await super.getByIdAsync(id);
+      if (!result) {
+        result = new StatModel({
+          _id: id,
+          version: this.configService.config.version
+        });
+        await super.insertAsync(result);
+      }
+      return Promise.resolve(result);
     } catch (error) {
-      const result = new StatModel({
-        _id: id,
-        version: this.configService.config.version
-      });
-      await this._db.put(result);
-      return result;
+      return Promise.reject(error);
     }
   }
 }

@@ -1,5 +1,6 @@
 import { BigNumber } from '@ethersproject/bignumber';
 import { ethers } from 'ethers';
+import * as LZString from 'lz-string';
 
 export class CommonUtil {
 
@@ -34,5 +35,13 @@ export class CommonUtil {
 
   public static timeout(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  public static compress(data: string): string {
+    return LZString.compressToUTF16(data);
+  }
+
+  public static decompress(data: string): string {
+    return LZString.decompressFromUTF16(data);
   }
 }

@@ -69,7 +69,7 @@ export class ChainService {
 
     if (events?.length > 0) {
       await this.updateStatAsync(true);
-      await this.eventRepository.insertAsync(events);
+      await this.eventRepository.insertManyAsync(events);
     } else {
       await this.updateStatAsync(false);
     }
@@ -89,7 +89,7 @@ export class ChainService {
   private async updateStatAsync(success: boolean): Promise<void> {
     this._stat.extractSuccess = success;
     this._stat.extractedDate = new Date();
-    await this.statRepository.entities.put(this._stat);
+    await this.statRepository.insertAsync(this._stat);
   }
 
   private async extractEventsAsync(chain: ChainConfigModel, extractorType: ChainExtractorType): Promise<EventModel[]> {

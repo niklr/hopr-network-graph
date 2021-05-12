@@ -16,20 +16,11 @@ export class EventRepository extends BaseRepository<EventModel> {
     super.createDatabase('events');
   }
 
-  public async getByChainTypeAsync(type: ChainType): Promise<EventModel[]> {
-    const result = await this._db.find({
-      selector: {
-        type
-      }
-    });
-    return result.docs;
-  }
-
-  public async insertAsync(items: EventModel[]): Promise<void> {
-    const result = await this._db.bulkDocs(items);
-    if (result?.filter((e: any) => e.error === true).length > 0) {
-      // await this._db.remove(items);
-      throw new Error('Insert failed.');
+  public getByChainTypeAsync(type: ChainType): Promise<EventModel[]> {
+    try {
+      return Promise.resolve(this._db({ type }).get());
+    } catch (error) {
+      return Promise.reject(error);
     }
   }
 }

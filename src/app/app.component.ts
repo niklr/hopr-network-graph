@@ -7,6 +7,7 @@ import { StatModel } from './models/stat.model';
 import { ChainService } from './services/chain.service';
 import { ConfigService } from './services/config.service';
 import { GraphService } from './services/graph.service';
+import { MomentUtil } from './utils/moment.util';
 
 @Component({
   selector: 'hopr-root',
@@ -39,7 +40,12 @@ export class AppComponent {
     })
   ];
 
-  constructor(private configService: ConfigService, private chainService: ChainService, private graphService: GraphService) {
+  constructor(
+    private momentUtil: MomentUtil,
+    private configService: ConfigService,
+    private chainService: ChainService,
+    private graphService: GraphService
+  ) {
     this.setMinWeight();
     this.setSelectedLibraryType();
     this.setSelectedChainType();
@@ -88,6 +94,10 @@ export class AppComponent {
     this.chainService.clearAllAsync().then(() => {
       this.load();
     });
+  }
+
+  public formatDate(date: Date): string {
+    return this.momentUtil.getLocalFormatted(date);
   }
 
   private setMinWeight(): void {
