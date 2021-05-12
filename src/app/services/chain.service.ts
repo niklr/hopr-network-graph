@@ -58,20 +58,25 @@ export class ChainService {
       return;
     }
     let events: EventModel[];
+    let source = ChainExtractorType.UNKNOWN;
     if ((!events || events?.length <= 0) && !CommonUtil.isNullOrWhitespace(chain.rpcProviderUrl)) {
       // Use RPC extractor
-      events = await this.extractEventsAsync(chain, ChainExtractorType.RPC);
+      source = ChainExtractorType.RPC;
+      events = await this.extractEventsAsync(chain, source);
     }
     if (!events || events?.length <= 0) {
       // Use file extractor
-      events = await this.extractEventsAsync(chain, ChainExtractorType.FILE);
+      source = ChainExtractorType.FILE;
+      events = await this.extractEventsAsync(chain, source);
     }
 
     if (events?.length > 0) {
-      await this.updateStatAsync(true);
       await this.eventRepository.insertManyAsync(events);
+      const lastBlock = await this.eventRepository.getLastBlockByChainTypeAsync(chain.type);
+      await this.updateStatAsync(true, source, lastBlock);
     } else {
-      await this.updateStatAsync(false);
+      await this.eventRepository.clearByChainType(chain.type);
+      await this.updateStatAsync(false, source, 0);
     }
 
     this._isExtracting = false;
@@ -86,9 +91,11 @@ export class ChainService {
     this._stat = result;
   }
 
-  private async updateStatAsync(success: boolean): Promise<void> {
+  private async updateStatAsync(success: boolean, source: ChainExtractorType, lastBlock: number): Promise<void> {
     this._stat.extractSuccess = success;
     this._stat.extractedDate = new Date();
+    this._stat.source = ChainExtractorType[source];
+    this._stat.lastBlock = lastBlock;
     await this.statRepository.insertAsync(this._stat);
   }
 

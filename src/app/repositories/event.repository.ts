@@ -23,4 +23,21 @@ export class EventRepository extends BaseRepository<EventModel> {
       return Promise.reject(error);
     }
   }
+
+  public getLastBlockByChainTypeAsync(type: ChainType): Promise<number> {
+    try {
+      return Promise.resolve(this._db({ chainType: type }).max('blockNumber'));
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
+
+  public clearByChainType(type: ChainType): Promise<void> {
+    try {
+      this._db({ chainType: type }).remove();
+      return Promise.resolve();
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
 }

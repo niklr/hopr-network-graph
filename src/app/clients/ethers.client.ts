@@ -80,7 +80,7 @@ export class EthersClient {
     blockNumber: number
   ): Promise<ethers.Event[]> {
     const chainName = ChainType[chain.type];
-    const eventSignature = chain.mapTxEventSignatureToString(type);
+    const eventSignature = chain.mapTxEventTypeToString(type);
     console.log(`Extract ${eventSignature} events of ${chainName} started.`);
     // Create a filter e.g. contract.filters.Transfer() if the eventName is equal to Transfer
     let filter: ethers.EventFilter;

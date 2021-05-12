@@ -14,7 +14,8 @@ export enum ChainTxEventType {
 }
 
 export enum ChainExtractorType {
-  FILE = 0,
-  RPC = 1,
-  GRAPHQL = 2
+  UNKNOWN = 0,
+  FILE = 1,
+  RPC = 2,
+  GRAPHQL = 3
 }

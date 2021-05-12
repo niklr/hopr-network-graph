@@ -5,6 +5,8 @@ export class StatModel {
   version: string;
   extractedDate: Date;
   extractSuccess: boolean;
+  source: string;
+  lastBlock: number;
 
   public constructor(init?: Partial<StatModel>) {
     Object.assign(this, init);

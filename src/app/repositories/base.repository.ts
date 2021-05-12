@@ -4,6 +4,7 @@ import { Ensure } from '../utils/ensure.util';
 
 export abstract class BaseRepository<T> {
 
+  private _isLocalStorageDisabled = true;
   private _namespace = 'hopr_network_graph_taffydb_';
   private _dbName: string;
   protected _db: any;
@@ -72,8 +73,10 @@ export abstract class BaseRepository<T> {
 
   private updateLocalStorage(): void {
     try {
-      const json = JSON.stringify(this._db().get());
-      localStorage.setItem(this.localStorageKey, CommonUtil.compress(json));
+      if (!this._isLocalStorageDisabled) {
+        const json = JSON.stringify(this._db().get());
+        localStorage.setItem(this.localStorageKey, CommonUtil.compress(json));
+      }
     } catch (error) {
       console.log(error);
     }
@@ -81,9 +84,11 @@ export abstract class BaseRepository<T> {
 
   private getLocalStorage(): any {
     try {
-      const data = localStorage.getItem(this.localStorageKey);
-      if (data) {
-        return JSON.parse(CommonUtil.decompress(data));
+      if (!this._isLocalStorageDisabled) {
+        const data = localStorage.getItem(this.localStorageKey);
+        if (data) {
+          return JSON.parse(CommonUtil.decompress(data));
+        }
       }
       return undefined;
     } catch (error) {

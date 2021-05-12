@@ -20,9 +20,10 @@ min. weight <input type="range" min="0" max="100" step="1" [value]="minWeight" (
 
 <div id="footer">
   <div *ngIf="!isLoading; else showLoadingBlock">
-    <div *ngIf="stat?.extractSuccess; else extractFailedBlock">{{formatDate(stat.extractedDate)}}</div>
+    <div *ngIf="stat?.extractSuccess; else extractFailedBlock">Last block: {{stat.lastBlock}}</div>
     <ng-template #extractFailedBlock>Load failed</ng-template>
     <button (click)="reload()">Reload</button>
+    <div *ngIf="stat?.source">Source: {{stat.source}}</div>
   </div>
   <ng-template #showLoadingBlock>Loading...</ng-template>
 </div>
