@@ -1,4 +1,4 @@
-import { EthersClient } from 'src/app/clients/ethers.client';
+import { EthersClient } from './src/app/clients/ethers.client';
 import { ChainType } from './src/app/enums/chain.enum';
 import { ChainConfigModel, ConfigModel } from './src/app/models/config.model';
 import { CommonUtil } from './src/app/utils/common.util';
