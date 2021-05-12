@@ -121,8 +121,6 @@ export class GraphService {
         const rawData = await this.fileUtil.readFileAsync(chain.eventsPath);
         this._data = this.convertTestData(JSON.parse(rawData));
       } else {
-        // const rawData = await this.fileUtil.readFileAsync(chain.eventsPath);
-        // this._data = this.convertChainEvents(JSON.parse(rawData));
         const events = await this.eventRepository.getByChainTypeAsync(chain.type);
         this._data = this.convertChainEvents(events);
       }

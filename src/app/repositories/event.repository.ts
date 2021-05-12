@@ -18,7 +18,7 @@ export class EventRepository extends BaseRepository<EventModel> {
 
   public getByChainTypeAsync(type: ChainType): Promise<EventModel[]> {
     try {
-      return Promise.resolve(this._db({ type }).get());
+      return Promise.resolve(this._db({ chainType: type }).get());
     } catch (error) {
       return Promise.reject(error);
     }

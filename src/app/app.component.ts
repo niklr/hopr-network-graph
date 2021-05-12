@@ -97,7 +97,7 @@ export class AppComponent {
   }
 
   public formatDate(date: Date): string {
-    return this.momentUtil.getLocalFormatted(date);
+    return this.momentUtil.getLocalReverseFormatted(date);
   }
 
   private setMinWeight(): void {
