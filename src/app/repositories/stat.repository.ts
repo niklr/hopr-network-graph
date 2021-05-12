@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import PouchDB from 'pouchdb';
 import { ChainType } from '../enums/chain.enum';
 import { StatModel } from '../models/stat.model';
 import { ConfigService } from '../services/config.service';
@@ -14,11 +13,8 @@ export class StatRepository extends BaseRepository<StatModel> {
     super();
   }
 
-  protected createDatabase(): void {
-    this._db = new PouchDB('stats');
-    this._db.info().then((info) => {
-      console.log(info);
-    });
+  protected init(): void {
+    super.createDatabase('stats');
   }
 
   public async getOrCreateByChainTypeAsync(type: ChainType): Promise<StatModel> {

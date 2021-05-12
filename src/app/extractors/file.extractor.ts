@@ -17,7 +17,7 @@ export class FileChainExtractor extends BaseChainExtractor {
     let rawData = await this.fileUtil.readFileAsync(chain.eventsPath);
     rawData = JSON.parse(rawData);
     if (Array.isArray(rawData)) {
-      return Promise.resolve(rawData.map(e => EventModel.fromJS(e)));
+      return Promise.resolve(rawData.map(e => EventModel.fromJS(e, chain)));
     }
     return Promise.resolve(undefined);
   }

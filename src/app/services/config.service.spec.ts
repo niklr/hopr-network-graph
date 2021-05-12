@@ -19,11 +19,11 @@ describe('ConfigService', () => {
     expect(configService.config).toBeDefined();
   });
 
-  it('should map transaction event signature to string', async () => {
+  it('should map transaction event type to string', async () => {
     const config = configService.config;
-    expect(config.chains[0].mapTxEventSignatureToString(ChainTxEventType.BURN)).toBeUndefined();
-    expect(config.chains[1].mapTxEventSignatureToString(ChainTxEventType.BURN)).toBe('Burned(address,address,uint256,bytes,bytes)');
-    expect(config.chains[2].mapTxEventSignatureToString(ChainTxEventType.BURN)).toBe('Burn(address,uint256)');
+    expect(config.chains[0].mapTxEventTypeToString(ChainTxEventType.BURN)).toBeUndefined();
+    expect(config.chains[1].mapTxEventTypeToString(ChainTxEventType.BURN)).toBe('Burned(address,address,uint256,bytes,bytes)');
+    expect(config.chains[2].mapTxEventTypeToString(ChainTxEventType.BURN)).toBe('Burn(address,uint256)');
   });
 
   it('should map transaction event signature to type', async () => {

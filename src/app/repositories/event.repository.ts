@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import PouchDB from 'pouchdb';
 import { ChainType } from '../enums/chain.enum';
 import { EventModel } from '../models/event.model';
 import { BaseRepository } from './base.repository';
@@ -13,24 +12,17 @@ export class EventRepository extends BaseRepository<EventModel> {
     super();
   }
 
-  protected createDatabase(): void {
-    this._db = new PouchDB('events');
-    this._db.info().then((info) => {
-      console.log(info);
-    });
+  protected init(): void {
+    super.createDatabase('events');
   }
 
   public async getByChainTypeAsync(type: ChainType): Promise<EventModel[]> {
-    try {
-      const result = await this._db.find({
-        selector: {
-          type
-        }
-      });
-      return result.docs;
-    } catch (error) {
-      return undefined;
-    }
+    const result = await this._db.find({
+      selector: {
+        type
+      }
+    });
+    return result.docs;
   }
 
   public async insertAsync(items: EventModel[]): Promise<void> {

@@ -48,23 +48,13 @@ export class ChainService {
     this._isExtracting = true;
     const chain = this.configService.config.getChainByType(type);
     Ensure.notNull(chain, 'chain');
-    await this.initStatAsync(type);
-    await this.initEventsAsync(chain);
-    this._isExtracting = false;
-  }
 
-  private async initStatAsync(type: ChainType): Promise<void> {
-    let result = await this.statRepository.getOrCreateByChainTypeAsync(type);
-    if (result.version !== this.configService.config.version) {
-      await this.clearAllAsync();
-      result = await this.statRepository.getOrCreateByChainTypeAsync(type);
-    }
-    this._stat = result;
-  }
+    await this.initStatAsync(chain);
 
-  private async initEventsAsync(chain: ChainConfigModel): Promise<void> {
     const existing = await this.eventRepository.getByChainTypeAsync(chain.type);
     if (existing && existing.length > 0) {
+      console.log(`Found ${existing.length} existing events for ${ChainType[chain.type]}`);
+      this._isExtracting = false;
       return;
     }
     let events: EventModel[];
@@ -76,9 +66,30 @@ export class ChainService {
       // Use file extractor
       events = await this.extractEventsAsync(chain, ChainExtractorType.FILE);
     }
+
     if (events?.length > 0) {
-      this.eventRepository.insertAsync(events);
+      await this.updateStatAsync(true);
+      await this.eventRepository.insertAsync(events);
+    } else {
+      await this.updateStatAsync(false);
     }
+
+    this._isExtracting = false;
+  }
+
+  private async initStatAsync(chain: ChainConfigModel): Promise<void> {
+    let result = await this.statRepository.getOrCreateByChainTypeAsync(chain.type);
+    if (result.version !== this.configService.config.version) {
+      await this.clearAllAsync();
+      result = await this.statRepository.getOrCreateByChainTypeAsync(chain.type);
+    }
+    this._stat = result;
+  }
+
+  private async updateStatAsync(success: boolean): Promise<void> {
+    this._stat.extractSuccess = success;
+    this._stat.extractedDate = new Date();
+    await this.statRepository.entities.put(this._stat);
   }
 
   private async extractEventsAsync(chain: ChainConfigModel, extractorType: ChainExtractorType): Promise<EventModel[]> {

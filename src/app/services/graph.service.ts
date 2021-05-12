@@ -73,6 +73,12 @@ export class GraphService {
     return this._onChangeSubject;
   }
 
+  public clear(): void {
+    this._data = undefined;
+    this._nodeMap = undefined;
+    this.submitDataSubjectEvent(undefined);
+  }
+
   public load(): void {
     this.isLoading = true;
     this.loadAsync().catch((error) => {
@@ -115,10 +121,10 @@ export class GraphService {
         const rawData = await this.fileUtil.readFileAsync(chain.eventsPath);
         this._data = this.convertTestData(JSON.parse(rawData));
       } else {
-        const rawData = await this.fileUtil.readFileAsync(chain.eventsPath);
-        this._data = this.convertChainEvents(JSON.parse(rawData));
-        // const events = await this.eventRepository.getByChainTypeAsync(chain.type);
-        // this._data = this.convertChainEvents(events);
+        // const rawData = await this.fileUtil.readFileAsync(chain.eventsPath);
+        // this._data = this.convertChainEvents(JSON.parse(rawData));
+        const events = await this.eventRepository.getByChainTypeAsync(chain.type);
+        this._data = this.convertChainEvents(events);
       }
       return this.applyFilters(this._data);
     } catch (error) {
@@ -142,7 +148,7 @@ export class GraphService {
     const data = this.createGraphContainerModel();
     if (Array.isArray(events)) {
       for (const item of events) {
-        if (item.event === 'Transfer') {
+        if (item.type === ChainTxEventType.TRANSFER) {
           this.addGraphElements(this.createTransferEventModel(item), data);
         }
       }

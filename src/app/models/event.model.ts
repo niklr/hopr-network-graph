@@ -1,8 +1,9 @@
 import { ChainTxEventType, ChainType } from '../enums/chain.enum';
 import { CommonUtil } from '../utils/common.util';
 import { IdUtil } from '../utils/id.util';
+import { ChainConfigModel } from './config.model';
 
-export abstract class EventModel {
+export class EventModel {
   _id: string;
   chainType: ChainType;
   blockNumber: number;
@@ -14,20 +15,21 @@ export abstract class EventModel {
   topics: string[];
   transactionHash: string;
   logIndex: number;
-  event: string;
-  type: ChainTxEventType;
   eventSignature: string;
+  type: ChainTxEventType;
 
   public constructor(init?: Partial<EventModel>) {
     this.init(init);
   }
 
-  static fromJS(data: any): EventModel {
+  static fromJS(data: any, chain: ChainConfigModel): EventModel {
     data = typeof data === 'object' ? data : {};
+    data.chainType = chain.type;
+    data.type = chain.mapTxEventSignatureToType(data.eventSignature);
     if (data.type === ChainTxEventType.TRANSFER) {
-      return new TransferEventModel(data);
+      return TransferEventModel.fromJS(data);
     }
-    throw new Error('The abstract class \'EventModel\' cannot be instantiated.');
+    return new EventModel(data);
   }
 
   public init(data?: any): void {
@@ -45,11 +47,11 @@ export class TransferEventModel extends EventModel {
     super(init);
   }
 
-  public init(data?: any): void {
-    super.init(data);
-    if (data?.args) {
-      this.args = TransferEventArgsModel.fromJS(data?.args);
-    }
+  static fromJS(data: any): TransferEventModel {
+    data = typeof data === 'object' ? data : {};
+    const result = new TransferEventModel(data);
+    result.args = TransferEventArgsModel.fromJS(data?.args);
+    return result;
   }
 }
 

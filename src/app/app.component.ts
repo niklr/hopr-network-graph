@@ -85,8 +85,8 @@ export class AppComponent {
   }
 
   public reload(): void {
-    this.chainService.clearAllAsync().finally(() => {
-      this.chainService.extractAsync(this.configService.config.selectedChainType).finally();
+    this.chainService.clearAllAsync().then(() => {
+      this.load();
     });
   }
 
@@ -103,7 +103,9 @@ export class AppComponent {
   }
 
   private load(): void {
-    // this.chainService.loadAsync(this.configService.config.selectedChainType).finally();
-    this.graphService.load();
+    this.graphService.clear();
+    this.chainService.extractAsync(this.configService.config.selectedChainType).then(() => {
+      this.graphService.load();
+    });
   }
 }

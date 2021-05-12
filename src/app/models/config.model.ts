@@ -58,6 +58,9 @@ export class ConfigModel {
 }
 
 export class ChainConfigModel {
+
+  private txEventSignaturesMap: Map<string, ChainTxEventType>;
+
   type: ChainType;
   rpcProviderUrl: string;
   startBlock: number;
@@ -76,8 +79,7 @@ export class ChainConfigModel {
 
   static fromJS(data: any): ChainConfigModel {
     data = typeof data === 'object' ? data : {};
-    const result = new ChainConfigModel();
-    result.init(data);
+    const result = new ChainConfigModel(data);
     return result;
   }
 
@@ -86,9 +88,13 @@ export class ChainConfigModel {
     if (!this.txEventSignatures) {
       this.txEventSignatures = {};
     }
+    this.txEventSignaturesMap = new Map<string, ChainTxEventType>();
+    for (const key of Object.keys(this.txEventSignatures)) {
+      this.txEventSignaturesMap.set(this.txEventSignatures[key], ChainTxEventType[key]);
+    }
   }
 
-  public mapTxEventSignatureToString(type: ChainTxEventType): string {
+  public mapTxEventTypeToString(type: ChainTxEventType): string {
     const typeName = ChainTxEventType[type];
     if (this.txEventSignatures && this.txEventSignatures.hasOwnProperty(typeName)) {
       return this.txEventSignatures[typeName];
@@ -97,11 +103,6 @@ export class ChainConfigModel {
   }
 
   public mapTxEventSignatureToType(signature: string): ChainTxEventType {
-    for (const key of Object.keys(this.txEventSignatures)) {
-      if (this.txEventSignatures[key] === signature) {
-        return ChainTxEventType[key];
-      }
-    }
-    return ChainTxEventType.UNKNOWN;
+    return this.txEventSignaturesMap.get(signature) ?? ChainTxEventType.UNKNOWN;
   }
 }
