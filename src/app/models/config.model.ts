@@ -1,21 +1,34 @@
-import { ChainType } from '../enums/chain.enum';
+import { ChainTxEventType, ChainType } from '../enums/chain.enum';
 import { GraphLibraryType } from '../enums/graph.enum';
 
 export class ConfigModel {
 
   private _selectedChainType: ChainType;
-  private _selectedChain: ConfigChainModel;
+  private _selectedChain: ChainConfigModel;
 
   isDevelopment: boolean;
   version: string;
   minWeight: number;
-  chains: ConfigChainModel[];
+  chains: ChainConfigModel[];
   selectedGraphLibraryType: GraphLibraryType;
 
   public constructor(init?: Partial<ConfigModel>) {
-    Object.assign(this, init);
+    this.init(init);
+  }
+
+  static fromJS(data: any): ConfigModel {
+    data = typeof data === 'object' ? data : {};
+    const result = new ConfigModel();
+    result.init(data);
+    return result;
+  }
+
+  public init(data?: any): void {
+    Object.assign(this, data);
     if (!this.chains) {
       this.chains = [];
+    } else {
+      this.chains = data?.chains?.map((e: any) => ChainConfigModel.fromJS(e)) ?? [];
     }
   }
 
@@ -28,19 +41,23 @@ export class ConfigModel {
     this.setSelectedChain(value);
   }
 
-  public get selectedChain(): ConfigChainModel {
+  public get selectedChain(): ChainConfigModel {
     if (this._selectedChain?.type !== this._selectedChainType) {
       this.setSelectedChain(this._selectedChainType);
     }
     return this._selectedChain;
   }
 
+  public getChainByType(type: ChainType): ChainConfigModel {
+    return this.chains?.find(e => e.type === type);
+  }
+
   private setSelectedChain(value: ChainType): void {
-    this._selectedChain = this.chains?.find(e => e.type === value);
+    this._selectedChain = this.getChainByType(value);
   }
 }
 
-export class ConfigChainModel {
+export class ChainConfigModel {
   type: ChainType;
   rpcProviderUrl: string;
   startBlock: number;
@@ -50,13 +67,41 @@ export class ConfigChainModel {
   tokenContractAddress: string;
   bridgeContractAbiPath: string;
   bridgeContractAddress: string;
-  txEventNames: { [key: string]: string };
+  txEventSignatures: { [key: string]: string };
   eventsPath: string;
 
-  public constructor(init?: Partial<ConfigChainModel>) {
-    Object.assign(this, init);
-    if (!this.txEventNames) {
-      this.txEventNames = {};
+  public constructor(init?: Partial<ChainConfigModel>) {
+    this.init(init);
+  }
+
+  static fromJS(data: any): ChainConfigModel {
+    data = typeof data === 'object' ? data : {};
+    const result = new ChainConfigModel();
+    result.init(data);
+    return result;
+  }
+
+  public init(data?: any): void {
+    Object.assign(this, data);
+    if (!this.txEventSignatures) {
+      this.txEventSignatures = {};
     }
+  }
+
+  public mapTxEventSignatureToString(type: ChainTxEventType): string {
+    const typeName = ChainTxEventType[type];
+    if (this.txEventSignatures && this.txEventSignatures.hasOwnProperty(typeName)) {
+      return this.txEventSignatures[typeName];
+    }
+    return undefined;
+  }
+
+  public mapTxEventSignatureToType(signature: string): ChainTxEventType {
+    for (const key of Object.keys(this.txEventSignatures)) {
+      if (this.txEventSignatures[key] === signature) {
+        return ChainTxEventType[key];
+      }
+    }
+    return ChainTxEventType.UNKNOWN;
   }
 }

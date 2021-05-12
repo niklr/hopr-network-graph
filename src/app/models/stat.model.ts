@@ -3,13 +3,13 @@ import { ChainType } from '../enums/chain.enum';
 export class StatModel {
   _id: string;
   version: string;
-  fetchedDate: Date;
-  fetchSuccess: boolean;
+  loadedDate: Date;
+  loadSuccess: boolean;
 
   public constructor(init?: Partial<StatModel>) {
     Object.assign(this, init);
-    if (!this.fetchedDate) {
-      this.fetchedDate = new Date();
+    if (!this.loadedDate) {
+      this.loadedDate = new Date();
     }
   }
 }

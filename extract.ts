@@ -1,6 +1,6 @@
 import { EthersClient } from 'src/app/clients/ethers.client';
 import { ChainType } from './src/app/enums/chain.enum';
-import { ConfigChainModel, ConfigModel } from './src/app/models/config.model';
+import { ChainConfigModel, ConfigModel } from './src/app/models/config.model';
 import { CommonUtil } from './src/app/utils/common.util';
 import { LocalFileUtil } from './src/app/utils/local-file.util';
 
@@ -25,7 +25,7 @@ class Extractor {
     }
   }
 
-  private async extractChainAsync(chain: ConfigChainModel): Promise<void> {
+  private async extractChainAsync(chain: ChainConfigModel): Promise<void> {
     const chainName = ChainType[chain.type];
     if (CommonUtil.isNullOrWhitespace(chain.rpcProviderUrl)) {
       console.log(`Skipping ${chainName} because rpcProviderUrl is empty.`);

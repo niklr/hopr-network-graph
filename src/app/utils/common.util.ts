@@ -16,6 +16,10 @@ export class CommonUtil {
     }
   }
 
+  public static isFunction(value: any): boolean {
+    return value && typeof value === 'function';
+  }
+
   public static toBigNumber(bn: any): BigNumber {
     return BigNumber.from(bn);
   }

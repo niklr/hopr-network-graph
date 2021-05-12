@@ -21,24 +21,17 @@ export class StatRepository extends BaseRepository<StatModel> {
     });
   }
 
-  public async getOrCreateByChainType(type: ChainType): Promise<StatModel> {
+  public async getOrCreateByChainTypeAsync(type: ChainType): Promise<StatModel> {
     const id = ChainType[type];
-    return this._db.get(id).then(result1 => {
-      return result1;
-    }).catch(error1 => {
-      if (error1?.status === 404) {
-        const result = new StatModel({
-          _id: id,
-          version: this.configService.config.version
-        });
-        return this._db.put(result).then(result2 => {
-          return result;
-        }).catch(() => {
-          return undefined;
-        });
-      } else {
-        return undefined;
-      }
-    });
+    try {
+      return await this._db.get(id);
+    } catch (error) {
+      const result = new StatModel({
+        _id: id,
+        version: this.configService.config.version
+      });
+      await this._db.put(result);
+      return result;
+    }
   }
 }

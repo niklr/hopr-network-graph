@@ -1,6 +1,6 @@
 {
-  "minWeight": 10,
-  "selectedChainType": 1,
+  "minWeight": 20,
+  "selectedChainType": 2,
   "selectedGraphLibraryType": 0,
   "chains": [
     {
@@ -17,10 +17,10 @@
       "tokenContractAddress": "0xf5581dfefd8fb0e4aec526be659cfab1f8c781da",
       "bridgeContractAbiPath": "./assets/abis/eth_omnibridge.json",
       "bridgeContractAddress": "0x88ad09518695c6c3712AC10a214bE5109a655671",
-      "txEventNames": {
-        "MINT": "Minted",
-        "TRANSFER": "Transfer",
-        "BURN": "Burned",
+      "txEventSignatures": {
+        "MINT": "Minted(address,address,uint256,bytes,bytes)",
+        "TRANSFER": "Transfer(address,address,uint256)",
+        "BURN": "Burned(address,address,uint256,bytes,bytes)",
         "BRIDGE_START": "TokensBridgingInitiated",
         "BRIDGE_END": "TokensBridged"
       },
@@ -36,10 +36,10 @@
       "tokenContractAddress": "0xD057604A14982FE8D88c5fC25Aac3267eA142a08",
       "bridgeContractAbiPath": "./assets/abis/xdai_omnibridge.json",
       "bridgeContractAddress": "0xf6A78083ca3e2a662D6dd1703c939c8aCE2e268d",
-      "txEventNames": {
-        "MINT": "Mint",
+      "txEventSignatures": {
+        "MINT": "Mint(address,uint256)",
         "TRANSFER": "Transfer(address,address,uint256)",
-        "BURN": "Burn",
+        "BURN": "Burn(address,uint256)",
         "BRIDGE_START": "TokensBridgingInitiated",
         "BRIDGE_END": "TokensBridged"
       },

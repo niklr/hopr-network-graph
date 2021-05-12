@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ethers } from 'ethers';
 import { ChainTxEventType, ChainType } from '../enums/chain.enum';
-import { ConfigChainModel } from '../models/config.model';
+import { ChainConfigModel } from '../models/config.model';
 import { CommonUtil } from '../utils/common.util';
 import { FileUtil } from '../utils/file.util';
 
@@ -40,14 +40,14 @@ export class EthersClient {
     return balanceFormatted;
   }
 
-  public async getAllEvents(chain: ConfigChainModel): Promise<any> {
+  public async getAllEvents(chain: ChainConfigModel): Promise<any> {
     let events = [];
     events = events.concat(await this.getTokenEvents(chain));
     events = events.concat(await this.getBridgeEvents(chain));
     return events;
   }
 
-  public async getTokenEvents(chain: ConfigChainModel): Promise<any> {
+  public async getTokenEvents(chain: ChainConfigModel): Promise<any> {
     const provider = this.createEthersProvider(chain.rpcProviderUrl);
     const blockNumber = await this.getBlockNumberAsync(provider);
     const abi = await this.fileUtil.readFileAsync(chain.tokenContractAbiPath);
@@ -60,7 +60,7 @@ export class EthersClient {
     return events;
   }
 
-  public async getBridgeEvents(chain: ConfigChainModel): Promise<any> {
+  public async getBridgeEvents(chain: ChainConfigModel): Promise<any> {
     const provider = this.createEthersProvider(chain.rpcProviderUrl);
     const blockNumber = await this.getBlockNumberAsync(provider);
     const abi = await this.fileUtil.readFileAsync(chain.bridgeContractAbiPath);
@@ -74,14 +74,14 @@ export class EthersClient {
   }
 
   public async getEventsByTypeAsync(
-    chain: ConfigChainModel,
+    chain: ChainConfigModel,
     contract: ethers.Contract,
     type: ChainTxEventType,
     blockNumber: number
   ): Promise<ethers.Event[]> {
     const chainName = ChainType[chain.type];
-    const eventName = this.getTxEventName(chain, type);
-    console.log(`Extract ${eventName} events of ${chainName} started.`);
+    const eventSignature = chain.mapTxEventSignatureToString(type);
+    console.log(`Extract ${eventSignature} events of ${chainName} started.`);
     // Create a filter e.g. contract.filters.Transfer() if the eventName is equal to Transfer
     let filter: ethers.EventFilter;
     switch (type) {
@@ -90,14 +90,14 @@ export class EthersClient {
         // Filter by token smart contract address
         // - TokensBridged(address indexed token, address indexed recipient, uint256 value, bytes32 indexed messageId)
         // - TokensBridgingInitiated(index_topic_1 address token, index_topic_2 address sender, ...)
-        filter = contract.filters[eventName](chain.tokenContractAddress);
+        filter = contract.filters[eventSignature](chain.tokenContractAddress);
         break;
       default:
-        filter = contract.filters[eventName]();
+        filter = contract.filters[eventSignature]();
         break;
     }
     const events = await this.getEventsByBlockAsync(contract, filter, chain.startBlock, blockNumber);
-    console.log(`Extract ${eventName} events of ${chainName} ended.`);
+    console.log(`Extract ${eventSignature} events of ${chainName} ended.`);
     return events;
   }
 
@@ -118,14 +118,6 @@ export class EthersClient {
       }
     }
     return [];
-  }
-
-  public getTxEventName(chain: ConfigChainModel, type: ChainTxEventType): string {
-    const typeName = ChainTxEventType[type];
-    if (chain?.txEventNames && chain.txEventNames.hasOwnProperty(typeName)) {
-      return chain.txEventNames[typeName];
-    }
-    return undefined;
   }
 
   public async test(contract: ethers.Contract): Promise<void> {

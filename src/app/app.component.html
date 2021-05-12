@@ -18,9 +18,11 @@ min. weight <input type="range" min="0" max="100" step="1" [value]="minWeight" (
 
 <hopr-network-graph></hopr-network-graph>
 
-<p *ngIf="!isLoading && stat">
-  {{stat.fetchedDate}} <button (click)="reload()">Reload</button>
-</p>
+<div *ngIf="!isLoading && stat">
+  <div *ngIf="stat.loadSuccess; else loadFailedBlock">{{stat.loadedDate}}</div>
+  <ng-template #loadFailedBlock>Load failed</ng-template>
+  <button (click)="reload()">Reload</button>
+</div>
 
 <div id="appVersion">
   {{appVersion}}

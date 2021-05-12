@@ -4,8 +4,8 @@ import { AppConstants } from '../app.constants';
 import { ChainTxEventType, ChainType } from '../enums/chain.enum';
 import { GraphEventType } from '../enums/graph.enum';
 import { ChainFilterItemModel } from '../models/chain.model';
-import { ConfigChainModel } from '../models/config.model';
-import { TransferEventModel } from '../models/event.model';
+import { ChainConfigModel } from '../models/config.model';
+import { EventModel, TransferEventModel } from '../models/event.model';
 import {
   EdgeDataModel,
   EdgeGraphModel,
@@ -15,6 +15,7 @@ import {
   NodeDataModel,
   NodeGraphModel
 } from '../models/graph.model';
+import { EventRepository } from '../repositories/event.repository';
 import { Ensure } from '../utils/ensure.util';
 import { FileUtil } from '../utils/file.util';
 import { ConfigService } from './config.service';
@@ -35,7 +36,7 @@ export class GraphService {
   public drawNodeLabel = false;
   public readonly filter: Map<string, ChainFilterItemModel>;
 
-  constructor(private configService: ConfigService, private fileUtil: FileUtil) {
+  constructor(private configService: ConfigService, private eventRepository: EventRepository, private fileUtil: FileUtil) {
     this._onChangeSubject = new Subject<any>();
     this.filter = new Map<string, ChainFilterItemModel>([
       [
@@ -74,7 +75,8 @@ export class GraphService {
 
   public load(): void {
     this.isLoading = true;
-    this.loadAsync().catch(() => {
+    this.loadAsync().catch((error) => {
+      console.log(error);
       this.isLoading = false;
     }).finally();
   }
@@ -106,15 +108,17 @@ export class GraphService {
     }
   }
 
-  private async init(chain: ConfigChainModel): Promise<GraphContainerModel> {
-    Ensure.notNull(chain, ConfigChainModel.name);
+  private async init(chain: ChainConfigModel): Promise<GraphContainerModel> {
+    Ensure.notNull(chain, ChainConfigModel.name);
     try {
-      let rawData = await this.fileUtil.readFileAsync(chain.eventsPath);
-      rawData = JSON.parse(rawData);
       if (chain.type === ChainType.TEST) {
-        this._data = this.convertTestData(rawData);
+        const rawData = await this.fileUtil.readFileAsync(chain.eventsPath);
+        this._data = this.convertTestData(JSON.parse(rawData));
       } else {
-        this._data = this.convertChainData(rawData);
+        const rawData = await this.fileUtil.readFileAsync(chain.eventsPath);
+        this._data = this.convertChainEvents(JSON.parse(rawData));
+        // const events = await this.eventRepository.getByChainTypeAsync(chain.type);
+        // this._data = this.convertChainEvents(events);
       }
       return this.applyFilters(this._data);
     } catch (error) {
@@ -134,12 +138,12 @@ export class GraphService {
     return data;
   }
 
-  private convertChainData(chainData: any): GraphContainerModel {
+  private convertChainEvents(events: EventModel[]): GraphContainerModel {
     const data = this.createGraphContainerModel();
-    if (Array.isArray(chainData)) {
-      for (const element of chainData) {
-        if (element.event === 'Transfer') {
-          this.addGraphElements(this.createTransferEventModel(element), data);
+    if (Array.isArray(events)) {
+      for (const item of events) {
+        if (item.event === 'Transfer') {
+          this.addGraphElements(this.createTransferEventModel(item), data);
         }
       }
     }

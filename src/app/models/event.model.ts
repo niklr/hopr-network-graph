@@ -1,7 +1,10 @@
-import { ChainTxEventType } from '../enums/chain.enum';
+import { ChainTxEventType, ChainType } from '../enums/chain.enum';
 import { CommonUtil } from '../utils/common.util';
+import { IdUtil } from '../utils/id.util';
 
 export abstract class EventModel {
+  _id: string;
+  chainType: ChainType;
   blockNumber: number;
   blockHash: string;
   transactionIndex: number;
@@ -16,7 +19,22 @@ export abstract class EventModel {
   eventSignature: string;
 
   public constructor(init?: Partial<EventModel>) {
-    Object.assign(this, init);
+    this.init(init);
+  }
+
+  static fromJS(data: any): EventModel {
+    data = typeof data === 'object' ? data : {};
+    if (data.type === ChainTxEventType.TRANSFER) {
+      return new TransferEventModel(data);
+    }
+    throw new Error('The abstract class \'EventModel\' cannot be instantiated.');
+  }
+
+  public init(data?: any): void {
+    Object.assign(this, data);
+    if (!this._id) {
+      this._id = IdUtil.create();
+    }
   }
 }
 
@@ -25,9 +43,12 @@ export class TransferEventModel extends EventModel {
 
   public constructor(init?: Partial<TransferEventModel>) {
     super(init);
+  }
 
-    if (init?.args) {
-      this.args = TransferEventArgsModel.create(init?.args);
+  public init(data?: any): void {
+    super.init(data);
+    if (data?.args) {
+      this.args = TransferEventArgsModel.fromJS(data?.args);
     }
   }
 }
@@ -41,7 +62,7 @@ export class TransferEventArgsModel {
     Object.assign(this, init);
   }
 
-  public static create(items: any): TransferEventArgsModel {
+  static fromJS(items: any): TransferEventArgsModel {
     if (!Array.isArray(items) || items.length !== 3) {
       throw new Error('Invalid transfer arguments.');
     }
