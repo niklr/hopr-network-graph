@@ -13,7 +13,7 @@ export enum ChainTxEventType {
   BRIDGE_END = 5
 }
 
-export enum ChainLoaderType {
+export enum ChainExtractorType {
   FILE = 0,
   RPC = 1,
   GRAPHQL = 2

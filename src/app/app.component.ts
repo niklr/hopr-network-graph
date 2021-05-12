@@ -65,7 +65,7 @@ export class AppComponent {
   }
 
   public get isLoading(): boolean {
-    return this.chainService.isLoading;
+    return this.chainService.isExtracting;
   }
 
   public get showStopSimulationButton(): boolean {
@@ -86,7 +86,7 @@ export class AppComponent {
 
   public reload(): void {
     this.chainService.clearAllAsync().finally(() => {
-      this.chainService.loadAsync(this.configService.config.selectedChainType).finally();
+      this.chainService.extractAsync(this.configService.config.selectedChainType).finally();
     });
   }
 

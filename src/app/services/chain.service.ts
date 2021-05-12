@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { ChainLoaderType, ChainType } from '../enums/chain.enum';
-import { ChainLoaderFactory } from '../factories/loader.factory';
+import { ChainExtractorType, ChainType } from '../enums/chain.enum';
+import { ChainExtractorFactory } from '../factories/extractor.factory';
 import { ChainConfigModel } from '../models/config.model';
 import { EventModel } from '../models/event.model';
 import { StatModel } from '../models/stat.model';
@@ -15,20 +15,20 @@ import { ConfigService } from './config.service';
 })
 export class ChainService {
 
-  private _isLoading: boolean;
+  private _isExtracting: boolean;
   private _stat: StatModel;
 
   constructor(
     private configService: ConfigService,
-    private loaderFactory: ChainLoaderFactory,
+    private extractorFactory: ChainExtractorFactory,
     private statRepository: StatRepository,
     private eventRepository: EventRepository
   ) {
 
   }
 
-  public get isLoading(): boolean {
-    return this._isLoading;
+  public get isExtracting(): boolean {
+    return this._isExtracting;
   }
 
   public get stat(): StatModel {
@@ -44,13 +44,13 @@ export class ChainService {
     }
   }
 
-  public async loadAsync(type: ChainType): Promise<void> {
-    this._isLoading = true;
+  public async extractAsync(type: ChainType): Promise<void> {
+    this._isExtracting = true;
     const chain = this.configService.config.getChainByType(type);
     Ensure.notNull(chain, 'chain');
     await this.initStatAsync(type);
     await this.initEventsAsync(chain);
-    this._isLoading = false;
+    this._isExtracting = false;
   }
 
   private async initStatAsync(type: ChainType): Promise<void> {
@@ -69,22 +69,22 @@ export class ChainService {
     }
     let events: EventModel[];
     if ((!events || events?.length <= 0) && !CommonUtil.isNullOrWhitespace(chain.rpcProviderUrl)) {
-      // Use RPC loader
-      events = await this.loadEventsAsync(chain, ChainLoaderType.RPC);
+      // Use RPC extractor
+      events = await this.extractEventsAsync(chain, ChainExtractorType.RPC);
     }
     if (!events || events?.length <= 0) {
-      // Use file loader
-      events = await this.loadEventsAsync(chain, ChainLoaderType.FILE);
+      // Use file extractor
+      events = await this.extractEventsAsync(chain, ChainExtractorType.FILE);
     }
     if (events?.length > 0) {
       this.eventRepository.insertAsync(events);
     }
   }
 
-  private async loadEventsAsync(chain: ChainConfigModel, loaderType: ChainLoaderType): Promise<EventModel[]> {
+  private async extractEventsAsync(chain: ChainConfigModel, extractorType: ChainExtractorType): Promise<EventModel[]> {
     try {
-      const loader = this.loaderFactory.get(loaderType);
-      return await loader.loadAsync(chain);
+      const extractor = this.extractorFactory.get(extractorType);
+      return await extractor.extractAsync(chain);
     } catch (error) {
       console.log(error);
       return undefined;

@@ -2,18 +2,18 @@ import { Injectable } from '@angular/core';
 import { ChainConfigModel } from '../models/config.model';
 import { EventModel } from '../models/event.model';
 import { FileUtil } from '../utils/file.util';
-import { BaseChainLoader } from './base.loader';
+import { BaseChainExtractor } from './base.extractor';
 
 @Injectable({
   providedIn: 'root'
 })
-export class FileChainLoader extends BaseChainLoader {
+export class FileChainExtractor extends BaseChainExtractor {
 
   constructor(private fileUtil: FileUtil) {
     super();
   }
 
-  public async loadAsyncInternal(chain: ChainConfigModel): Promise<EventModel[]> {
+  public async extractAsyncInternal(chain: ChainConfigModel): Promise<EventModel[]> {
     let rawData = await this.fileUtil.readFileAsync(chain.eventsPath);
     rawData = JSON.parse(rawData);
     if (Array.isArray(rawData)) {
