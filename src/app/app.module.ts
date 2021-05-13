@@ -4,6 +4,7 @@ import { AppComponent } from './app.component';
 import { CytoscapeComponent } from './components/cytoscape/cytoscape.component';
 import { D3Component } from './components/d3/d3.component';
 import { GraphComponent } from './components/graph/graph.component';
+import { LogsComponent } from './components/logs/logs.component';
 import { ConfigService } from './services/config.service';
 import { BrowserFileUtil } from './utils/browser-file.util';
 import { FileUtil } from './utils/file.util';
@@ -17,7 +18,8 @@ export function initConfig(config: ConfigService) {
     AppComponent,
     CytoscapeComponent,
     D3Component,
-    GraphComponent
+    GraphComponent,
+    LogsComponent
   ],
   imports: [
     BrowserModule

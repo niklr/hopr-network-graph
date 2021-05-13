@@ -16,7 +16,10 @@ min. weight <input type="range" min="0" max="100" step="1" [value]="minWeight" (
 
 <button *ngIf="showStopSimulationButton" (click)="stopSimulation()">Stop simulation</button>
 
-<hopr-network-graph></hopr-network-graph>
+<div id="main">
+  <hopr-logs *ngIf="isLoading"></hopr-logs>
+  <hopr-network-graph></hopr-network-graph>
+</div>
 
 <div id="footer">
   <div *ngIf="!isLoading; else showLoadingBlock">

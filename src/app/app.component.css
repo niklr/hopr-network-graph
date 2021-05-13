@@ -2,6 +2,13 @@ button {
   margin: 0 5px 0 5px;
 }
 
+#main {
+  height: 70vh;
+  float: left;
+  width: 100%;
+  position: relative;
+}
+
 #footer {
   position: absolute;
   bottom: 0;

@@ -1,8 +1,5 @@
 #graphContainer {
-  height: 70vh;
-  float: left;
-  width: 100%;
-  position: relative;
+  height: 100%;
 }
 
 .loading {
