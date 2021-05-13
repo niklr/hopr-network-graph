@@ -9,6 +9,7 @@ import { StatRepository } from '../repositories/stat.repository';
 import { CommonUtil } from '../utils/common.util';
 import { Ensure } from '../utils/ensure.util';
 import { ConfigService } from './config.service';
+import { Logger } from './logger.service';
 
 @Injectable({
   providedIn: 'root'
@@ -19,6 +20,7 @@ export class ChainService {
   private _stat: StatModel;
 
   constructor(
+    private logger: Logger,
     private configService: ConfigService,
     private extractorFactory: ChainExtractorFactory,
     private statRepository: StatRepository,
@@ -37,6 +39,7 @@ export class ChainService {
 
   public async clearAllAsync(): Promise<void> {
     try {
+      this.logger.info('Clearing local data.');
       await this.statRepository.clearAllAsync();
       await this.eventRepository.clearAllAsync();
     } catch (error) {
@@ -45,6 +48,7 @@ export class ChainService {
   }
 
   public async extractAsync(type: ChainType): Promise<void> {
+    this.logger.info('Data extraction started.');
     this._isExtracting = true;
     const chain = this.configService.config.getChainByType(type);
     Ensure.notNull(chain, 'chain');
@@ -80,6 +84,7 @@ export class ChainService {
     }
 
     this._isExtracting = false;
+    this.logger.info('Data extraction ended.');
   }
 
   private async initStatAsync(chain: ChainConfigModel): Promise<void> {

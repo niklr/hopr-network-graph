@@ -6,6 +6,7 @@ import { D3Component } from './components/d3/d3.component';
 import { GraphComponent } from './components/graph/graph.component';
 import { LogsComponent } from './components/logs/logs.component';
 import { ConfigService } from './services/config.service';
+import { DefaultLoggerService, Logger } from './services/logger.service';
 import { BrowserFileUtil } from './utils/browser-file.util';
 import { FileUtil } from './utils/file.util';
 
@@ -28,6 +29,10 @@ export function initConfig(config: ConfigService) {
     {
       provide: FileUtil,
       useClass: BrowserFileUtil
+    },
+    {
+      provide: Logger,
+      useClass: DefaultLoggerService
     },
     {
       provide: APP_INITIALIZER,

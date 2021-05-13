@@ -8,3 +8,7 @@
   background-color: white;
   z-index: 1;
 }
+
+.logMessage {
+  width: 100%;
+}
