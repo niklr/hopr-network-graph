@@ -81,24 +81,29 @@ export class EthersClient {
   ): Promise<ethers.Event[]> {
     const chainName = ChainType[chain.type];
     const eventSignature = chain.mapTxEventTypeToString(type);
-    console.log(`Extract ${eventSignature} events of ${chainName} started.`);
-    // Create a filter e.g. contract.filters.Transfer() if the eventName is equal to Transfer
-    let filter: ethers.EventFilter;
-    switch (type) {
-      case ChainTxEventType.BRIDGE_START:
-      case ChainTxEventType.BRIDGE_END:
-        // Filter by token smart contract address
-        // - TokensBridged(address indexed token, address indexed recipient, uint256 value, bytes32 indexed messageId)
-        // - TokensBridgingInitiated(index_topic_1 address token, index_topic_2 address sender, ...)
-        filter = contract.filters[eventSignature](chain.tokenContractAddress);
-        break;
-      default:
-        filter = contract.filters[eventSignature]();
-        break;
+    if (CommonUtil.isNullOrWhitespace(eventSignature)) {
+      console.log(`Extract ${ChainTxEventType[type]} events of ${chainName} skipped (no signature found).`);
+      return Promise.resolve([]);
+    } else {
+      console.log(`Extract ${eventSignature} events of ${chainName} started.`);
+      // Create a filter e.g. contract.filters.Transfer() if the eventName is equal to Transfer
+      let filter: ethers.EventFilter;
+      switch (type) {
+        case ChainTxEventType.BRIDGE_START:
+        case ChainTxEventType.BRIDGE_END:
+          // Filter by token smart contract address
+          // - TokensBridged(address indexed token, address indexed recipient, uint256 value, bytes32 indexed messageId)
+          // - TokensBridgingInitiated(index_topic_1 address token, index_topic_2 address sender, ...)
+          filter = contract.filters[eventSignature](chain.tokenContractAddress);
+          break;
+        default:
+          filter = contract.filters[eventSignature]();
+          break;
+      }
+      const events = await this.getEventsByBlockAsync(contract, filter, chain.startBlock, blockNumber);
+      console.log(`Extract ${eventSignature} events of ${chainName} ended.`);
+      return events;
     }
-    const events = await this.getEventsByBlockAsync(contract, filter, chain.startBlock, blockNumber);
-    console.log(`Extract ${eventSignature} events of ${chainName} ended.`);
-    return events;
   }
 
   public async getEventsByBlockAsync(

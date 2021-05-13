@@ -21,8 +21,8 @@
         "MINT": "Minted(address,address,uint256,bytes,bytes)",
         "TRANSFER": "Transfer(address,address,uint256)",
         "BURN": "Burned(address,address,uint256,bytes,bytes)",
-        "BRIDGE_START": "TokensBridgingInitiated",
-        "BRIDGE_END": "TokensBridged"
+        "BRIDGE_START": "TokensBridgingInitiated(address,address,uint256,bytes32)",
+        "BRIDGE_END": "TokensBridged(address,address,uint256,bytes32)"
       },
       "eventsPath": "./assets/data/ETH_MAIN_EVENTS.json"
     },
@@ -40,8 +40,8 @@
         "MINT": "Mint(address,uint256)",
         "TRANSFER": "Transfer(address,address,uint256)",
         "BURN": "Burn(address,uint256)",
-        "BRIDGE_START": "TokensBridgingInitiated",
-        "BRIDGE_END": "TokensBridged"
+        "BRIDGE_START": "TokensBridgingInitiated(address,address,uint256,bytes32)",
+        "BRIDGE_END": "TokensBridged(address,address,uint256,bytes32)"
       },
       "eventsPath": "./assets/data/XDAI_MAIN_EVENTS.json"
     }
