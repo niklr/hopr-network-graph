@@ -33,6 +33,7 @@ export class ChainService {
     return this._isExtracting;
   }
 
+  // TODO: set stat based on selected chain
   public get stat(): StatModel {
     return this._stat;
   }
@@ -47,9 +48,21 @@ export class ChainService {
     }
   }
 
-  public async extractAsync(type: ChainType): Promise<void> {
+  public async extractAsync(): Promise<void> {
     this.logger.info('Data extraction started.');
     this._isExtracting = true;
+    for (const chain of this.configService.config.chains) {
+      await this.extractChainAsync(chain.type);
+    }
+    this._isExtracting = false;
+    this.logger.info('Data extraction ended.');
+  }
+
+  private async extractChainAsync(type: ChainType): Promise<void> {
+    if (type === ChainType.TEST) {
+      return Promise.resolve();
+    }
+
     const chain = this.configService.config.getChainByType(type);
     Ensure.notNull(chain, 'chain');
 
@@ -82,9 +95,6 @@ export class ChainService {
       await this.eventRepository.clearByChainType(chain.type);
       await this.updateStatAsync(false, source, 0);
     }
-
-    this._isExtracting = false;
-    this.logger.info('Data extraction ended.');
   }
 
   private async initStatAsync(chain: ChainConfigModel): Promise<void> {

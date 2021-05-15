@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
+import * as DataForge from 'data-forge';
 import { Subject } from 'rxjs';
 import { AppConstants } from '../app.constants';
 import { ChainTxEventType, ChainType } from '../enums/chain.enum';
 import { GraphEventType } from '../enums/graph.enum';
 import { ChainFilterItemModel } from '../models/chain.model';
 import { ChainConfigModel } from '../models/config.model';
-import { EventModel, TransferEventModel } from '../models/event.model';
+import { EventModel, TokensBridgedEventModel, TokensBridgingInitiatedEventModel, TransferEventModel } from '../models/event.model';
 import {
   EdgeDataModel,
   EdgeGraphModel,
@@ -84,7 +85,7 @@ export class GraphService {
     this.loadAsync().catch((error) => {
       console.log(error);
       this.isLoading = false;
-    }).finally();
+    });
   }
 
   public stopSimulation(): void {
@@ -102,6 +103,66 @@ export class GraphService {
     }
     const data = this.applyFilters(this._data);
     this.submitDataSubjectEvent(data);
+  }
+
+  public async transformCrossChain(): Promise<void> {
+    const chain1 = this.configService.config.getChainByType(ChainType.ETH_MAIN);
+    const chain2 = this.configService.config.getChainByType(ChainType.XDAI_MAIN);
+    const events1 = await this.eventRepository.getByChainTypeAsync(chain1.type);
+    const events2 = await this.eventRepository.getByChainTypeAsync(chain2.type);
+    const df1 = new DataForge.DataFrame(events1).setIndex('_id');
+    const df2 = new DataForge.DataFrame(events2).setIndex('_id');
+
+    await this.transformCrossChainEvents(df1, df2, chain1);
+  }
+
+  private async transformCrossChainEvents(
+    df1: DataForge.IDataFrame<any, EventModel>,
+    df2: DataForge.IDataFrame<any, EventModel>,
+    chain: ChainConfigModel
+  ): Promise<void> {
+    const df1_transfers = df1.where(e => e.type === ChainTxEventType.TRANSFER).cast<TransferEventModel>();
+    console.log(ChainType[chain.type], df1_transfers.where(
+      e => e.args.from === chain.bridgeContractAddress || e.args.to === chain.bridgeContractAddress).count());
+
+    const df1_1 = df1.where(e => e.type === ChainTxEventType.BRIDGE_START).cast<TokensBridgingInitiatedEventModel>()
+      .join(
+        df1_transfers,
+        left => left.transactionHash,
+        right => right.transactionHash,
+        (left1, right1) => {
+          return {
+            messageId: left1.args.messageId,
+            bridgeStart: left1,
+            transfer: right1
+          };
+        });
+    console.log(df1_1.count());
+    console.log(df1_1.take(3).toArray());
+    const df3 = df2.where(e => e.type === ChainTxEventType.BRIDGE_END).cast<TokensBridgedEventModel>()
+      .join(
+        df1_1,
+        left => left.args.messageId,
+        right => right.messageId,
+        (l2, r2) => {
+          // Clone the transfer object before modifying values
+          const modifiedTransfer = Object.assign({}, r2.transfer);
+          modifiedTransfer.args = Object.assign({}, r2.transfer.args);
+          if (r2.transfer.args.to === chain.bridgeContractAddress) {
+            modifiedTransfer.args.to = l2.args.recipient;
+          }
+          if (r2.transfer.args.from === chain.bridgeContractAddress) {
+            modifiedTransfer.args.from = r2.bridgeStart.args.sender;
+          }
+          return {
+            leftTransaction: l2.transactionHash,
+            transfer: modifiedTransfer
+          };
+        }
+      );
+    console.log(df3.count());
+    console.log(df3.take(3).toArray());
+    console.log(df1.where(e => e._id === df3.first().transfer._id).first());
   }
 
   private async loadAsync(): Promise<void> {
@@ -181,8 +242,7 @@ export class GraphService {
   private filterByWeight(data: GraphContainerModel, minWeight: number): GraphContainerModel {
     console.log('nodes/edges before filterByWeight', data.nodes.length, '/', data.edges.length);
     const result = this.createGraphContainerModel();
-    result.nodes = data.nodes.filter(
-      (e: NodeGraphModel) => this._nodeMap.get(e.data.id)?.data.weight > minWeight);
+    result.nodes = data.nodes.filter((e: NodeGraphModel) => e.data.weight > minWeight);
     result.edges = data.edges.filter(
       (e: EdgeGraphModel) => this._nodeMap.get(e.data.source)?.data.weight > minWeight
         && this._nodeMap.get(e.data.target)?.data.weight > minWeight);

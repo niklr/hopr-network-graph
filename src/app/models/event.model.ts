@@ -26,8 +26,15 @@ export class EventModel {
     data = typeof data === 'object' ? data : {};
     data.chainType = chain.type;
     data.type = chain.mapTxEventSignatureToType(data.eventSignature);
-    if (data.type === ChainTxEventType.TRANSFER) {
-      return TransferEventModel.fromJS(data);
+    switch (data.type) {
+      case ChainTxEventType.TRANSFER:
+        return TransferEventModel.fromJS(data);
+      case ChainTxEventType.BRIDGE_START:
+        return TokensBridgingInitiatedEventModel.fromJS(data);
+      case ChainTxEventType.BRIDGE_END:
+        return TokensBridgedEventModel.fromJS(data);
+      default:
+        break;
     }
     return new EventModel(data);
   }
@@ -66,12 +73,88 @@ export class TransferEventArgsModel {
 
   static fromJS(items: any): TransferEventArgsModel {
     if (!Array.isArray(items) || items.length !== 3) {
-      throw new Error('Invalid transfer arguments.');
+      throw new Error('Invalid TransferEvent arguments.');
     }
     return new TransferEventArgsModel({
       from: items[0],
       to: items[1],
       amount: CommonUtil.formatBigNumber(items[2])
+    });
+  }
+}
+
+export class TokensBridgingInitiatedEventModel extends EventModel {
+  args: TokensBridgingInitiatedEventArgsModel;
+
+  public constructor(init?: Partial<TokensBridgingInitiatedEventModel>) {
+    super(init);
+  }
+
+  static fromJS(data: any): TokensBridgingInitiatedEventModel {
+    data = typeof data === 'object' ? data : {};
+    const result = new TokensBridgingInitiatedEventModel(data);
+    result.args = TokensBridgingInitiatedEventArgsModel.fromJS(data?.args);
+    return result;
+  }
+}
+
+export class TokensBridgingInitiatedEventArgsModel {
+  token: string;
+  sender: string;
+  value: string;
+  messageId: string;
+
+  public constructor(init?: Partial<TokensBridgingInitiatedEventArgsModel>) {
+    Object.assign(this, init);
+  }
+
+  static fromJS(items: any): TokensBridgingInitiatedEventArgsModel {
+    if (!Array.isArray(items) || items.length !== 4) {
+      throw new Error('Invalid TokensBridgingInitiatedEvent arguments.');
+    }
+    return new TokensBridgingInitiatedEventArgsModel({
+      token: items[0],
+      sender: items[1],
+      value: items[2],
+      messageId: items[3]
+    });
+  }
+}
+
+export class TokensBridgedEventModel extends EventModel {
+  args: TokensBridgedEventArgsModel;
+
+  public constructor(init?: Partial<TokensBridgedEventModel>) {
+    super(init);
+  }
+
+  static fromJS(data: any): TokensBridgedEventModel {
+    data = typeof data === 'object' ? data : {};
+    const result = new TokensBridgedEventModel(data);
+    result.args = TokensBridgedEventArgsModel.fromJS(data?.args);
+    return result;
+  }
+}
+
+export class TokensBridgedEventArgsModel {
+  token: string;
+  recipient: string;
+  value: string;
+  messageId: string;
+
+  public constructor(init?: Partial<TokensBridgedEventArgsModel>) {
+    Object.assign(this, init);
+  }
+
+  static fromJS(items: any): TokensBridgedEventArgsModel {
+    if (!Array.isArray(items) || items.length !== 4) {
+      throw new Error('Invalid TokensBridgedEvent arguments.');
+    }
+    return new TokensBridgedEventArgsModel({
+      token: items[0],
+      recipient: items[1],
+      value: items[2],
+      messageId: items[3]
     });
   }
 }
