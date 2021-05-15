@@ -9,8 +9,8 @@ export class ConfigModel {
   isDevelopment: boolean;
   version: string;
   minWeight: number;
-  chains: ChainConfigModel[];
   selectedGraphLibraryType: GraphLibraryType;
+  chains: ChainConfigModel[];
 
   public constructor(init?: Partial<ConfigModel>) {
     this.init(init);
@@ -18,13 +18,22 @@ export class ConfigModel {
 
   static fromJS(data: any): ConfigModel {
     data = typeof data === 'object' ? data : {};
-    const result = new ConfigModel();
-    result.init(data);
-    return result;
+    return new ConfigModel(data);
   }
 
-  public init(data?: any): void {
-    Object.assign(this, data);
+  init(data?: any): void {
+    if (data) {
+      this.isDevelopment = data.isDevelopment;
+      this.version = data.version;
+      this.minWeight = data.minWeight;
+      this.selectedGraphLibraryType = data.selectedGraphLibraryType;
+      if (Array.isArray(data.chains)) {
+        this.chains = [];
+        for (const item of data.chains) {
+          this.chains.push(ChainConfigModel.fromJS(item));
+        }
+      }
+    }
     if (!this.chains) {
       this.chains = [];
     } else {
@@ -79,12 +88,23 @@ export class ChainConfigModel {
 
   static fromJS(data: any): ChainConfigModel {
     data = typeof data === 'object' ? data : {};
-    const result = new ChainConfigModel(data);
-    return result;
+    return new ChainConfigModel(data);
   }
 
-  public init(data?: any): void {
-    Object.assign(this, data);
+  init(data?: any): void {
+    if (data) {
+      this.type = data.type;
+      this.rpcProviderUrl = data.rpcProviderUrl;
+      this.startBlock = data.startBlock;
+      this.addressUrl = data.addressUrl;
+      this.txUrl = data.txUrl;
+      this.tokenContractAbiPath = data.tokenContractAbiPath;
+      this.tokenContractAddress = data.tokenContractAddress;
+      this.bridgeContractAbiPath = data.bridgeContractAbiPath;
+      this.bridgeContractAddress = data.bridgeContractAddress;
+      this.txEventSignatures = Object.assign({}, data.txEventSignatures);
+      this.eventsPath = data.eventsPath;
+    }
     if (!this.txEventSignatures) {
       this.txEventSignatures = {};
     }

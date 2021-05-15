@@ -44,4 +44,12 @@ export class CommonUtil {
   public static decompress(data: string): string {
     return LZString.decompressFromUTF16(data);
   }
+
+  public assign<T>(values: Partial<T>, ctor: new () => T): T {
+    const instance = new ctor();
+    return Object.keys(instance).reduce((acc, key) => {
+      acc[key] = values[key];
+      return acc;
+    }, {}) as T;
+  }
 }

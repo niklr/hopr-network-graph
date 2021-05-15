@@ -25,7 +25,11 @@
               "cytoscape",
               "bn.js",
               "hash.js",
-              "lz-string"
+              "lz-string",
+              "easy-table",
+              "numeral",
+              "papaparse",
+              "typy"
             ],
             "assets": [
               "src/favicon.ico",

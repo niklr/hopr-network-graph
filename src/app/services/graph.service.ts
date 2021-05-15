@@ -117,52 +117,51 @@ export class GraphService {
   }
 
   private async transformCrossChainEvents(
-    df1: DataForge.IDataFrame<any, EventModel>,
-    df2: DataForge.IDataFrame<any, EventModel>,
+    leftEvents: DataForge.IDataFrame<any, EventModel>,
+    rightEvents: DataForge.IDataFrame<any, EventModel>,
     chain: ChainConfigModel
   ): Promise<void> {
-    const df1_transfers = df1.where(e => e.type === ChainTxEventType.TRANSFER).cast<TransferEventModel>();
-    console.log(ChainType[chain.type], df1_transfers.where(
-      e => e.args.from === chain.bridgeContractAddress || e.args.to === chain.bridgeContractAddress).count());
+    const leftTransfers = leftEvents.where(e => e.type === ChainTxEventType.TRANSFER).cast<TransferEventModel>();
+    console.log(ChainType[chain.type], leftTransfers.where(
+      e => e.argsFrom === chain.bridgeContractAddress || e.argsTo === chain.bridgeContractAddress).count());
 
-    const df1_1 = df1.where(e => e.type === ChainTxEventType.BRIDGE_START).cast<TokensBridgingInitiatedEventModel>()
+    const df1_1 = leftEvents.where(e => e.type === ChainTxEventType.BRIDGE_START).cast<TokensBridgingInitiatedEventModel>()
       .join(
-        df1_transfers,
+        leftTransfers,
         left => left.transactionHash,
         right => right.transactionHash,
         (left1, right1) => {
           return {
-            messageId: left1.args.messageId,
+            messageId: left1.argsMessageId,
             bridgeStart: left1,
             transfer: right1
           };
         });
     console.log(df1_1.count());
     console.log(df1_1.take(3).toArray());
-    const df3 = df2.where(e => e.type === ChainTxEventType.BRIDGE_END).cast<TokensBridgedEventModel>()
+    const df3 = rightEvents.where(e => e.type === ChainTxEventType.BRIDGE_END).cast<TokensBridgedEventModel>()
       .join(
         df1_1,
-        left => left.args.messageId,
+        left => left.argsMessageId,
         right => right.messageId,
         (l2, r2) => {
           // Clone the transfer object before modifying values
-          const modifiedTransfer = Object.assign({}, r2.transfer);
-          modifiedTransfer.args = Object.assign({}, r2.transfer.args);
-          if (r2.transfer.args.to === chain.bridgeContractAddress) {
-            modifiedTransfer.args.to = l2.args.recipient;
+          const transferCloned = new TransferEventModel(r2.transfer);
+          if (r2.transfer.argsTo === chain.bridgeContractAddress) {
+            transferCloned.argsTo = l2.argsRecipient;
           }
-          if (r2.transfer.args.from === chain.bridgeContractAddress) {
-            modifiedTransfer.args.from = r2.bridgeStart.args.sender;
+          if (r2.transfer.argsFrom === chain.bridgeContractAddress) {
+            transferCloned.argsFrom = r2.bridgeStart.argsSender;
           }
           return {
             leftTransaction: l2.transactionHash,
-            transfer: modifiedTransfer
+            transfer: transferCloned
           };
         }
       );
     console.log(df3.count());
     console.log(df3.take(3).toArray());
-    console.log(df1.where(e => e._id === df3.first().transfer._id).first());
+    console.log(leftEvents.where(e => e._id === df3.first().transfer._id).first());
   }
 
   private async loadAsync(): Promise<void> {
@@ -216,8 +215,8 @@ export class GraphService {
   }
 
   private addGraphElements(transfer: TransferEventModel, data: GraphContainerModel): void {
-    this.tryAddNode(transfer.args.from, data);
-    this.tryAddNode(transfer.args.to, data);
+    this.tryAddNode(transfer.argsFrom, data);
+    this.tryAddNode(transfer.argsTo, data);
     data.edges.push(this.createEdgeModel(transfer));
   }
 
@@ -297,9 +296,9 @@ export class GraphService {
     if (element) {
       const model = new TransferEventModel(element);
       model.type = ChainTxEventType.TRANSFER;
-      if (model.args.from === AppConstants.VOID_ADDRESS) {
+      if (model.argsFrom === AppConstants.VOID_ADDRESS) {
         model.type = ChainTxEventType.MINT;
-      } else if (model.args.to === AppConstants.VOID_ADDRESS) {
+      } else if (model.argsTo === AppConstants.VOID_ADDRESS) {
         model.type = ChainTxEventType.BURN;
       }
       return model;
@@ -319,8 +318,8 @@ export class GraphService {
   private createEdgeModel(transfer: TransferEventModel): EdgeGraphModel {
     return new EdgeGraphModel({
       data: new EdgeDataModel({
-        source: transfer.args.from,
-        target: transfer.args.to
+        source: transfer.argsFrom,
+        target: transfer.argsTo
       }),
       scratch: new GraphScratchModel({
         transfer

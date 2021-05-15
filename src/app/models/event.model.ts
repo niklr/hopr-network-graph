@@ -18,8 +18,8 @@ export class EventModel {
   eventSignature: string;
   type: ChainTxEventType;
 
-  public constructor(init?: Partial<EventModel>) {
-    this.init(init);
+  public constructor(data?: Partial<EventModel>) {
+    this.init(data);
   }
 
   static fromJS(data: any, chain: ChainConfigModel): EventModel {
@@ -39,122 +39,131 @@ export class EventModel {
     return new EventModel(data);
   }
 
-  public init(data?: any): void {
-    Object.assign(this, data);
+  init(data?: any): void {
+    if (data) {
+      this._id = data._id;
+      this.chainType = data.chainType;
+      this.blockNumber = data.blockNumber;
+      this.blockHash = data.blockHash;
+      this.transactionIndex = data.transactionIndex;
+      this.removed = data.removed;
+      this.address = data.address;
+      this.data = data.data;
+      if (Array.isArray(data.topics)) {
+        this.topics = [];
+        for (const item of data.topics) {
+          this.topics.push(item);
+        }
+      }
+      this.transactionHash = data.transactionHash;
+      this.logIndex = data.logIndex;
+      this.eventSignature = data.eventSignature;
+      this.type = data.type;
+    }
     if (!this._id) {
       this._id = IdUtil.create();
+    }
+    if (!this.topics) {
+      this.topics = [];
     }
   }
 }
 
 export class TransferEventModel extends EventModel {
-  args: TransferEventArgsModel;
+  argsFrom: string;
+  argsTo: string;
+  argsAmount: string;
 
-  public constructor(init?: Partial<TransferEventModel>) {
-    super(init);
+  public constructor(data?: Partial<TransferEventModel>) {
+    super(data);
   }
 
   static fromJS(data: any): TransferEventModel {
     data = typeof data === 'object' ? data : {};
     const result = new TransferEventModel(data);
-    result.args = TransferEventArgsModel.fromJS(data?.args);
-    return result;
-  }
-}
-
-export class TransferEventArgsModel {
-  from: string;
-  to: string;
-  amount: string;
-
-  public constructor(init?: Partial<TransferEventArgsModel>) {
-    Object.assign(this, init);
-  }
-
-  static fromJS(items: any): TransferEventArgsModel {
-    if (!Array.isArray(items) || items.length !== 3) {
+    if (!Array.isArray(data.args) || data.args.length !== 3) {
       throw new Error('Invalid TransferEvent arguments.');
     }
-    return new TransferEventArgsModel({
-      from: items[0],
-      to: items[1],
-      amount: CommonUtil.formatBigNumber(items[2])
-    });
+    result.argsFrom = data.args[0];
+    result.argsTo = data.args[1];
+    result.argsAmount = CommonUtil.formatBigNumber(data.args[2]);
+    return result;
+  }
+
+  init(data?: any): void {
+    super.init(data);
+    if (data) {
+      this.argsFrom = data.argsFrom;
+      this.argsTo = data.argsTo;
+      this.argsAmount = data.argsAmount;
+    }
   }
 }
 
 export class TokensBridgingInitiatedEventModel extends EventModel {
-  args: TokensBridgingInitiatedEventArgsModel;
+  argsToken: string;
+  argsSender: string;
+  argsValue: string;
+  argsMessageId: string;
 
-  public constructor(init?: Partial<TokensBridgingInitiatedEventModel>) {
-    super(init);
+  public constructor(data?: Partial<TokensBridgingInitiatedEventModel>) {
+    super(data);
   }
 
   static fromJS(data: any): TokensBridgingInitiatedEventModel {
     data = typeof data === 'object' ? data : {};
     const result = new TokensBridgingInitiatedEventModel(data);
-    result.args = TokensBridgingInitiatedEventArgsModel.fromJS(data?.args);
-    return result;
-  }
-}
-
-export class TokensBridgingInitiatedEventArgsModel {
-  token: string;
-  sender: string;
-  value: string;
-  messageId: string;
-
-  public constructor(init?: Partial<TokensBridgingInitiatedEventArgsModel>) {
-    Object.assign(this, init);
-  }
-
-  static fromJS(items: any): TokensBridgingInitiatedEventArgsModel {
-    if (!Array.isArray(items) || items.length !== 4) {
+    if (!Array.isArray(data.args) || data.args.length !== 4) {
       throw new Error('Invalid TokensBridgingInitiatedEvent arguments.');
     }
-    return new TokensBridgingInitiatedEventArgsModel({
-      token: items[0],
-      sender: items[1],
-      value: items[2],
-      messageId: items[3]
-    });
+    result.argsToken = data.args[0];
+    result.argsSender = data.args[1];
+    result.argsValue = data.args[2];
+    result.argsMessageId = data.args[3];
+    return result;
+  }
+
+  init(data?: any): void {
+    super.init(data);
+    if (data) {
+      this.argsToken = data.argsToken;
+      this.argsSender = data.argsSender;
+      this.argsValue = data.argsValue;
+      this.argsMessageId = data.argsMessageId;
+    }
   }
 }
 
 export class TokensBridgedEventModel extends EventModel {
-  args: TokensBridgedEventArgsModel;
+  argsToken: string;
+  argsRecipient: string;
+  argsValue: string;
+  argsMessageId: string;
 
-  public constructor(init?: Partial<TokensBridgedEventModel>) {
-    super(init);
+  public constructor(data?: Partial<TokensBridgedEventModel>) {
+    super(data);
   }
 
   static fromJS(data: any): TokensBridgedEventModel {
     data = typeof data === 'object' ? data : {};
     const result = new TokensBridgedEventModel(data);
-    result.args = TokensBridgedEventArgsModel.fromJS(data?.args);
-    return result;
-  }
-}
-
-export class TokensBridgedEventArgsModel {
-  token: string;
-  recipient: string;
-  value: string;
-  messageId: string;
-
-  public constructor(init?: Partial<TokensBridgedEventArgsModel>) {
-    Object.assign(this, init);
-  }
-
-  static fromJS(items: any): TokensBridgedEventArgsModel {
-    if (!Array.isArray(items) || items.length !== 4) {
+    if (!Array.isArray(data.args) || data.args.length !== 4) {
       throw new Error('Invalid TokensBridgedEvent arguments.');
     }
-    return new TokensBridgedEventArgsModel({
-      token: items[0],
-      recipient: items[1],
-      value: items[2],
-      messageId: items[3]
-    });
+    result.argsToken = data.args[0];
+    result.argsRecipient = data.args[1];
+    result.argsValue = data.args[2];
+    result.argsMessageId = data.args[3];
+    return result;
+  }
+
+  init(data?: any): void {
+    super.init(data);
+    if (data) {
+      this.argsToken = data.argsToken;
+      this.argsRecipient = data.argsRecipient;
+      this.argsValue = data.argsValue;
+      this.argsMessageId = data.argsMessageId;
+    }
   }
 }
