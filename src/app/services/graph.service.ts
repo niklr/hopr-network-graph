@@ -108,27 +108,18 @@ export class GraphService {
   public async transformCrossChain(): Promise<void> {
     const chain1 = this.configService.config.getChainByType(ChainType.ETH_MAIN);
     const chain2 = this.configService.config.getChainByType(ChainType.XDAI_MAIN);
-    const events1 = await this.eventRepository.getByChainTypeAsync(chain1.type);
-    const events2 = await this.eventRepository.getByChainTypeAsync(chain2.type);
-    const df1 = new DataForge.DataFrame(events1).setIndex('_id');
-    const df2 = new DataForge.DataFrame(events2).setIndex('_id');
+    const bridgeAddress1 = chain1.bridgeContractAddress;
+    const bridgeAddress2 = chain2.bridgeContractAddress;
+    const events = await this.eventRepository.getAllAsync();
 
-    const result = this.transformCrossChainEvents(df1, df2, chain1);
-  }
+    let eventsDataFrame = new DataForge.DataFrame(events).setIndex('_id').bake();
+    eventsDataFrame = eventsDataFrame.where(e => e.chainType === chain1.type || e.chainType === chain2.type);
+    const transfersDataFrame = eventsDataFrame.where(e => e.type === ChainTxEventType.TRANSFER).cast<TransferEventModel>();
+    console.log('transfersDataFrame', transfersDataFrame.count());
 
-  private transformCrossChainEvents(
-    leftEvents: DataForge.IDataFrame<any, EventModel>,
-    rightEvents: DataForge.IDataFrame<any, EventModel>,
-    chain: ChainConfigModel
-  ): TransferEventModel[] {
-    const leftTransfers = leftEvents.where(e => e.type === ChainTxEventType.TRANSFER).cast<TransferEventModel>();
-    console.log(ChainType[chain.type], leftTransfers.where(
-      e => e.argsFrom === chain.bridgeContractAddress || e.argsTo === chain.bridgeContractAddress).count());
-    const rightTransfers = rightEvents.where(e => e.type === ChainTxEventType.TRANSFER).cast<TransferEventModel>();
-
-    const leftStart = leftEvents.where(e => e.type === ChainTxEventType.BRIDGE_START).cast<TokensBridgingInitiatedEventModel>()
+    const startEvents = eventsDataFrame.where(e => e.type === ChainTxEventType.BRIDGE_START).cast<TokensBridgingInitiatedEventModel>()
       .join(
-        leftTransfers,
+        transfersDataFrame,
         left => left.transactionHash,
         right => right.transactionHash,
         (left1, right1) => {
@@ -138,56 +129,91 @@ export class GraphService {
             transfer: right1
           };
         });
-    console.log(leftStart.count());
-    console.log(leftStart.take(3).toArray());
-    const rightEnd = rightEvents.where(e => e.type === ChainTxEventType.BRIDGE_END).cast<TokensBridgedEventModel>()
+    console.log('startEvents', startEvents.count());
+    console.log(startEvents.take(3).toArray());
+    const endEvents = eventsDataFrame.where(e => e.type === ChainTxEventType.BRIDGE_END).cast<TokensBridgedEventModel>()
       .join(
-        leftStart,
+        startEvents,
         left => left.argsMessageId,
         right => right.messageId,
         (left1, right1) => {
-          const result = {
+          const innerResult = {
+            index: right1.transfer._id,
             transactionHash: left1.transactionHash,
             transfer: right1.transfer,
             excludeTransfer: false
           };
-          if (right1.transfer.argsTo === chain.bridgeContractAddress) {
+          if (right1.transfer.argsTo === bridgeAddress1 || right1.transfer.argsTo === bridgeAddress2) {
             // sender -> bridge
-            result.excludeTransfer = true;
+            innerResult.excludeTransfer = true;
           }
-          if (right1.transfer.argsFrom === chain.bridgeContractAddress) {
+          if (right1.transfer.argsFrom === bridgeAddress1 || right1.transfer.argsFrom === bridgeAddress2) {
             if (right1.transfer.argsTo === AppConstants.VOID_ADDRESS) {
               // bridge -> 0x
-              result.excludeTransfer = true;
+              innerResult.excludeTransfer = true;
             } else {
               // bridge -> fee receiver
               // Clone the transfer object before modifying values
-              const transferCloned = new TransferEventModel(result.transfer);
+              const transferCloned = new TransferEventModel(innerResult.transfer);
               transferCloned.argsFrom = right1.bridgeStart.argsSender;
-              result.transfer = transferCloned;
+              innerResult.transfer = transferCloned;
             }
           }
-          return result;
+          return innerResult;
         }
-      );
-    console.log(rightEnd.count());
-    console.log(rightEnd.take(3).toArray());
+      ).setIndex('index').bake();
+    console.log('endEvents', endEvents.count());
+    console.log(endEvents.take(3).toArray());
     // console.log(leftEvents.where(e => e._id === rightEnd.first().transfer?._id).first());
-    const result = rightEnd.distinct(e => e.transactionHash).join(
-      rightTransfers,
+    const projectedTransfers = endEvents.distinct(e => e.transactionHash).join(
+      transfersDataFrame,
       left => left.transactionHash,
       right => right.transactionHash,
       (left1, right1) => {
         // 0x -> recipient or bridge -> recipient
-        // Clone the transfer object before modifying values
-        const transferCloned = new TransferEventModel(right1);
-        transferCloned.argsFrom = left1.transfer.argsFrom;
-        return transferCloned;
-      });
-    console.log(result.count());
-    console.log(result.take(4).toArray());
+        if (right1.argsFrom === AppConstants.VOID_ADDRESS || right1.argsFrom === bridgeAddress1 || right1.argsFrom === bridgeAddress2) {
+          // Clone the transfer object before modifying values
+          const transferCloned = new TransferEventModel(right1);
+          transferCloned.argsFrom = left1.transfer.argsFrom;
+          return transferCloned;
+        }
+        return right1;
+      }).setIndex('_id').bake();
+    console.log('projectedTransfers', projectedTransfers.count());
+    console.log(projectedTransfers.take(4).toArray());
+    const projectedTransfer = projectedTransfers.first();
+    console.log(projectedTransfer);
 
-    return [];
+    // Build final transfers array...
+    // const finalResult = transfersDataFrame.joinOuterLeft(
+    //   projectedTransfers,
+    //   left => left._id,
+    //   right => right._id,
+    //   (left1, right1) => {
+    //     if (right1) {
+    //       return right1;
+    //     }
+    //     return left1;
+    //   }
+    // );
+    console.log('excludeTransfer', endEvents.where(e => e.excludeTransfer).count());
+    const endEventsMap = new Map(endEvents.toPairs());
+    const projectedTransfersMap = new Map(projectedTransfers.toPairs());
+    const finalResult: TransferEventModel[] = [];
+    transfersDataFrame.toArray().forEach(e => {
+      const endEvent = endEventsMap.get(e._id);
+      if (endEvent) {
+        if (!endEvent.excludeTransfer) {
+          finalResult.push(endEvent.transfer);
+        }
+      } else if (projectedTransfersMap.has(e._id)) {
+        finalResult.push(projectedTransfersMap.get(e._id));
+      } else {
+        finalResult.push(e);
+      }
+    });
+    console.log('finalResult', finalResult.length);
+    console.log(finalResult.find(e => e._id === projectedTransfer._id));
   }
 
   private async loadAsync(): Promise<void> {
