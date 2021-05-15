@@ -113,19 +113,20 @@ export class GraphService {
     const df1 = new DataForge.DataFrame(events1).setIndex('_id');
     const df2 = new DataForge.DataFrame(events2).setIndex('_id');
 
-    await this.transformCrossChainEvents(df1, df2, chain1);
+    const result = this.transformCrossChainEvents(df1, df2, chain1);
   }
 
-  private async transformCrossChainEvents(
+  private transformCrossChainEvents(
     leftEvents: DataForge.IDataFrame<any, EventModel>,
     rightEvents: DataForge.IDataFrame<any, EventModel>,
     chain: ChainConfigModel
-  ): Promise<void> {
+  ): TransferEventModel[] {
     const leftTransfers = leftEvents.where(e => e.type === ChainTxEventType.TRANSFER).cast<TransferEventModel>();
     console.log(ChainType[chain.type], leftTransfers.where(
       e => e.argsFrom === chain.bridgeContractAddress || e.argsTo === chain.bridgeContractAddress).count());
+    const rightTransfers = rightEvents.where(e => e.type === ChainTxEventType.TRANSFER).cast<TransferEventModel>();
 
-    const df1_1 = leftEvents.where(e => e.type === ChainTxEventType.BRIDGE_START).cast<TokensBridgingInitiatedEventModel>()
+    const leftStart = leftEvents.where(e => e.type === ChainTxEventType.BRIDGE_START).cast<TokensBridgingInitiatedEventModel>()
       .join(
         leftTransfers,
         left => left.transactionHash,
@@ -137,31 +138,56 @@ export class GraphService {
             transfer: right1
           };
         });
-    console.log(df1_1.count());
-    console.log(df1_1.take(3).toArray());
-    const df3 = rightEvents.where(e => e.type === ChainTxEventType.BRIDGE_END).cast<TokensBridgedEventModel>()
+    console.log(leftStart.count());
+    console.log(leftStart.take(3).toArray());
+    const rightEnd = rightEvents.where(e => e.type === ChainTxEventType.BRIDGE_END).cast<TokensBridgedEventModel>()
       .join(
-        df1_1,
+        leftStart,
         left => left.argsMessageId,
         right => right.messageId,
-        (l2, r2) => {
-          // Clone the transfer object before modifying values
-          const transferCloned = new TransferEventModel(r2.transfer);
-          if (r2.transfer.argsTo === chain.bridgeContractAddress) {
-            transferCloned.argsTo = l2.argsRecipient;
-          }
-          if (r2.transfer.argsFrom === chain.bridgeContractAddress) {
-            transferCloned.argsFrom = r2.bridgeStart.argsSender;
-          }
-          return {
-            leftTransaction: l2.transactionHash,
-            transfer: transferCloned
+        (left1, right1) => {
+          const result = {
+            transactionHash: left1.transactionHash,
+            transfer: right1.transfer,
+            excludeTransfer: false
           };
+          if (right1.transfer.argsTo === chain.bridgeContractAddress) {
+            // sender -> bridge
+            result.excludeTransfer = true;
+          }
+          if (right1.transfer.argsFrom === chain.bridgeContractAddress) {
+            if (right1.transfer.argsTo === AppConstants.VOID_ADDRESS) {
+              // bridge -> 0x
+              result.excludeTransfer = true;
+            } else {
+              // bridge -> fee receiver
+              // Clone the transfer object before modifying values
+              const transferCloned = new TransferEventModel(result.transfer);
+              transferCloned.argsFrom = right1.bridgeStart.argsSender;
+              result.transfer = transferCloned;
+            }
+          }
+          return result;
         }
       );
-    console.log(df3.count());
-    console.log(df3.take(3).toArray());
-    console.log(leftEvents.where(e => e._id === df3.first().transfer._id).first());
+    console.log(rightEnd.count());
+    console.log(rightEnd.take(3).toArray());
+    // console.log(leftEvents.where(e => e._id === rightEnd.first().transfer?._id).first());
+    const result = rightEnd.distinct(e => e.transactionHash).join(
+      rightTransfers,
+      left => left.transactionHash,
+      right => right.transactionHash,
+      (left1, right1) => {
+        // 0x -> recipient or bridge -> recipient
+        // Clone the transfer object before modifying values
+        const transferCloned = new TransferEventModel(right1);
+        transferCloned.argsFrom = left1.transfer.argsFrom;
+        return transferCloned;
+      });
+    console.log(result.count());
+    console.log(result.take(4).toArray());
+
+    return [];
   }
 
   private async loadAsync(): Promise<void> {
