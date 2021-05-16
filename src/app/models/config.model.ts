@@ -26,6 +26,7 @@ export class ConfigModel {
       this.isDevelopment = data.isDevelopment;
       this.version = data.version;
       this.minWeight = data.minWeight;
+      this.selectedChainType = data.selectedChainType;
       this.selectedGraphLibraryType = data.selectedGraphLibraryType;
       if (Array.isArray(data.chains)) {
         this.chains = [];

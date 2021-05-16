@@ -222,6 +222,7 @@ export class GraphService {
       const data = await this.init(this.configService.config?.selectedChain);
       this.submitDataSubjectEvent(data);
     } else {
+      console.log('No chain is selected.');
       this.submitDataSubjectEvent(undefined);
     }
   }
