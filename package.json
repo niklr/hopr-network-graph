@@ -28,6 +28,8 @@
     "lz-string": "^1.4.4",
     "moment": "^2.29.1",
     "rxjs": "~6.6.0",
+    "stardust-core": "^0.2.4",
+    "stardust-webgl": "^0.2.4",
     "taffydb": "^2.7.3",
     "tslib": "^2.0.0",
     "uuid": "^8.3.2",

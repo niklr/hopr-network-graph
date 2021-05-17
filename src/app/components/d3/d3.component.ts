@@ -1,8 +1,8 @@
 import { Component, ElementRef, EventEmitter, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import * as d3 from 'd3';
 import { Subscription } from 'rxjs';
-import { AppConstants } from '../../app.constants';
-import { ChainTxEventType } from '../../enums/chain.enum';
+import * as Stardust from 'stardust-core';
+import * as StardustWebGL from 'stardust-webgl';
 import { GraphElementType, GraphEventType } from '../../enums/graph.enum';
 import { EdgeDataModel, EdgeGraphModel, GraphEventModel, GraphScratchModel, GraphStateModel, NodeDataModel, NodeGraphModel } from '../../models/graph.model';
 import { GraphService } from '../../services/graph.service';
@@ -20,20 +20,27 @@ export class D3Component implements OnInit, OnDestroy {
 
   private width: number;
   private height: number;
-  private canvas: d3.Selection<HTMLCanvasElement, unknown, HTMLElement, any>;
-  private context: CanvasRenderingContext2D;
-  private base: d3.Selection<HTMLElement, unknown, HTMLElement, any>;
+  private canvas: HTMLElement;
+  private canvasContainer: d3.Selection<HTMLCanvasElement, unknown, HTMLElement, any>;
   private zoom: d3.ZoomBehavior<Element, unknown>;
   private edges: any;
   private nodes: any;
   private simulation: d3.Simulation<d3.SimulationNodeDatum, undefined>;
   private transform: any;
+  private platform: Stardust.Platform;
+  private positions: Stardust.ArrayBinding;
+  private starNodes: Stardust.Mark;
+  private starNodesBg: Stardust.Mark;
+  private starNodesSelected: Stardust.Mark;
+  private starEdges: Stardust.Mark;
+  private starNodeText: Stardust.Mark;
+  private starEdgeText: Stardust.Mark;
   private state: GraphStateModel;
   private connectedLookup: any = {};
   private subs: Subscription[] = [];
 
   constructor(private graphService: GraphService) {
-
+    const asdf = StardustWebGL.version;
   }
 
   ngOnInit(): void {
@@ -105,6 +112,46 @@ export class D3Component implements OnInit, OnDestroy {
           transfer: e.scratch?.transfer
         };
       });
+
+      function mapColor(color: number[], opacity: number = 1) {
+        return [color[0] / 255, color[1] / 255, color[2] / 255, opacity];
+      }
+
+      this.starNodes.attr('radius', 2).attr('color', mapColor([31, 119, 180]));
+      // this.starNodesBg.attr('radius', 3).attr('color', mapColor([1, 1, 1, 0.5]));
+      this.starNodesSelected.attr('radius', 4).attr('color', mapColor([228, 26, 28]));
+      this.starEdges.attr('width', 0.5).attr('color', mapColor([0.5, 0.5, 0.5], 0.1));
+      this.starNodeText.attr('text', (d: any) => d.name)
+        // .attr('up', [0, 1])
+        .attr('fontFamily', 'Arial')
+        .attr('fontSize', 12)
+        // .attr('scale', d => this.transform.k)
+        // .attr('scale', d => 1 + Math.sin(d) / 2)
+        .attr('color', mapColor([0.5, 0.5, 0.5], 1));
+      this.starEdgeText.attr('text', (d: any) => d.transfer?.args?.amount ?? d.type)
+        .attr('fontFamily', 'Arial')
+        .attr('fontSize', 12)
+        .attr('color', mapColor([0.5, 0.5, 0.5], 1));
+
+      this.positions = Stardust.array()
+        .value(d => [d.x * this.transform.k + this.transform.x, d.y * this.transform.k + this.transform.y])
+        .data(this.nodes);
+
+      const positionScale = Stardust.scale.custom('array(pos, value)').attr('pos', 'Vector2Array', this.positions);
+
+      this.starNodesSelected.attr('center', positionScale(d => d.index));
+      this.starNodes.attr('center', positionScale(d => d.index));
+      this.starNodesBg.attr('center', positionScale(d => d.index));
+      this.starEdges.attr('p1', positionScale(d => d.source.index));
+      this.starEdges.attr('p2', positionScale(d => d.target.index));
+      this.starNodeText.attr('position', positionScale(d => d.index));
+
+      this.starNodesBg.data(this.nodes);
+      this.starNodes.data(this.nodes);
+      this.starEdges.data(this.edges);
+      this.starNodeText.data(this.nodes);
+      this.starEdgeText.data(this.edges);
+
       if (this.simulation) {
         this.simulation.stop();
       }
@@ -121,8 +168,11 @@ export class D3Component implements OnInit, OnDestroy {
       this.graphService.isSimulating = true;
 
       this.simulation.on('tick', () => {
+        // positions.data(this.nodes);
         this.requestRender();
       });
+
+      this.requestRender();
 
       this.connectedLookup = {};
       this.edges.forEach((d: any) => {
@@ -145,66 +195,59 @@ export class D3Component implements OnInit, OnDestroy {
 
   private render(): void {
     this.state.requestedAnimationFrame = undefined;
-    this.context.save();
-    this.context.clearRect(0, 0, this.width, this.height);
-    this.context.translate(this.transform.x, this.transform.y);
-    this.context.scale(this.transform.k, this.transform.k);
-    this.drawEdges();
-    this.drawNodes();
-    this.context.restore();
-  }
 
-  private drawEdges(): void {
-    // draw links
-    this.context.strokeStyle = AppConstants.TX_EVENT_TRANSFER_COLOR;
-    this.context.beginPath();
-    this.edges.forEach((d) => {
-      if (d?.transfer?.type) {
-        switch (d.transfer.type) {
-          case ChainTxEventType.MINT:
-            this.context.strokeStyle = AppConstants.TX_EVENT_MINT_COLOR;
-            break;
-          case ChainTxEventType.BURN:
-            this.context.strokeStyle = AppConstants.TX_EVENT_BURN_COLOR;
-            break;
-          default:
-            this.context.strokeStyle = AppConstants.TX_EVENT_TRANSFER_COLOR;
-            break;
-        }
-      } else {
-        this.context.strokeStyle = AppConstants.TX_EVENT_TRANSFER_COLOR;
-      }
-      this.context.moveTo(d.source.x, d.source.y);
-      this.context.lineTo(d.target.x, d.target.y);
-    });
-    this.context.stroke();
-  }
+    // Cleanup and re-render.
+    // this.platform.clear([1, 1, 1, 1]);
+    this.starEdges.render();
+    // this.starNodesBg.render();
+    this.starNodes.attr('radius', (d: any) => Math.max(5, (d.weight / 10) + 5) * this.transform.k);
+    this.starNodes.render();
+    this.starNodesSelected.render();
+    this.starNodeText.attr('scale', this.transform.k);
+    this.starNodeText.render();
+    this.starNodeText.attr('alignX', 0.5);
+    this.starNodeText.attr('alignY', 0.5);
 
-  private drawNodes(): void {
-    this.context.fillStyle = AppConstants.NODE_COLOR;
-    this.context.beginPath();
-    this.nodes.forEach((d) => {
-      const radius = Math.max(5, (d.weight / 10) + 5);
-      this.context.moveTo(d.x + radius, d.y);
-      this.context.arc(d.x, d.y, radius, 0, 2 * Math.PI);
-    });
-    this.context.fill();
+    // this.starEdgeText.attr('position', d => {
+    //   return [
+    //     (this.positions.data()[d.source.index].x + this.positions.data()[d.target.index].x) / 2,
+    //     (this.positions.data()[d.source.index].y + this.positions.data()[d.target.index].y) / 2,
+    //   ];
+    // });
+    this.starEdgeText.attr('scale', this.transform.k);
+    this.starEdgeText.render();
+
+    // Render the picking buffer.
+    // this.platform.beginPicking(this.width, this.height);
+    // this.starNodes.attr('radius', 6); // make radius larger so it's easier to select.
+    // this.starNodes.render();
+    // this.platform.endPicking();
   }
 
   private createCanvas(): void {
-    d3.select('#canvasContainer').remove();
-    this.canvas = d3.select('#container')
+    const canvasId = 'mainCanvas';
+    d3.select('#' + canvasId).remove();
+    this.canvasContainer = d3.select('#container')
       .append('canvas')
-      .attr('id', 'canvasContainer')
+      .attr('id', canvasId)
       .attr('width', this.width)
       .attr('height', this.height)
       .on('click', () => {
-        this.base.selectAll('.graphElement').style('opacity', 1);
+        // this.base.selectAll('.graphElement').style('opacity', 1);
         this.selectEmitter.emit(undefined);
       });
 
-    this.context = this.canvas.node().getContext('2d');
-    this.base = d3.select(document.createElement('base'));
+    this.canvas = document.getElementById(canvasId);
+    this.platform = Stardust.platform('webgl-2d', this.canvas, this.width, this.height);
+    // this.platform.pixelRatio = window.devicePixelRatio || 1;
+
+    this.starNodes = Stardust.mark.create(Stardust.mark.circle(), this.platform);
+    this.starNodesBg = Stardust.mark.create(Stardust.mark.circle(), this.platform);
+    this.starNodesSelected = Stardust.mark.create(Stardust.mark.circle(), this.platform);
+    this.starEdges = Stardust.mark.create(Stardust.mark.line(), this.platform);
+    this.starNodeText = Stardust.mark.createText('2d', this.platform);
+    this.starEdgeText = Stardust.mark.createText('2d', this.platform);
+
     this.transform = d3.zoomIdentity;
 
     // this.canvas.call(d3.drag().subject((e) => console.log(e)));
@@ -217,7 +260,7 @@ export class D3Component implements OnInit, OnDestroy {
         this.transform = e.transform;
         this.requestRender();
       });
-    this.canvas.call(this.zoom);
+    this.canvasContainer.call(this.zoom);
   }
 
   private drag(): any {
@@ -269,40 +312,40 @@ export class D3Component implements OnInit, OnDestroy {
 
   private handleClick = (event: any, d: any) => {
     event.stopPropagation();
-    this.base.selectAll('.graphElement').style('opacity', (o: any) => {
-      if (d.type === GraphElementType.EDGE) {
-        if (o.type === GraphElementType.EDGE) {
-          // d = EDGE and o = EDGE
-          if (o === d) {
-            return 1.0;
-          }
-          return 0;
-        } else {
-          // d = EDGE and o = NODE
-          if (o.id === d.source.id || o.id === d.target.id) {
-            return 1.0;
-          }
-          return 0;
-        }
-      } else {
-        if (o.type === GraphElementType.EDGE) {
-          // d = NODE and o = EDGE
-          if (o.source.id === d.id || o.target.id === d.id) {
-            return 1.0;
-          }
-          return 0;
-        } else {
-          // d = NODE and o = NODE
-          if (o.id === d.id) {
-            return 1;
-          }
-          if (this.isConnected(o.id, d.id)) {
-            return 0.5;
-          }
-          return 0;
-        }
-      }
-    });
+    // this.base.selectAll('.graphElement').style('opacity', (o: any) => {
+    //   if (d.type === GraphElementType.EDGE) {
+    //     if (o.type === GraphElementType.EDGE) {
+    //       // d = EDGE and o = EDGE
+    //       if (o === d) {
+    //         return 1.0;
+    //       }
+    //       return 0;
+    //     } else {
+    //       // d = EDGE and o = NODE
+    //       if (o.id === d.source.id || o.id === d.target.id) {
+    //         return 1.0;
+    //       }
+    //       return 0;
+    //     }
+    //   } else {
+    //     if (o.type === GraphElementType.EDGE) {
+    //       // d = NODE and o = EDGE
+    //       if (o.source.id === d.id || o.target.id === d.id) {
+    //         return 1.0;
+    //       }
+    //       return 0;
+    //     } else {
+    //       // d = NODE and o = NODE
+    //       if (o.id === d.id) {
+    //         return 1;
+    //       }
+    //       if (this.isConnected(o.id, d.id)) {
+    //         return 0.5;
+    //       }
+    //       return 0;
+    //     }
+    //   }
+    // });
     d3.select(event.target).style('opacity', 1);
 
     if (d.type === GraphElementType.EDGE) {
@@ -328,16 +371,16 @@ export class D3Component implements OnInit, OnDestroy {
   }
 
   private center(count: number): void {
-    if (!this.state.isDestroyed && !this.state.isZoomed) {
-      const width = this.canvas.node().clientWidth;
-      const height = this.canvas.node().clientHeight;
+    if (false && !this.state.isDestroyed && !this.state.isZoomed) {
+      const width = this.canvasContainer.node().clientWidth;
+      const height = this.canvasContainer.node().clientHeight;
       // TODO: set min/max nodes
       console.log(width, height);
       if (width && height) {
         const scale = Math.min(this.width / width, this.height / height) * 0.8;
         if (count > 0) {
           console.log(width, height, scale);
-          this.canvas.transition()
+          this.canvasContainer.transition()
             .duration(750)
             .call(this.zoom.scaleTo, scale);
         }
