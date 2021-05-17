@@ -4,7 +4,7 @@ import { Subscription } from 'rxjs';
 import { AppConstants } from '../../app.constants';
 import { ChainTxEventType } from '../../enums/chain.enum';
 import { GraphElementType, GraphEventType } from '../../enums/graph.enum';
-import { EdgeDataModel, EdgeGraphModel, GraphEventModel, GraphScratchModel, NodeDataModel, NodeGraphModel } from '../../models/graph.model';
+import { EdgeDataModel, EdgeGraphModel, GraphEventModel, GraphScratchModel, GraphStateModel, NodeDataModel, NodeGraphModel } from '../../models/graph.model';
 import { GraphService } from '../../services/graph.service';
 
 @Component({
@@ -20,15 +20,15 @@ export class D3Component implements OnInit, OnDestroy {
 
   private width: number;
   private height: number;
-  private svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any>;
-  private g: d3.Selection<SVGGElement, unknown, HTMLElement, any>;
+  private canvas: d3.Selection<HTMLCanvasElement, unknown, HTMLElement, any>;
+  private context: CanvasRenderingContext2D;
+  private base: d3.Selection<HTMLElement, unknown, HTMLElement, any>;
   private zoom: d3.ZoomBehavior<Element, unknown>;
-  private edge: d3.Selection<d3.BaseType | SVGLineElement, unknown, SVGGElement, unknown>;
-  private edgeLabel: d3.Selection<SVGTextElement, unknown, SVGGElement, unknown>;
-  private node: d3.Selection<d3.BaseType | SVGCircleElement, unknown, SVGGElement, unknown>;
-  private nodeLabel: d3.Selection<SVGTextElement, unknown, SVGGElement, unknown>;
+  private edges: any;
+  private nodes: any;
   private simulation: d3.Simulation<d3.SimulationNodeDatum, undefined>;
-  private isDestroyed = false;
+  private transform: any;
+  private state: GraphStateModel;
   private connectedLookup: any = {};
   private subs: Subscription[] = [];
 
@@ -37,6 +37,7 @@ export class D3Component implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.state = new GraphStateModel();
     if (this.graphService.onChangeSubject) {
       const sub1 = this.graphService.onChangeSubject.subscribe({
         next: (data: GraphEventModel) => {
@@ -52,7 +53,7 @@ export class D3Component implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     console.log('D3 destroy called.');
     this.stopSimulation();
-    this.isDestroyed = true;
+    this.state.isDestroyed = true;
     this.subs.forEach(sub => {
       sub.unsubscribe();
     });
@@ -60,10 +61,10 @@ export class D3Component implements OnInit, OnDestroy {
   }
 
   private handleOnChangeSubject(data: GraphEventModel) {
-    if (data && !this.isDestroyed) {
+    if (data && !this.state.isDestroyed) {
       switch (data.type) {
         case GraphEventType.DATA_CHANGED:
-          this.render(data.payload);
+          this.init(data.payload);
           break;
         case GraphEventType.STOP_SIMULATION:
           this.stopSimulation();
@@ -80,13 +81,14 @@ export class D3Component implements OnInit, OnDestroy {
     this.graphService.isSimulating = false;
   }
 
-  private render(data: any): void {
+  private init(data: any): void {
+    this.state.isZoomed = false;
     this.graphService.isLoading = true;
     this.width = this.containerElementRef.nativeElement.clientWidth;
     this.height = this.containerElementRef.nativeElement.clientHeight;
-    this.createSvg();
+    this.createCanvas();
     if (data) {
-      const nodes = data.nodes.map((e: NodeGraphModel) => {
+      this.nodes = data.nodes.map((e: NodeGraphModel) => {
         return {
           type: GraphElementType.NODE,
           id: e.data.id,
@@ -94,7 +96,7 @@ export class D3Component implements OnInit, OnDestroy {
           weight: e.data.weight
         };
       });
-      const edges = data.edges.map((e: EdgeGraphModel) => {
+      this.edges = data.edges.map((e: EdgeGraphModel) => {
         return {
           type: GraphElementType.EDGE,
           source: e.data.source,
@@ -106,111 +108,24 @@ export class D3Component implements OnInit, OnDestroy {
       if (this.simulation) {
         this.simulation.stop();
       }
-      this.simulation = d3.forceSimulation(nodes)
-        .force('link', d3.forceLink(edges).id((d: any) => d.id))
+      this.simulation = d3.forceSimulation(this.nodes)
+        .force('link', d3.forceLink(this.edges).id((d: any) => d.id))
         .force('charge', d3.forceManyBody().strength(-400))
         .force('center', d3.forceCenter(this.width / 2, this.height / 2))
         .force('x', d3.forceX())
         .force('y', d3.forceY())
         .on('end', () => {
           this.graphService.isSimulating = false;
+          console.log('Simulation ended.');
         });
       this.graphService.isSimulating = true;
 
-      this.edge = this.g
-        .selectAll('.edge')
-        .data(edges)
-        .join('line')
-        .attr('class', 'graphElement')
-        .attr('marker-end', 'url(#arrowhead)')
-        .attr('stroke', (d: any) => {
-          if (d?.transfer?.type) {
-            switch (d.transfer.type) {
-              case ChainTxEventType.MINT:
-                return AppConstants.TX_EVENT_MINT_COLOR;
-              case ChainTxEventType.BURN:
-                return AppConstants.TX_EVENT_BURN_COLOR;
-              default:
-                break;
-            }
-          }
-          return AppConstants.TX_EVENT_TRANSFER_COLOR;
-        })
-        .attr('stroke-opacity', 0.6)
-        .attr('stroke-width', 2)
-        .on('click', this.handleClick);
-
-      if (this.graphService.drawEdgeLabel) {
-        this.edgeLabel = this.g
-          .selectAll('.edgeLabel')
-          .data(edges)
-          .enter()
-          .append('text')
-          .style('pointer-events', 'none')
-          .attr('font-size', 5)
-          .attr('fill', 'black')
-          .attr('class', 'graphElement')
-          .text((d: any) => d.transfer?.args?.amount ?? d.type);
-      }
-
-      this.node = this.g
-        .selectAll('.node')
-        .data(nodes)
-        .join('circle')
-        .attr('stroke', '#fff')
-        .attr('stroke-width', 1.5)
-        .attr('r', (d: any) => Math.max(5, (d.weight / 10) + 5))
-        .attr('fill', AppConstants.NODE_COLOR)
-        .attr('class', 'graphElement')
-        .on('click', this.handleClick)
-        .call(this.drag());
-
-      if (this.graphService.drawNodeLabel) {
-        this.nodeLabel = this.g
-          .selectAll('.nodeLabel')
-          .data(nodes)
-          .enter()
-          .append('text')
-          .attr('font-size', 10)
-          .attr('fill', 'black')
-          .attr('class', 'graphElement')
-          .text((d: any) => d.name);
-      }
-
-      this.node.append('title')
-        .text((d: any) => d.id);
-
-      this.node.append('text')
-        .attr('font-size', 10)
-        .attr('fill', 'black')
-        .text((d: any) => {
-          return d.name;
-        });
-
       this.simulation.on('tick', () => {
-        this.graphService.isSimulating = true;
-        this.edge
-          .attr('x1', (d: any) => d.source.x)
-          .attr('y1', (d: any) => d.source.y)
-          .attr('x2', (d: any) => d.target.x)
-          .attr('y2', (d: any) => d.target.y);
-        if (this.graphService.drawEdgeLabel) {
-          this.edgeLabel
-            .attr('x', (d: any) => (d.source.x + d.target.x) / 2)
-            .attr('y', (d: any) => (d.source.y + d.target.y) / 2);
-        }
-        this.node
-          .attr('cx', (d: any) => d.x)
-          .attr('cy', (d: any) => d.y);
-        if (this.graphService.drawNodeLabel) {
-          this.nodeLabel
-            .attr('x', (d: any) => d.x)
-            .attr('y', (d: any) => d.y);
-        }
+        this.requestRender();
       });
 
       this.connectedLookup = {};
-      edges.forEach((d: any) => {
+      this.edges.forEach((d: any) => {
         this.connectedLookup[`${d.source.id},${d.target.id}`] = true;
       });
 
@@ -219,70 +134,122 @@ export class D3Component implements OnInit, OnDestroy {
     }
   }
 
-  private createSvg(): void {
-    d3.select('#svgContainer').remove();
-    this.svg = d3.select('#container')
-      .append('svg')
-      .attr('id', 'svgContainer')
+  public requestRender(): void {
+    if (this.state.requestedAnimationFrame) {
+      return;
+    }
+    this.state.requestedAnimationFrame = requestAnimationFrame(() => {
+      this.render();
+    });
+  }
+
+  private render(): void {
+    this.state.requestedAnimationFrame = undefined;
+    this.context.save();
+    this.context.clearRect(0, 0, this.width, this.height);
+    this.context.translate(this.transform.x, this.transform.y);
+    this.context.scale(this.transform.k, this.transform.k);
+    this.drawEdges();
+    this.drawNodes();
+    this.context.restore();
+  }
+
+  private drawEdges(): void {
+    // draw links
+    this.context.strokeStyle = AppConstants.TX_EVENT_TRANSFER_COLOR;
+    this.context.beginPath();
+    this.edges.forEach((d) => {
+      if (d?.transfer?.type) {
+        switch (d.transfer.type) {
+          case ChainTxEventType.MINT:
+            this.context.strokeStyle = AppConstants.TX_EVENT_MINT_COLOR;
+            break;
+          case ChainTxEventType.BURN:
+            this.context.strokeStyle = AppConstants.TX_EVENT_BURN_COLOR;
+            break;
+          default:
+            this.context.strokeStyle = AppConstants.TX_EVENT_TRANSFER_COLOR;
+            break;
+        }
+      } else {
+        this.context.strokeStyle = AppConstants.TX_EVENT_TRANSFER_COLOR;
+      }
+      this.context.moveTo(d.source.x, d.source.y);
+      this.context.lineTo(d.target.x, d.target.y);
+    });
+    this.context.stroke();
+  }
+
+  private drawNodes(): void {
+    this.context.fillStyle = AppConstants.NODE_COLOR;
+    this.context.beginPath();
+    this.nodes.forEach((d) => {
+      const radius = Math.max(5, (d.weight / 10) + 5);
+      this.context.moveTo(d.x + radius, d.y);
+      this.context.arc(d.x, d.y, radius, 0, 2 * Math.PI);
+    });
+    this.context.fill();
+  }
+
+  private createCanvas(): void {
+    d3.select('#canvasContainer').remove();
+    this.canvas = d3.select('#container')
+      .append('canvas')
+      .attr('id', 'canvasContainer')
       .attr('width', this.width)
       .attr('height', this.height)
       .on('click', () => {
-        this.g.selectAll('.graphElement').style('opacity', 1);
+        this.base.selectAll('.graphElement').style('opacity', 1);
         this.selectEmitter.emit(undefined);
       });
 
-    // Draw arrows
-    if (this.graphService.drawArrow) {
-      this.svg.append('defs')
-        .append('marker')
-        .attr('id', 'arrowhead')
-        .attr('viewBox', '-0 -5 10 10')
-        .attr('refX', 10)
-        .attr('refY', 0)
-        .attr('orient', 'auto')
-        .attr('markerWidth', 10)
-        .attr('markerHeight', 10)
-        .attr('xoverflow', 'visible')
-        .append('svg:path')
-        .attr('d', 'M 0,-2.5 L 5,0 L 0,2.5')
-        .attr('fill', '#ccc')
-        .attr('stroke', '#ccc');
-    }
+    this.context = this.canvas.node().getContext('2d');
+    this.base = d3.select(document.createElement('base'));
+    this.transform = d3.zoomIdentity;
 
-    this.g = this.svg.append('g');
-
+    // this.canvas.call(d3.drag().subject((e) => console.log(e)));
+    // this.canvas.call(this.drag());
     this.zoom = d3.zoom()
       .extent([[0, 0], [this.width, this.height]])
       .scaleExtent([0, 10])
       .on('zoom', (e: any) => {
-        this.g.attr('transform', e.transform);
+        this.state.isZoomed = true;
+        this.transform = e.transform;
+        this.requestRender();
       });
-    this.svg.call(this.zoom);
+    this.canvas.call(this.zoom);
   }
 
   private drag(): any {
+
+    const dragsubject = (event: any) => {
+      console.log(event);
+      return this.simulation.find(event.x, event.y);
+    };
+
     const dragstarted = (event: any, d: any) => {
       if (!event.active) {
         this.simulation.alphaTarget(0.3).restart();
       }
-      d.fx = d.x;
-      d.fy = d.y;
+      event.subject.fx = event.subject.x;
+      event.subject.fy = event.subject.y;
     };
 
     const dragged = (event: any, d: any) => {
-      d.fx = event.x;
-      d.fy = event.y;
+      event.subject.fx = event.x;
+      event.subject.fy = event.y;
     };
 
     const dragended = (event: any, d: any) => {
       if (!event.active) {
         this.simulation.alphaTarget(0);
       }
-      d.fx = null;
-      d.fy = null;
+      event.subject.fx = null;
+      event.subject.fy = null;
     };
 
     return d3.drag()
+      // .subject(dragsubject)
       .on('start', dragstarted)
       .on('drag', dragged)
       .on('end', dragended);
@@ -302,7 +269,7 @@ export class D3Component implements OnInit, OnDestroy {
 
   private handleClick = (event: any, d: any) => {
     event.stopPropagation();
-    this.g.selectAll('.graphElement').style('opacity', (o: any) => {
+    this.base.selectAll('.graphElement').style('opacity', (o: any) => {
       if (d.type === GraphElementType.EDGE) {
         if (o.type === GraphElementType.EDGE) {
           // d = EDGE and o = EDGE
@@ -361,12 +328,16 @@ export class D3Component implements OnInit, OnDestroy {
   }
 
   private center(count: number): void {
-    if (!this.isDestroyed) {
-      const { width, height } = this.g.node().getBBox();
+    if (!this.state.isDestroyed && !this.state.isZoomed) {
+      const width = this.canvas.node().clientWidth;
+      const height = this.canvas.node().clientHeight;
+      // TODO: set min/max nodes
+      console.log(width, height);
       if (width && height) {
         const scale = Math.min(this.width / width, this.height / height) * 0.8;
         if (count > 0) {
-          this.svg.transition()
+          console.log(width, height, scale);
+          this.canvas.transition()
             .duration(750)
             .call(this.zoom.scaleTo, scale);
         }
