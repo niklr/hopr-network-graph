@@ -1,19 +1,19 @@
 import { Component, ElementRef, EventEmitter, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import * as d3 from 'd3';
-import { Subscription } from 'rxjs';
 import * as Stardust from 'stardust-core';
 import * as StardustWebGL from 'stardust-webgl';
-import { GraphElementType, GraphEventType } from '../../enums/graph.enum';
-import { EdgeDataModel, EdgeGraphModel, GraphEventModel, GraphScratchModel, GraphStateModel, NodeDataModel, NodeGraphModel } from '../../models/graph.model';
+import { GraphElementType } from '../../enums/graph.enum';
+import { EdgeDataModel, EdgeGraphModel, GraphContainerModel, GraphScratchModel, NodeDataModel, NodeGraphModel } from '../../models/graph.model';
 import { GraphService } from '../../services/graph.service';
 import { GraphUtil } from '../../utils/graph.util';
+import { SharedGraphLibComponent } from '../shared/shared-graph-lib.component';
 
 @Component({
   selector: 'hopr-stardust',
   templateUrl: './stardust.component.html',
   styleUrls: ['./stardust.component.css']
 })
-export class StardustComponent implements OnInit, OnDestroy {
+export class StardustComponent extends SharedGraphLibComponent implements OnInit, OnDestroy {
 
   @Output() selectEmitter: EventEmitter<any> = new EventEmitter<any>();
 
@@ -36,60 +36,34 @@ export class StardustComponent implements OnInit, OnDestroy {
   private starEdges: Stardust.Mark;
   private starNodeText: Stardust.Mark;
   private starEdgeText: Stardust.Mark;
-  private state: GraphStateModel;
-  private connectedLookup: any = {};
-  private subs: Subscription[] = [];
 
-  constructor(private graphService: GraphService) {
-    const asdf = StardustWebGL.version;
+  private connectedLookup: any = {};
+
+  constructor(protected graphService: GraphService) {
+    super(graphService);
+    const webGLversion = StardustWebGL.version;
   }
 
   ngOnInit(): void {
-    this.state = new GraphStateModel();
-    if (this.graphService.onChangeSubject) {
-      const sub1 = this.graphService.onChangeSubject.subscribe({
-        next: (data: GraphEventModel) => {
-          setTimeout(() => {
-            this.handleOnChangeSubject(data);
-          }, 0);
-        }
-      });
-      this.subs.push(sub1);
-    }
+    super.onInit();
   }
 
   ngOnDestroy(): void {
-    console.log('D3 destroy called.');
-    this.stopSimulation();
-    this.state.isDestroyed = true;
-    this.subs.forEach(sub => {
-      sub.unsubscribe();
-    });
-    this.subs = [];
+    super.onDestroy();
   }
 
-  private handleOnChangeSubject(data: GraphEventModel) {
-    if (data && !this.state.isDestroyed) {
-      switch (data.type) {
-        case GraphEventType.DATA_CHANGED:
-          this.init(data.payload);
-          break;
-        case GraphEventType.STOP_SIMULATION:
-          this.stopSimulation();
-          break;
-        default:
-          break;
-      }
-    }
+  protected destroy(): void {
+    this.stopSimulation();
   }
 
   private stopSimulation(): void {
-    console.log('D3 stop simulation called.');
+    console.log('Stardust stop simulation called.');
     this.simulation?.stop();
     this.graphService.isSimulating = false;
   }
 
-  private init(data: any): void {
+  protected init(data: GraphContainerModel): void {
+    console.log('Stardust init called.');
     this.state.isZoomed = false;
     this.graphService.isLoading = true;
     this.width = this.containerElementRef.nativeElement.clientWidth;

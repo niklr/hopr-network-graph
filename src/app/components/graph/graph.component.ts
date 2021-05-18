@@ -55,7 +55,7 @@ export class GraphComponent implements OnInit, OnDestroy {
     if (data) {
       switch (data.type) {
         case GraphEventType.DATA_CHANGED:
-          this.onDataChanged(data.payload);
+          this.onDataChanged(this.graphService.currentData);
           break;
         default:
           break;

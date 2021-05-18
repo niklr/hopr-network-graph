@@ -27,8 +27,9 @@ import { ConfigService } from './config.service';
 })
 export class GraphService {
 
-  private _onChangeSubject: Subject<any>;
+  private _onChangeSubject: Subject<GraphEventModel>;
   private _data: GraphContainerModel;
+  private _currentData: GraphContainerModel;
   private _nodeMap: Map<string, NodeGraphModel>;
   private _edgeMap: Map<string, EdgeGraphModel>;
 
@@ -40,7 +41,7 @@ export class GraphService {
   public readonly filter: Map<string, ChainFilterItemModel>;
 
   constructor(private configService: ConfigService, private eventRepository: EventRepository, private fileUtil: FileUtil) {
-    this._onChangeSubject = new Subject<any>();
+    this._onChangeSubject = new Subject<GraphEventModel>();
     this.filter = new Map<string, ChainFilterItemModel>([
       [
         ChainTxEventType[ChainTxEventType.MINT],
@@ -72,12 +73,17 @@ export class GraphService {
     ]);
   }
 
+  public get currentData(): GraphContainerModel {
+    return this._currentData;
+  }
+
   public get onChangeSubject(): Subject<GraphEventModel> {
     return this._onChangeSubject;
   }
 
   public clear(): void {
     this._data = undefined;
+    this._currentData = undefined;
     this._nodeMap = undefined;
     this._edgeMap = undefined;
     this.submitDataSubjectEvent(undefined);
@@ -93,8 +99,7 @@ export class GraphService {
 
   public stopSimulation(): void {
     this._onChangeSubject.next(new GraphEventModel({
-      type: GraphEventType.STOP_SIMULATION,
-      payload: undefined
+      type: GraphEventType.STOP_SIMULATION
     }));
   }
 
@@ -349,9 +354,9 @@ export class GraphService {
   }
 
   private submitDataSubjectEvent(data: GraphContainerModel): void {
+    this._currentData = data;
     this._onChangeSubject.next(new GraphEventModel({
-      type: GraphEventType.DATA_CHANGED,
-      payload: data
+      type: GraphEventType.DATA_CHANGED
     }));
   }
 

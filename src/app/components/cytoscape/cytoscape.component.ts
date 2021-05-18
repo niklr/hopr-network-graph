@@ -2,12 +2,11 @@ import { Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, 
 import cytoscape from 'cytoscape';
 import fcose from 'cytoscape-fcose';
 import klay from 'cytoscape-klay';
-import { Subscription } from 'rxjs';
 import { AppConstants } from '../../app.constants';
 import { ChainTxEventType } from '../../enums/chain.enum';
-import { GraphEventType } from '../../enums/graph.enum';
-import { EdgeDataModel, EdgeGraphModel, GraphEventModel, GraphScratchModel, NodeDataModel, NodeGraphModel } from '../../models/graph.model';
+import { EdgeDataModel, EdgeGraphModel, GraphContainerModel, GraphScratchModel, NodeDataModel, NodeGraphModel } from '../../models/graph.model';
 import { GraphService } from '../../services/graph.service';
+import { SharedGraphLibComponent } from '../shared/shared-graph-lib.component';
 
 @Component({
   selector: 'hopr-cytoscape',
@@ -15,7 +14,7 @@ import { GraphService } from '../../services/graph.service';
   styleUrls: ['./cytoscape.component.css'],
 })
 
-export class CytoscapeComponent implements OnInit, OnDestroy {
+export class CytoscapeComponent extends SharedGraphLibComponent implements OnInit, OnDestroy {
 
   @Input() public style: any;
   @Input() public layout: any;
@@ -26,10 +25,9 @@ export class CytoscapeComponent implements OnInit, OnDestroy {
   @ViewChild('containerElementRef') containerElementRef: ElementRef;
 
   private cy: cytoscape.Core;
-  private subs: Subscription[] = [];
 
-  constructor(private graphService: GraphService) {
-
+  constructor(protected graphService: GraphService) {
+    super(graphService);
     cytoscape.use(fcose);
     cytoscape.use(klay);
 
@@ -98,40 +96,19 @@ export class CytoscapeComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    if (this.graphService.onChangeSubject) {
-      const sub1 = this.graphService.onChangeSubject.subscribe({
-        next: (data: GraphEventModel) => {
-          setTimeout(() => {
-            this.handleOnChangeSubject(data);
-          }, 0);
-        }
-      });
-      this.subs.push(sub1);
-    }
+    super.onInit();
   }
 
-  ngOnDestroy(): any {
-    console.log('Cytoscape destroy called.');
+  ngOnDestroy(): void {
+    super.onDestroy();
+  }
+
+  protected destroy(): void {
+    console.log('Cytoscape stop destroy called.');
     this.cy.destroy();
-    this.subs.forEach(sub => {
-      sub.unsubscribe();
-    });
-    this.subs = [];
   }
 
-  private handleOnChangeSubject(data: GraphEventModel) {
-    if (data) {
-      switch (data.type) {
-        case GraphEventType.DATA_CHANGED:
-          this.render(data.payload);
-          break;
-        default:
-          break;
-      }
-    }
-  }
-
-  public render(data: any): void {
+  protected init(data: GraphContainerModel): void {
     this.graphService.isLoading = true;
     if (data) {
       if (this.cy) {
@@ -143,7 +120,7 @@ export class CytoscapeComponent implements OnInit, OnDestroy {
         minZoom: this.zoom.min,
         maxZoom: this.zoom.max,
         style: this.style,
-        elements: data,
+        elements: data as any,
       });
 
       this.cy.on('tap', 'node', (e: any) => {

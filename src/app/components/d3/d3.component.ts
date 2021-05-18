@@ -1,19 +1,19 @@
 import { Component, ElementRef, EventEmitter, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import * as d3 from 'd3';
-import { Subscription } from 'rxjs';
 import { AppConstants } from '../../app.constants';
 import { ChainTxEventType } from '../../enums/chain.enum';
-import { GraphElementType, GraphEventType } from '../../enums/graph.enum';
-import { EdgeDataModel, EdgeGraphModel, GraphEventModel, GraphScratchModel, NodeDataModel, NodeGraphModel } from '../../models/graph.model';
+import { GraphElementType } from '../../enums/graph.enum';
+import { EdgeDataModel, EdgeGraphModel, GraphContainerModel, GraphScratchModel, NodeDataModel, NodeGraphModel } from '../../models/graph.model';
 import { GraphService } from '../../services/graph.service';
 import { GraphUtil } from '../../utils/graph.util';
+import { SharedGraphLibComponent } from '../shared/shared-graph-lib.component';
 
 @Component({
   selector: 'hopr-d3',
   templateUrl: './d3.component.html',
   styleUrls: ['./d3.component.css']
 })
-export class D3Component implements OnInit, OnDestroy {
+export class D3Component extends SharedGraphLibComponent implements OnInit, OnDestroy {
 
   @Output() selectEmitter: EventEmitter<any> = new EventEmitter<any>();
 
@@ -29,50 +29,22 @@ export class D3Component implements OnInit, OnDestroy {
   private node: d3.Selection<d3.BaseType | SVGCircleElement, unknown, SVGGElement, unknown>;
   private nodeLabel: d3.Selection<SVGTextElement, unknown, SVGGElement, unknown>;
   private simulation: d3.Simulation<d3.SimulationNodeDatum, undefined>;
-  private isDestroyed = false;
   private connectedLookup: any = {};
-  private subs: Subscription[] = [];
 
-  constructor(private graphService: GraphService) {
-
+  constructor(protected graphService: GraphService) {
+    super(graphService);
   }
 
   ngOnInit(): void {
-    if (this.graphService.onChangeSubject) {
-      const sub1 = this.graphService.onChangeSubject.subscribe({
-        next: (data: GraphEventModel) => {
-          setTimeout(() => {
-            this.handleOnChangeSubject(data);
-          }, 0);
-        }
-      });
-      this.subs.push(sub1);
-    }
+    super.onInit();
   }
 
   ngOnDestroy(): void {
-    console.log('D3 destroy called.');
-    this.stopSimulation();
-    this.isDestroyed = true;
-    this.subs.forEach(sub => {
-      sub.unsubscribe();
-    });
-    this.subs = [];
+    super.onDestroy();
   }
 
-  private handleOnChangeSubject(data: GraphEventModel) {
-    if (data && !this.isDestroyed) {
-      switch (data.type) {
-        case GraphEventType.DATA_CHANGED:
-          this.render(data.payload);
-          break;
-        case GraphEventType.STOP_SIMULATION:
-          this.stopSimulation();
-          break;
-        default:
-          break;
-      }
-    }
+  protected destroy(): void {
+    this.stopSimulation();
   }
 
   private stopSimulation(): void {
@@ -81,13 +53,13 @@ export class D3Component implements OnInit, OnDestroy {
     this.graphService.isSimulating = false;
   }
 
-  private render(data: any): void {
+  protected init(data: GraphContainerModel): void {
     this.graphService.isLoading = true;
     this.width = this.containerElementRef.nativeElement.clientWidth;
     this.height = this.containerElementRef.nativeElement.clientHeight;
     this.createSvg();
     if (data) {
-      const nodes = data.nodes.map((e: NodeGraphModel) => {
+      const nodes: any = data.nodes.map((e: NodeGraphModel) => {
         return {
           type: GraphElementType.NODE,
           id: e.data.id,
@@ -95,7 +67,7 @@ export class D3Component implements OnInit, OnDestroy {
           weight: e.data.weight
         };
       });
-      const edges = data.edges.map((e: EdgeGraphModel) => {
+      const edges: any = data.edges.map((e: EdgeGraphModel) => {
         return {
           type: GraphElementType.EDGE,
           source: e.data.source,
@@ -362,7 +334,7 @@ export class D3Component implements OnInit, OnDestroy {
   }
 
   private center(count: number): void {
-    if (!this.isDestroyed) {
+    if (!this.state.isDestroyed) {
       const { width, height } = this.g.node().getBBox();
       if (width && height) {
         const scale = Math.min(this.width / width, this.height / height) * 0.8;

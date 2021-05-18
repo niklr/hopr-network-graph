@@ -1,19 +1,19 @@
 import { Component, ElementRef, EventEmitter, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import * as d3 from 'd3';
-import { Subscription } from 'rxjs';
 import { AppConstants } from '../../app.constants';
 import { ChainTxEventType } from '../../enums/chain.enum';
-import { GraphElementType, GraphEventType } from '../../enums/graph.enum';
-import { EdgeDataModel, EdgeGraphModel, GraphEventModel, GraphScratchModel, GraphStateModel, NodeDataModel, NodeGraphModel } from '../../models/graph.model';
+import { GraphElementType } from '../../enums/graph.enum';
+import { EdgeDataModel, EdgeGraphModel, GraphContainerModel, GraphScratchModel, NodeDataModel, NodeGraphModel } from '../../models/graph.model';
 import { GraphService } from '../../services/graph.service';
 import { GraphUtil } from '../../utils/graph.util';
+import { SharedGraphLibComponent } from '../shared/shared-graph-lib.component';
 
 @Component({
   selector: 'hopr-d3canvas',
   templateUrl: './d3canvas.component.html',
   styleUrls: ['./d3canvas.component.css']
 })
-export class D3canvasComponent implements OnInit, OnDestroy {
+export class D3canvasComponent extends SharedGraphLibComponent implements OnInit, OnDestroy {
 
   @Output() selectEmitter: EventEmitter<any> = new EventEmitter<any>();
 
@@ -28,60 +28,31 @@ export class D3canvasComponent implements OnInit, OnDestroy {
   private nodes: any;
   private simulation: d3.Simulation<d3.SimulationNodeDatum, undefined>;
   private transform: any;
-  private state: GraphStateModel;
   private connectedLookup: any = {};
-  private subs: Subscription[] = [];
 
-  constructor(private graphService: GraphService) {
-
+  constructor(protected graphService: GraphService) {
+    super(graphService);
   }
 
   ngOnInit(): void {
-    this.state = new GraphStateModel();
-    if (this.graphService.onChangeSubject) {
-      const sub1 = this.graphService.onChangeSubject.subscribe({
-        next: (data: GraphEventModel) => {
-          setTimeout(() => {
-            this.handleOnChangeSubject(data);
-          }, 0);
-        }
-      });
-      this.subs.push(sub1);
-    }
+    super.onInit();
   }
 
   ngOnDestroy(): void {
-    console.log('D3 destroy called.');
-    this.stopSimulation();
-    this.state.isDestroyed = true;
-    this.subs.forEach(sub => {
-      sub.unsubscribe();
-    });
-    this.subs = [];
+    super.onDestroy();
   }
 
-  private handleOnChangeSubject(data: GraphEventModel) {
-    if (data && !this.state.isDestroyed) {
-      switch (data.type) {
-        case GraphEventType.DATA_CHANGED:
-          this.init(data.payload);
-          break;
-        case GraphEventType.STOP_SIMULATION:
-          this.stopSimulation();
-          break;
-        default:
-          break;
-      }
-    }
+  protected destroy(): void {
+    this.stopSimulation();
   }
 
   private stopSimulation(): void {
-    console.log('D3 stop simulation called.');
+    console.log('D3-canvas stop simulation called.');
     this.simulation?.stop();
     this.graphService.isSimulating = false;
   }
 
-  private init(data: any): void {
+  protected init(data: GraphContainerModel): void {
     this.state.isZoomed = false;
     this.graphService.isLoading = true;
     this.width = this.containerElementRef.nativeElement.clientWidth;
