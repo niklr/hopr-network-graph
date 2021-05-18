@@ -5,6 +5,7 @@ import { ChainTxEventType } from '../../enums/chain.enum';
 import { GraphElementType } from '../../enums/graph.enum';
 import { EdgeDataModel, EdgeGraphModel, GraphContainerModel, GraphScratchModel, NodeDataModel, NodeGraphModel } from '../../models/graph.model';
 import { GraphService } from '../../services/graph.service';
+import { CommonUtil } from '../../utils/common.util';
 import { GraphUtil } from '../../utils/graph.util';
 import { SharedGraphLibComponent } from '../shared/shared-graph-lib.component';
 
@@ -184,7 +185,7 @@ export class D3Component extends SharedGraphLibComponent implements OnInit, OnDe
 
       this.connectedLookup = {};
       edges.forEach((d: any) => {
-        this.connectedLookup[`${d.source.id},${d.target.id}`] = true;
+        this.connectedLookup[CommonUtil.combineIndex(d.source.id, d.target.id)] = true;
       });
 
       this.center(0);
@@ -261,16 +262,8 @@ export class D3Component extends SharedGraphLibComponent implements OnInit, OnDe
       .on('end', dragended);
   }
 
-  private isConnected(a: any, b: any): boolean {
-    return this.isConnectedAsTarget(a, b) || this.isConnectedAsSource(a, b) || a === b;
-  }
-
-  private isConnectedAsSource(a: any, b: any): boolean {
-    return this.connectedLookup[`${a},${b}`];
-  }
-
-  private isConnectedAsTarget(a: any, b: any): boolean {
-    return this.connectedLookup[`${b},${a}`];
+  private isConnected(a: string, b: string): boolean {
+    return this.connectedLookup[CommonUtil.combineIndex(a, b)] || a === b;
   }
 
   private handleClick = (event: any, d: any) => {

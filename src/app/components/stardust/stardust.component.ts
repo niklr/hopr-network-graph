@@ -28,7 +28,7 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
   private nodes: any;
   private simulation: d3.Simulation<d3.SimulationNodeDatum, undefined>;
   private transform: any;
-  private platform: Stardust.Platform;
+  private platform: StardustWebGL.WebGLPlatform;
   private positions: Stardust.ArrayBinding;
   private starNodes: Stardust.Mark;
   private starNodesBg: Stardust.Mark;
@@ -36,8 +36,6 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
   private starEdges: Stardust.Mark;
   private starNodeText: Stardust.Mark;
   private starEdgeText: Stardust.Mark;
-
-  private connectedLookup: any = {};
 
   constructor(protected graphService: GraphService) {
     super(graphService);
@@ -162,11 +160,6 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
 
       this.requestRender();
 
-      this.connectedLookup = {};
-      this.edges.forEach((d: any) => {
-        this.connectedLookup[`${d.source.id},${d.target.id}`] = true;
-      });
-
       this.center(0);
       this.graphService.isLoading = false;
     }
@@ -223,7 +216,7 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
       });
 
     this.canvas = document.getElementById(canvasId);
-    this.platform = Stardust.platform('webgl-2d', this.canvas, this.width, this.height);
+    this.platform = Stardust.platform('webgl-2d', this.canvas, this.width, this.height) as StardustWebGL.WebGLPlatform;
     // this.platform.pixelRatio = window.devicePixelRatio || 1;
 
     this.starNodes = Stardust.mark.create(Stardust.mark.circle(), this.platform);
@@ -246,53 +239,6 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
         this.requestRender();
       });
     this.canvasContainer.call(this.zoom);
-  }
-
-  private drag(): any {
-
-    const dragsubject = (event: any) => {
-      console.log(event);
-      return this.simulation.find(event.x, event.y);
-    };
-
-    const dragstarted = (event: any, d: any) => {
-      if (!event.active) {
-        this.simulation.alphaTarget(0.3).restart();
-      }
-      event.subject.fx = event.subject.x;
-      event.subject.fy = event.subject.y;
-    };
-
-    const dragged = (event: any, d: any) => {
-      event.subject.fx = event.x;
-      event.subject.fy = event.y;
-    };
-
-    const dragended = (event: any, d: any) => {
-      if (!event.active) {
-        this.simulation.alphaTarget(0);
-      }
-      event.subject.fx = null;
-      event.subject.fy = null;
-    };
-
-    return d3.drag()
-      // .subject(dragsubject)
-      .on('start', dragstarted)
-      .on('drag', dragged)
-      .on('end', dragended);
-  }
-
-  private isConnected(a: any, b: any): boolean {
-    return this.isConnectedAsTarget(a, b) || this.isConnectedAsSource(a, b) || a === b;
-  }
-
-  private isConnectedAsSource(a: any, b: any): boolean {
-    return this.connectedLookup[`${a},${b}`];
-  }
-
-  private isConnectedAsTarget(a: any, b: any): boolean {
-    return this.connectedLookup[`${b},${a}`];
   }
 
   private handleClick = (event: any, d: any) => {

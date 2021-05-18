@@ -24,7 +24,6 @@ export class NetvComponent extends SharedGraphLibComponent implements OnInit, On
   private nodes: any;
   private data: any;
   private simulation: d3.Simulation<d3.SimulationNodeDatum, undefined>;
-  private connectedLookup: any = {};
 
   constructor(protected graphService: GraphService) {
     super(graphService);
@@ -97,12 +96,6 @@ export class NetvComponent extends SharedGraphLibComponent implements OnInit, On
         this.requestRender();
       });
 
-      this.connectedLookup = {};
-      this.edges.forEach((d: any) => {
-        this.connectedLookup[`${d.source.id},${d.target.id}`] = true;
-      });
-
-      // this.center(0);
       this.graphService.isLoading = false;
     }
   }
