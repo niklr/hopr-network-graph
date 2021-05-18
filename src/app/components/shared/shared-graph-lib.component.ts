@@ -72,6 +72,14 @@ export abstract class SharedGraphLibComponent {
 
   protected abstract destroy(): void;
 
+  protected registerMouseWheelEvent(element: HTMLElement | SVGSVGElement): void {
+    if (element) {
+      element.onwheel = () => {
+        this.state.isZoomed = true;
+      };
+    }
+  }
+
   protected handleSelectedElement(element: any): void {
     if (element.type === GraphElementType.EDGE) {
       this.selectEmitter.emit(new EdgeGraphModel({

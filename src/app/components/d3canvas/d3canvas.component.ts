@@ -185,13 +185,14 @@ export class D3canvasComponent extends SharedGraphLibComponent implements OnInit
     this.context = this.canvas.node().getContext('2d');
     this.transform = d3.zoomIdentity;
 
+    super.registerMouseWheelEvent(this.canvas.node());
+
     // this.canvas.call(d3.drag().subject((e) => console.log(e)));
     // this.canvas.call(this.drag());
     this.zoom = d3.zoom()
       .extent([[0, 0], [this.width, this.height]])
       .scaleExtent([0, 10])
       .on('zoom', (e: any) => {
-        this.state.isZoomed = true;
         this.transform = e.transform;
         this.requestRender();
       });

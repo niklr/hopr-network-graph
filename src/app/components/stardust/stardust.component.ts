@@ -1,5 +1,6 @@
 import { Component, ElementRef, EventEmitter, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import * as d3 from 'd3';
+import * as DataForge from 'data-forge';
 import * as Stardust from 'stardust-core';
 import * as StardustWebGL from 'stardust-webgl';
 import { GraphElementType } from '../../enums/graph.enum';
@@ -21,11 +22,14 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
 
   private width: number;
   private height: number;
+  private top: number;
+  private left: number;
   private canvas: HTMLElement;
   private canvasContainer: d3.Selection<HTMLCanvasElement, unknown, HTMLElement, any>;
   private zoom: d3.ZoomBehavior<Element, unknown>;
   private edges: any;
   private nodes: any;
+  private nodesDataFrame: DataForge.IDataFrame<number, any>;
   private selectedElement: any;
   private isSelectionPermanent: boolean;
   private simulation: d3.Simulation<d3.SimulationNodeDatum, undefined>;
@@ -88,6 +92,8 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
           transfer: e.scratch?.transfer
         };
       });
+
+      this.nodesDataFrame = new DataForge.DataFrame(this.nodes).bake();
 
       function mapColor(color: number[], opacity: number = 1) {
         return [color[0] / 255, color[1] / 255, color[2] / 255, opacity];
@@ -246,6 +252,9 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
     this.platform = Stardust.platform('webgl-2d', this.canvas, this.width, this.height) as StardustWebGL.WebGLPlatform;
     // this.platform.pixelRatio = window.devicePixelRatio || 1;
 
+    this.top = this.canvas.getBoundingClientRect().top;
+    this.left = this.canvas.getBoundingClientRect().left;
+
     this.starNodes = Stardust.mark.create(Stardust.mark.circle(), this.platform);
     this.starNodesBg = Stardust.mark.create(Stardust.mark.circle(), this.platform);
     this.starNodesSelected = Stardust.mark.create(Stardust.mark.circle(), this.platform);
@@ -256,25 +265,25 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
 
     this.transform = d3.zoomIdentity;
 
+    this.registerMouseEvents();
+
     // this.canvas.call(d3.drag().subject((e) => console.log(e)));
     // this.canvas.call(this.drag());
     this.zoom = d3.zoom()
       .extent([[0, 0], [this.width, this.height]])
       .scaleExtent([0, 10])
       .on('zoom', (e: any) => {
-        this.state.isZoomed = true;
         this.transform = e.transform;
         this.requestRender();
       });
     this.canvasContainer.call(this.zoom);
-
-    this.registerMouseMoveEvent();
   }
 
-  private registerMouseMoveEvent(): void {
+  private registerMouseEvents(): void {
+    super.registerMouseWheelEvent(this.canvas);
     this.canvas.onmousemove = (e: any) => {
-      const x = e.clientX - this.canvas.getBoundingClientRect().left;
-      const y = e.clientY - this.canvas.getBoundingClientRect().top;
+      const x = e.clientX - this.left;
+      const y = e.clientY - this.top;
       const p = this.platform.getPickingPixel(x, y);
       if (p) {
         const element = p[0].data()[p[1]];
@@ -293,15 +302,20 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
   }
 
   private center(count: number): void {
-    if (false && !this.state.isDestroyed && !this.state.isZoomed) {
-      const width = this.canvasContainer.node().clientWidth;
-      const height = this.canvasContainer.node().clientHeight;
-      // TODO: set min/max nodes
-      console.log(width, height);
+    if (!this.state.isDestroyed && !this.state.isZoomed) {
+      const seriesX = this.nodesDataFrame.deflate(e => e.x);
+      const seriesY = this.nodesDataFrame.deflate(e => e.y);
+      const minMaxNodes = {
+        minX: seriesX.min(),
+        minY: seriesY.min(),
+        maxX: seriesX.max(),
+        maxY: seriesY.max()
+      };
+      const width = minMaxNodes.maxX - minMaxNodes.minX;
+      const height = minMaxNodes.maxY - minMaxNodes.minY;
       if (width && height) {
         const scale = Math.min(this.width / width, this.height / height) * 0.8;
         if (count > 0) {
-          console.log(width, height, scale);
           this.canvasContainer.transition()
             .duration(750)
             .call(this.zoom.scaleTo, scale);

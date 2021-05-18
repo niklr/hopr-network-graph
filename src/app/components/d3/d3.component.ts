@@ -55,6 +55,7 @@ export class D3Component extends SharedGraphLibComponent implements OnInit, OnDe
   }
 
   protected init(data: GraphContainerModel): void {
+    this.state.isZoomed = false;
     this.graphService.isLoading = true;
     this.width = this.containerElementRef.nativeElement.clientWidth;
     this.height = this.containerElementRef.nativeElement.clientHeight;
@@ -225,6 +226,8 @@ export class D3Component extends SharedGraphLibComponent implements OnInit, OnDe
 
     this.g = this.svg.append('g');
 
+    super.registerMouseWheelEvent(this.svg.node());
+
     this.zoom = d3.zoom()
       .extent([[0, 0], [this.width, this.height]])
       .scaleExtent([0, 10])
@@ -308,7 +311,7 @@ export class D3Component extends SharedGraphLibComponent implements OnInit, OnDe
   }
 
   private center(count: number): void {
-    if (!this.state.isDestroyed) {
+    if (!this.state.isDestroyed && !this.state.isZoomed) {
       const { width, height } = this.g.node().getBBox();
       if (width && height) {
         const scale = Math.min(this.width / width, this.height / height) * 0.8;
