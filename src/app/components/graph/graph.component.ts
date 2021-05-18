@@ -24,8 +24,7 @@ export class GraphComponent implements OnInit, OnDestroy {
     d3: GraphLibraryType.D3,
     cytoscape: GraphLibraryType.CYTOSCAPE,
     stardust: GraphLibraryType.STARDUST,
-    d3canvas: GraphLibraryType.D3_CANVAS,
-    netv: GraphLibraryType.NETV
+    d3canvas: GraphLibraryType.D3_CANVAS
   };
 
   constructor(private configService: ConfigService, private graphService: GraphService) {

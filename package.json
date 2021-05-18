@@ -27,7 +27,6 @@
     "ethers": "^5.1.4",
     "lz-string": "^1.4.4",
     "moment": "^2.29.1",
-    "netv": "^1.1.4",
     "rxjs": "~6.6.0",
     "stardust-core": "^0.2.4",
     "stardust-webgl": "^0.2.4",

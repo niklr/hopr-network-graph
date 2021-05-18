@@ -45,10 +45,6 @@ export class AppComponent {
     new LibraryModel({
       type: GraphLibraryType.D3_CANVAS,
       name: 'd3-canvas'
-    }),
-    new LibraryModel({
-      type: GraphLibraryType.NETV,
-      name: 'netv'
     })
   ];
 
@@ -77,9 +73,12 @@ export class AppComponent {
   }
 
   public changeLibrary($event: any): void {
-    this.configService.config.selectedGraphLibraryType = GraphLibraryType[GraphLibraryType[$event.target.value]];
-    this.setSelectedLibraryType();
-    this.load();
+    this.graphService.stopSimulation();
+    setTimeout(() => {
+      this.configService.config.selectedGraphLibraryType = GraphLibraryType[GraphLibraryType[$event.target.value]];
+      this.setSelectedLibraryType();
+      this.load();
+    }, 0);
   }
 
   public get isLoading(): boolean {
