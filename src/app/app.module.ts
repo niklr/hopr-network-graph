@@ -7,6 +7,7 @@ import { D3canvasComponent } from './components/d3canvas/d3canvas.component';
 import { GraphComponent } from './components/graph/graph.component';
 import { LogsComponent } from './components/logs/logs.component';
 import { NetvComponent } from './components/netv/netv.component';
+import { StardustComponent } from './components/stardust/stardust.component';
 import { ConfigService } from './services/config.service';
 import { DefaultLoggerService, Logger } from './services/logger.service';
 import { BrowserFileUtil } from './utils/browser-file.util';
@@ -24,7 +25,8 @@ export function initConfig(config: ConfigService) {
     D3canvasComponent,
     GraphComponent,
     LogsComponent,
-    NetvComponent
+    NetvComponent,
+    StardustComponent
   ],
   imports: [
     BrowserModule

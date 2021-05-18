@@ -2,10 +2,12 @@
   <container-element [ngSwitch]="selectedGraphLibraryType">
     <hopr-cytoscape (selectEmitter)="nodeChange($event)" *ngSwitchCase="graphLibraries.cytoscape">
     </hopr-cytoscape>
-    <hopr-netv (selectEmitter)="nodeChange($event)" *ngSwitchCase="graphLibraries.netv">
-    </hopr-netv>
+    <hopr-stardust (selectEmitter)="nodeChange($event)" *ngSwitchCase="graphLibraries.stardust">
+    </hopr-stardust>
     <hopr-d3canvas (selectEmitter)="nodeChange($event)" *ngSwitchCase="graphLibraries.d3canvas">
     </hopr-d3canvas>
+    <hopr-netv (selectEmitter)="nodeChange($event)" *ngSwitchCase="graphLibraries.netv">
+    </hopr-netv>
     <hopr-d3 (selectEmitter)="nodeChange($event)" *ngSwitchDefault>
     </hopr-d3>
   </container-element>

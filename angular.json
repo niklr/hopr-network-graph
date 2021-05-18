@@ -23,6 +23,8 @@
               "cytoscape-fcose",
               "cytoscape-klay",
               "cytoscape",
+              "stardust-core",
+              "stardust-webgl",
               "bn.js",
               "hash.js",
               "lz-string",
