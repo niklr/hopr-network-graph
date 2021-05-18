@@ -54,12 +54,23 @@ export class CommonUtil {
   }
 
   public static combineIndex(index1: string, index2: string): string {
-    if (!CommonUtil.isNullOrWhitespace(index1) && !CommonUtil.isNullOrWhitespace(index2)) {
-      if (index1 > index2) {
-        return `${index2}_${index1}`;
-      }
-      return `${index1}_${index2}`;
+    if (CommonUtil.isNullOrWhitespace(index1) || CommonUtil.isNullOrWhitespace(index2)) {
+      return undefined;
     }
-    return undefined;
+    if (index1 > index2) {
+      return `${index2}_${index1}`;
+    }
+    return `${index1}_${index2}`;
+  }
+
+  public static hexToRgb(hex: string): number[] {
+    if (CommonUtil.isNullOrWhitespace(hex)) {
+      return [0, 0, 0];
+    }
+    const bigint = parseInt(hex.startsWith('#') ? hex.substring(1, hex.length) : hex, 16);
+    const r = (bigint >> 16) & 255;
+    const g = (bigint >> 8) & 255;
+    const b = bigint & 255;
+    return [r, g, b];
   }
 }

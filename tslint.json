@@ -43,6 +43,7 @@
         ]
       }
     ],
+    "no-bitwise": false,
     "no-console": [
       false,
       "debug",

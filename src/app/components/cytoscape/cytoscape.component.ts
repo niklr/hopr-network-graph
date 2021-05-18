@@ -51,7 +51,7 @@ export class CytoscapeComponent extends SharedGraphLibComponent implements OnIni
           'font-size': 'mapData(weight, 1, 100, 5, 10)',
           // 'content': 'data(name)',
           'text-valign': 'center',
-          'background-color': AppConstants.NODE_COLOR
+          'background-color': AppConstants.SECONDARY_COLOR
         }
       },
       {

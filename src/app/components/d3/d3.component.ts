@@ -135,7 +135,7 @@ export class D3Component extends SharedGraphLibComponent implements OnInit, OnDe
         .attr('stroke', '#fff')
         .attr('stroke-width', 1.5)
         .attr('r', (d: any) => GraphUtil.calculateNodeRadius(d.weight))
-        .attr('fill', AppConstants.NODE_COLOR)
+        .attr('fill', AppConstants.SECONDARY_COLOR)
         .attr('class', 'graphElement')
         .on('click', this.handleClick)
         .call(this.drag());

@@ -146,7 +146,7 @@ export class D3canvasComponent extends SharedGraphLibComponent implements OnInit
   }
 
   private drawNodes(): void {
-    this.context.fillStyle = AppConstants.NODE_COLOR;
+    this.context.fillStyle = AppConstants.SECONDARY_COLOR;
     this.context.beginPath();
     this.nodes.forEach((d) => {
       const radius = GraphUtil.calculateNodeRadius(d.weight);
@@ -160,7 +160,7 @@ export class D3canvasComponent extends SharedGraphLibComponent implements OnInit
   private drawNodes1(): void {
     this.nodes.forEach((d) => {
       this.context.beginPath();
-      this.context.fillStyle = AppConstants.NODE_COLOR;
+      this.context.fillStyle = AppConstants.SECONDARY_COLOR;
       const radius = GraphUtil.calculateNodeRadius(d.weight);
       this.context.moveTo(d.x + radius, d.y);
       this.context.arc(d.x, d.y, radius, 0, 2 * Math.PI);

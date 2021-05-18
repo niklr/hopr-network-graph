@@ -3,9 +3,11 @@ import * as d3 from 'd3';
 import * as DataForge from 'data-forge';
 import * as Stardust from 'stardust-core';
 import * as StardustWebGL from 'stardust-webgl';
+import { AppConstants } from '../../app.constants';
 import { GraphElementType } from '../../enums/graph.enum';
 import { EdgeGraphModel, GraphContainerModel, NodeGraphModel } from '../../models/graph.model';
 import { GraphService } from '../../services/graph.service';
+import { CommonUtil } from '../../utils/common.util';
 import { GraphUtil } from '../../utils/graph.util';
 import { SharedGraphLibComponent } from '../shared/shared-graph-lib.component';
 
@@ -99,11 +101,11 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
         return [color[0] / 255, color[1] / 255, color[2] / 255, opacity];
       }
 
-      this.starNodes.attr('radius', 2).attr('color', mapColor([31, 119, 180]));
-      this.starNodesBg.attr('radius', 3).attr('color', mapColor([255, 255, 255], 0.5));
-      this.starNodesSelected.attr('radius', 4).attr('color', mapColor([228, 26, 28]));
+      this.starNodes.attr('radius', 2).attr('color', mapColor(CommonUtil.hexToRgb(AppConstants.PIMARY_COLOR)));
+      this.starNodesBg.attr('radius', 3).attr('color', mapColor([0, 0, 0], 0.5));
+      this.starNodesSelected.attr('radius', 4).attr('color', mapColor(CommonUtil.hexToRgb(AppConstants.SECONDARY_COLOR)));
       this.starEdges.attr('width', 1).attr('color', mapColor([169, 169, 169]));
-      this.starEdgesSelected.attr('width', 1).attr('color', mapColor([228, 26, 28]));
+      this.starEdgesSelected.attr('width', 1).attr('color', mapColor(CommonUtil.hexToRgb(AppConstants.SECONDARY_COLOR)));
       this.starNodeText.attr('text', (d: any) => d.name)
         // .attr('up', [0, 1])
         .attr('fontFamily', 'Arial')

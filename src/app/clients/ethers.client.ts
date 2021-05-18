@@ -114,7 +114,6 @@ export class EthersClient {
         return await contract.queryFilter(filter, fromBlock, toBlock);
       }
       catch (error) {
-        // tslint:disable-next-line: no-bitwise
         const midBlock = (fromBlock + toBlock) >> 1;
         console.log('getEventsByBlockAsync midBlock', midBlock);
         const arr1 = await this.getEventsByBlockAsync(contract, filter, fromBlock, midBlock);
