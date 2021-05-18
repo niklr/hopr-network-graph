@@ -98,3 +98,13 @@ export class GraphEventModel {
     Object.assign(this, init);
   }
 }
+
+export class GraphStateModel {
+  isDestroyed: boolean;
+  isZoomed: boolean;
+  requestedAnimationFrame: number;
+
+  public constructor(init?: Partial<GraphStateModel>) {
+    Object.assign(this, init);
+  }
+}

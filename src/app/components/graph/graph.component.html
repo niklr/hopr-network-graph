@@ -1,9 +1,12 @@
 <div id="graphContainer" [ngClass]="{'loading': isLoading}">
-  <hopr-cytoscape (selectEmitter)="nodeChange($event)" *ngIf="useCytoscapeLibrary; else showD3Block">
-  </hopr-cytoscape>
-  <ng-template #showD3Block>
-    <hopr-d3 (selectEmitter)="nodeChange($event)"></hopr-d3>
-  </ng-template>
+  <container-element [ngSwitch]="selectedGraphLibraryType">
+    <hopr-cytoscape (selectEmitter)="nodeChange($event)" *ngSwitchCase="graphLibraries.cytoscape">
+    </hopr-cytoscape>
+    <hopr-d3 (selectEmitter)="nodeChange($event)" *ngSwitchCase="graphLibraries.d3">
+    </hopr-d3>
+    <hopr-netv (selectEmitter)="nodeChange($event)" *ngSwitchDefault>
+    </hopr-netv>
+  </container-element>
 </div>
 
 <div id="infoContainer">

@@ -20,6 +20,12 @@ export class GraphComponent implements OnInit, OnDestroy {
   public edge: EdgeGraphModel;
   public message: string;
 
+  public graphLibraries = {
+    d3: GraphLibraryType.D3,
+    cytoscape: GraphLibraryType.CYTOSCAPE,
+    netv: GraphLibraryType.NETV
+  };
+
   constructor(private configService: ConfigService, private graphService: GraphService) {
   }
 
@@ -82,8 +88,8 @@ export class GraphComponent implements OnInit, OnDestroy {
     return this.graphService.isLoading;
   }
 
-  public get useCytoscapeLibrary(): boolean {
-    return this.configService.config.selectedGraphLibraryType === GraphLibraryType.CYTOSCAPE;
+  public get selectedGraphLibraryType(): GraphLibraryType {
+    return this.configService.config.selectedGraphLibraryType;
   }
 
   public get filter(): Map<string, ChainFilterItemModel> {

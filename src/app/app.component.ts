@@ -37,6 +37,10 @@ export class AppComponent {
     new LibraryModel({
       type: GraphLibraryType.CYTOSCAPE,
       name: 'cytoscape'
+    }),
+    new LibraryModel({
+      type: GraphLibraryType.NETV,
+      name: 'netv'
     })
   ];
 
@@ -75,7 +79,7 @@ export class AppComponent {
   }
 
   public get showStopSimulationButton(): boolean {
-    return this.graphService.isSimulating && this.configService.config.selectedGraphLibraryType === GraphLibraryType.D3;
+    return this.graphService.isSimulating;
   }
 
   public get stat(): StatModel {
@@ -114,8 +118,9 @@ export class AppComponent {
 
   private load(): void {
     this.graphService.clear();
-    this.chainService.extractAsync(this.configService.config.selectedChainType).then(() => {
+    this.chainService.extractAsync().then(() => {
       this.graphService.load();
+      // this.graphService.transformCrossChain();
     });
   }
 }

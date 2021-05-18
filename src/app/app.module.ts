@@ -9,6 +9,7 @@ import { ConfigService } from './services/config.service';
 import { DefaultLoggerService, Logger } from './services/logger.service';
 import { BrowserFileUtil } from './utils/browser-file.util';
 import { FileUtil } from './utils/file.util';
+import { NetvComponent } from './components/netv/netv.component';
 
 export function initConfig(config: ConfigService) {
   return () => config.initAsync();
@@ -20,7 +21,8 @@ export function initConfig(config: ConfigService) {
     CytoscapeComponent,
     D3Component,
     GraphComponent,
-    LogsComponent
+    LogsComponent,
+    NetvComponent
   ],
   imports: [
     BrowserModule

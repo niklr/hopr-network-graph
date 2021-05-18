@@ -5,7 +5,8 @@ export enum GraphElementType {
 
 export enum GraphLibraryType {
   D3 = 0,
-  CYTOSCAPE = 1
+  CYTOSCAPE = 1,
+  NETV = 2
 }
 
 export enum GraphEventType {
