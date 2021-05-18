@@ -3,7 +3,7 @@ import * as d3 from 'd3';
 import { AppConstants } from '../../app.constants';
 import { ChainTxEventType } from '../../enums/chain.enum';
 import { GraphElementType } from '../../enums/graph.enum';
-import { EdgeDataModel, EdgeGraphModel, GraphContainerModel, GraphScratchModel, NodeDataModel, NodeGraphModel } from '../../models/graph.model';
+import { EdgeGraphModel, GraphContainerModel, NodeGraphModel } from '../../models/graph.model';
 import { GraphService } from '../../services/graph.service';
 import { CommonUtil } from '../../utils/common.util';
 import { GraphUtil } from '../../utils/graph.util';
@@ -304,26 +304,7 @@ export class D3Component extends SharedGraphLibComponent implements OnInit, OnDe
     });
     d3.select(event.target).style('opacity', 1);
 
-    if (d.type === GraphElementType.EDGE) {
-      this.selectEmitter.emit(new EdgeGraphModel({
-        data: new EdgeDataModel({
-          source: d.source.id,
-          target: d.target.id,
-          strength: d.strength
-        }),
-        scratch: new GraphScratchModel({
-          transfer: d.transfer
-        })
-      }));
-    } else if (d.type === GraphElementType.NODE) {
-      this.selectEmitter.emit(new NodeGraphModel({
-        data: new NodeDataModel({
-          id: d.id,
-          name: d.name,
-          weight: d.weight
-        })
-      }));
-    }
+    super.handleSelectedElement(d);
   }
 
   private center(count: number): void {

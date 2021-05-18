@@ -1,6 +1,16 @@
+import { EventEmitter } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { GraphEventType } from '../../enums/graph.enum';
-import { GraphContainerModel, GraphEventModel, GraphStateModel } from '../../models/graph.model';
+import { GraphElementType, GraphEventType } from '../../enums/graph.enum';
+import {
+  EdgeDataModel,
+  EdgeGraphModel,
+  GraphContainerModel,
+  GraphEventModel,
+  GraphScratchModel,
+  GraphStateModel,
+  NodeDataModel,
+  NodeGraphModel
+} from '../../models/graph.model';
 import { GraphService } from '../../services/graph.service';
 
 export abstract class SharedGraphLibComponent {
@@ -56,7 +66,32 @@ export abstract class SharedGraphLibComponent {
     }
   }
 
+  protected abstract get selectEmitter(): EventEmitter<any>;
+
   protected abstract init(data: GraphContainerModel): void;
 
   protected abstract destroy(): void;
+
+  protected handleSelectedElement(element: any): void {
+    if (element.type === GraphElementType.EDGE) {
+      this.selectEmitter.emit(new EdgeGraphModel({
+        data: new EdgeDataModel({
+          source: element.source.id,
+          target: element.target.id,
+          strength: element.strength
+        }),
+        scratch: new GraphScratchModel({
+          transfer: element.transfer
+        })
+      }));
+    } else if (element.type === GraphElementType.NODE) {
+      this.selectEmitter.emit(new NodeGraphModel({
+        data: new NodeDataModel({
+          id: element.id,
+          name: element.name,
+          weight: element.weight
+        })
+      }));
+    }
+  }
 }

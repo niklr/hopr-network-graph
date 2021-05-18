@@ -3,7 +3,7 @@ import * as d3 from 'd3';
 import * as Stardust from 'stardust-core';
 import * as StardustWebGL from 'stardust-webgl';
 import { GraphElementType } from '../../enums/graph.enum';
-import { EdgeDataModel, EdgeGraphModel, GraphContainerModel, GraphScratchModel, NodeDataModel, NodeGraphModel } from '../../models/graph.model';
+import { EdgeGraphModel, GraphContainerModel, NodeGraphModel } from '../../models/graph.model';
 import { GraphService } from '../../services/graph.service';
 import { GraphUtil } from '../../utils/graph.util';
 import { SharedGraphLibComponent } from '../shared/shared-graph-lib.component';
@@ -280,6 +280,7 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
         const element = p[0].data()[p[1]];
         if (this.selectedElement !== element) {
           this.selectedElement = element;
+          super.handleSelectedElement(element);
           this.requestRender();
         }
       } else {
@@ -289,66 +290,6 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
         }
       }
     };
-  }
-
-  private handleClick = (event: any, d: any) => {
-    event.stopPropagation();
-    // this.base.selectAll('.graphElement').style('opacity', (o: any) => {
-    //   if (d.type === GraphElementType.EDGE) {
-    //     if (o.type === GraphElementType.EDGE) {
-    //       // d = EDGE and o = EDGE
-    //       if (o === d) {
-    //         return 1.0;
-    //       }
-    //       return 0;
-    //     } else {
-    //       // d = EDGE and o = NODE
-    //       if (o.id === d.source.id || o.id === d.target.id) {
-    //         return 1.0;
-    //       }
-    //       return 0;
-    //     }
-    //   } else {
-    //     if (o.type === GraphElementType.EDGE) {
-    //       // d = NODE and o = EDGE
-    //       if (o.source.id === d.id || o.target.id === d.id) {
-    //         return 1.0;
-    //       }
-    //       return 0;
-    //     } else {
-    //       // d = NODE and o = NODE
-    //       if (o.id === d.id) {
-    //         return 1;
-    //       }
-    //       if (this.isConnected(o.id, d.id)) {
-    //         return 0.5;
-    //       }
-    //       return 0;
-    //     }
-    //   }
-    // });
-    d3.select(event.target).style('opacity', 1);
-
-    if (d.type === GraphElementType.EDGE) {
-      this.selectEmitter.emit(new EdgeGraphModel({
-        data: new EdgeDataModel({
-          source: d.source.id,
-          target: d.target.id,
-          strength: d.strength
-        }),
-        scratch: new GraphScratchModel({
-          transfer: d.transfer
-        })
-      }));
-    } else if (d.type === GraphElementType.NODE) {
-      this.selectEmitter.emit(new NodeGraphModel({
-        data: new NodeDataModel({
-          id: d.id,
-          name: d.name,
-          weight: d.weight
-        })
-      }));
-    }
   }
 
   private center(count: number): void {
