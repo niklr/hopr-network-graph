@@ -39,16 +39,16 @@ export class AppComponent {
       name: 'cytoscape'
     }),
     new LibraryModel({
-      type: GraphLibraryType.NETV,
-      name: 'netv'
+      type: GraphLibraryType.STARDUST,
+      name: 'stardust'
     }),
     new LibraryModel({
       type: GraphLibraryType.D3_CANVAS,
       name: 'd3-canvas'
     }),
     new LibraryModel({
-      type: GraphLibraryType.STARDUST,
-      name: 'stardust'
+      type: GraphLibraryType.NETV,
+      name: 'netv'
     })
   ];
 
@@ -77,7 +77,7 @@ export class AppComponent {
   }
 
   public changeLibrary($event: any): void {
-    this.configService.config.selectedGraphLibraryType = ChainType[ChainType[$event.target.value]];
+    this.configService.config.selectedGraphLibraryType = GraphLibraryType[GraphLibraryType[$event.target.value]];
     this.setSelectedLibraryType();
     this.load();
   }

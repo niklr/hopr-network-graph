@@ -128,16 +128,27 @@ export class StardustComponent implements OnInit, OnDestroy {
         // .attr('scale', d => this.transform.k)
         // .attr('scale', d => 1 + Math.sin(d) / 2)
         .attr('color', mapColor([0.5, 0.5, 0.5], 1));
-      this.starEdgeText.attr('text', (d: any) => d.transfer?.args?.amount ?? d.type)
+      this.starEdgeText.attr('text', (d: any) => d.transfer?.argsAmount ?? d.type)
         .attr('fontFamily', 'Arial')
-        .attr('fontSize', 12)
+        .attr('fontSize', 10)
         .attr('color', mapColor([0.5, 0.5, 0.5], 1));
 
       this.positions = Stardust.array()
-        .value(d => [d.x * this.transform.k + this.transform.x, d.y * this.transform.k + this.transform.y])
+        .value(d => [
+          d.x * this.transform.k + this.transform.x,
+          d.y * this.transform.k + this.transform.y
+        ])
         .data(this.nodes);
 
+      const edgePositions = Stardust.array()
+        .value(d => [
+          ((d.source.x * this.transform.k + this.transform.x) + (d.target.x * this.transform.k + this.transform.x)) / 2,
+          ((d.source.y * this.transform.k + this.transform.y) + (d.target.y * this.transform.k + this.transform.y)) / 2
+        ])
+        .data(this.edges);
+
       const positionScale = Stardust.scale.custom('array(pos, value)').attr('pos', 'Vector2Array', this.positions);
+      const edgePositionScale = Stardust.scale.custom('array(pos, value)').attr('pos', 'Vector2Array', edgePositions);
 
       this.starNodesSelected.attr('center', positionScale(d => d.index));
       this.starNodes.attr('center', positionScale(d => d.index));
@@ -145,6 +156,7 @@ export class StardustComponent implements OnInit, OnDestroy {
       this.starEdges.attr('p1', positionScale(d => d.source.index));
       this.starEdges.attr('p2', positionScale(d => d.target.index));
       this.starNodeText.attr('position', positionScale(d => d.index));
+      this.starEdgeText.attr('position', edgePositionScale(d => d.index));
 
       this.starNodesBg.data(this.nodes);
       this.starNodes.data(this.nodes);
@@ -216,6 +228,8 @@ export class StardustComponent implements OnInit, OnDestroy {
     // });
     this.starEdgeText.attr('scale', this.transform.k);
     this.starEdgeText.render();
+    this.starEdgeText.attr('alignX', 0.5);
+    this.starEdgeText.attr('alignY', 0.5);
 
     // Render the picking buffer.
     // this.platform.beginPicking(this.width, this.height);

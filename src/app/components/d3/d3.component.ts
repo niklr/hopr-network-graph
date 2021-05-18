@@ -150,7 +150,7 @@ export class D3Component implements OnInit, OnDestroy {
           .attr('font-size', 5)
           .attr('fill', 'black')
           .attr('class', 'graphElement')
-          .text((d: any) => d.transfer?.args?.amount ?? d.type);
+          .text((d: any) => d.transfer?.argsAmount ?? d.type);
       }
 
       this.node = this.g

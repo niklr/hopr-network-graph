@@ -22,7 +22,6 @@ export class D3canvasComponent implements OnInit, OnDestroy {
   private height: number;
   private canvas: d3.Selection<HTMLCanvasElement, unknown, HTMLElement, any>;
   private context: CanvasRenderingContext2D;
-  private base: d3.Selection<HTMLElement, unknown, HTMLElement, any>;
   private zoom: d3.ZoomBehavior<Element, unknown>;
   private edges: any;
   private nodes: any;
@@ -187,8 +186,23 @@ export class D3canvasComponent implements OnInit, OnDestroy {
       const radius = Math.max(5, (d.weight / 10) + 5);
       this.context.moveTo(d.x + radius, d.y);
       this.context.arc(d.x, d.y, radius, 0, 2 * Math.PI);
+      this.context.fillText(d.name, d.x, d.y);
     });
     this.context.fill();
+  }
+
+  private drawNodes1(): void {
+    this.nodes.forEach((d) => {
+      this.context.beginPath();
+      this.context.fillStyle = AppConstants.NODE_COLOR;
+      const radius = Math.max(5, (d.weight / 10) + 5);
+      this.context.moveTo(d.x + radius, d.y);
+      this.context.arc(d.x, d.y, radius, 0, 2 * Math.PI);
+      this.context.fill();
+      this.context.beginPath();
+      this.context.fillStyle = AppConstants.TX_EVENT_BURN_COLOR;
+      this.context.fillText(d.name, d.x, d.y);
+    });
   }
 
   private createCanvas(): void {
@@ -199,12 +213,10 @@ export class D3canvasComponent implements OnInit, OnDestroy {
       .attr('width', this.width)
       .attr('height', this.height)
       .on('click', () => {
-        this.base.selectAll('.graphElement').style('opacity', 1);
         this.selectEmitter.emit(undefined);
       });
 
     this.context = this.canvas.node().getContext('2d');
-    this.base = d3.select(document.createElement('base'));
     this.transform = d3.zoomIdentity;
 
     // this.canvas.call(d3.drag().subject((e) => console.log(e)));
@@ -269,40 +281,40 @@ export class D3canvasComponent implements OnInit, OnDestroy {
 
   private handleClick = (event: any, d: any) => {
     event.stopPropagation();
-    this.base.selectAll('.graphElement').style('opacity', (o: any) => {
-      if (d.type === GraphElementType.EDGE) {
-        if (o.type === GraphElementType.EDGE) {
-          // d = EDGE and o = EDGE
-          if (o === d) {
-            return 1.0;
-          }
-          return 0;
-        } else {
-          // d = EDGE and o = NODE
-          if (o.id === d.source.id || o.id === d.target.id) {
-            return 1.0;
-          }
-          return 0;
-        }
-      } else {
-        if (o.type === GraphElementType.EDGE) {
-          // d = NODE and o = EDGE
-          if (o.source.id === d.id || o.target.id === d.id) {
-            return 1.0;
-          }
-          return 0;
-        } else {
-          // d = NODE and o = NODE
-          if (o.id === d.id) {
-            return 1;
-          }
-          if (this.isConnected(o.id, d.id)) {
-            return 0.5;
-          }
-          return 0;
-        }
-      }
-    });
+    // this.base.selectAll('.graphElement').style('opacity', (o: any) => {
+    //   if (d.type === GraphElementType.EDGE) {
+    //     if (o.type === GraphElementType.EDGE) {
+    //       // d = EDGE and o = EDGE
+    //       if (o === d) {
+    //         return 1.0;
+    //       }
+    //       return 0;
+    //     } else {
+    //       // d = EDGE and o = NODE
+    //       if (o.id === d.source.id || o.id === d.target.id) {
+    //         return 1.0;
+    //       }
+    //       return 0;
+    //     }
+    //   } else {
+    //     if (o.type === GraphElementType.EDGE) {
+    //       // d = NODE and o = EDGE
+    //       if (o.source.id === d.id || o.target.id === d.id) {
+    //         return 1.0;
+    //       }
+    //       return 0;
+    //     } else {
+    //       // d = NODE and o = NODE
+    //       if (o.id === d.id) {
+    //         return 1;
+    //       }
+    //       if (this.isConnected(o.id, d.id)) {
+    //         return 0.5;
+    //       }
+    //       return 0;
+    //     }
+    //   }
+    // });
     d3.select(event.target).style('opacity', 1);
 
     if (d.type === GraphElementType.EDGE) {
