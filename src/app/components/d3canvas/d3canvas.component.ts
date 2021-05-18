@@ -6,6 +6,7 @@ import { ChainTxEventType } from '../../enums/chain.enum';
 import { GraphElementType, GraphEventType } from '../../enums/graph.enum';
 import { EdgeDataModel, EdgeGraphModel, GraphEventModel, GraphScratchModel, GraphStateModel, NodeDataModel, NodeGraphModel } from '../../models/graph.model';
 import { GraphService } from '../../services/graph.service';
+import { GraphUtil } from '../../utils/graph.util';
 
 @Component({
   selector: 'hopr-d3canvas',
@@ -183,7 +184,7 @@ export class D3canvasComponent implements OnInit, OnDestroy {
     this.context.fillStyle = AppConstants.NODE_COLOR;
     this.context.beginPath();
     this.nodes.forEach((d) => {
-      const radius = Math.max(5, (d.weight / 10) + 5);
+      const radius = GraphUtil.calculateNodeRadius(d.weight);
       this.context.moveTo(d.x + radius, d.y);
       this.context.arc(d.x, d.y, radius, 0, 2 * Math.PI);
       this.context.fillText(d.name, d.x, d.y);
@@ -195,7 +196,7 @@ export class D3canvasComponent implements OnInit, OnDestroy {
     this.nodes.forEach((d) => {
       this.context.beginPath();
       this.context.fillStyle = AppConstants.NODE_COLOR;
-      const radius = Math.max(5, (d.weight / 10) + 5);
+      const radius = GraphUtil.calculateNodeRadius(d.weight);
       this.context.moveTo(d.x + radius, d.y);
       this.context.arc(d.x, d.y, radius, 0, 2 * Math.PI);
       this.context.fill();

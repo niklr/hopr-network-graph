@@ -6,6 +6,7 @@ import * as StardustWebGL from 'stardust-webgl';
 import { GraphElementType, GraphEventType } from '../../enums/graph.enum';
 import { EdgeDataModel, EdgeGraphModel, GraphEventModel, GraphScratchModel, GraphStateModel, NodeDataModel, NodeGraphModel } from '../../models/graph.model';
 import { GraphService } from '../../services/graph.service';
+import { GraphUtil } from '../../utils/graph.util';
 
 @Component({
   selector: 'hopr-stardust',
@@ -120,7 +121,8 @@ export class StardustComponent implements OnInit, OnDestroy {
       this.starNodes.attr('radius', 2).attr('color', mapColor([31, 119, 180]));
       // this.starNodesBg.attr('radius', 3).attr('color', mapColor([1, 1, 1, 0.5]));
       this.starNodesSelected.attr('radius', 4).attr('color', mapColor([228, 26, 28]));
-      this.starEdges.attr('width', 0.5).attr('color', mapColor([0.5, 0.5, 0.5], 0.1));
+      this.starEdges.attr('width', (d: any) => Math.max(1, d.strength / 10) * this.transform.k)
+        .attr('color', mapColor([0.5, 0.5, 0.5], 0.1));
       this.starNodeText.attr('text', (d: any) => d.name)
         // .attr('up', [0, 1])
         .attr('fontFamily', 'Arial')
@@ -212,7 +214,7 @@ export class StardustComponent implements OnInit, OnDestroy {
     // this.platform.clear([1, 1, 1, 1]);
     this.starEdges.render();
     // this.starNodesBg.render();
-    this.starNodes.attr('radius', (d: any) => Math.max(5, (d.weight / 10) + 5) * this.transform.k);
+    this.starNodes.attr('radius', (d: any) => GraphUtil.calculateNodeRadius(d.weight) * this.transform.k);
     this.starNodes.render();
     this.starNodesSelected.render();
     this.starNodeText.attr('scale', this.transform.k);
@@ -220,12 +222,7 @@ export class StardustComponent implements OnInit, OnDestroy {
     this.starNodeText.attr('alignX', 0.5);
     this.starNodeText.attr('alignY', 0.5);
 
-    // this.starEdgeText.attr('position', d => {
-    //   return [
-    //     (this.positions.data()[d.source.index].x + this.positions.data()[d.target.index].x) / 2,
-    //     (this.positions.data()[d.source.index].y + this.positions.data()[d.target.index].y) / 2,
-    //   ];
-    // });
+
     this.starEdgeText.attr('scale', this.transform.k);
     this.starEdgeText.render();
     this.starEdgeText.attr('alignX', 0.5);

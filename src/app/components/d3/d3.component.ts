@@ -6,6 +6,7 @@ import { ChainTxEventType } from '../../enums/chain.enum';
 import { GraphElementType, GraphEventType } from '../../enums/graph.enum';
 import { EdgeDataModel, EdgeGraphModel, GraphEventModel, GraphScratchModel, NodeDataModel, NodeGraphModel } from '../../models/graph.model';
 import { GraphService } from '../../services/graph.service';
+import { GraphUtil } from '../../utils/graph.util';
 
 @Component({
   selector: 'hopr-d3',
@@ -159,7 +160,7 @@ export class D3Component implements OnInit, OnDestroy {
         .join('circle')
         .attr('stroke', '#fff')
         .attr('stroke-width', 1.5)
-        .attr('r', (d: any) => Math.max(5, (d.weight / 10) + 5))
+        .attr('r', (d: any) => GraphUtil.calculateNodeRadius(d.weight))
         .attr('fill', AppConstants.NODE_COLOR)
         .attr('class', 'graphElement')
         .on('click', this.handleClick)

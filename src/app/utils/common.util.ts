@@ -45,11 +45,21 @@ export class CommonUtil {
     return LZString.decompressFromUTF16(data);
   }
 
-  public assign<T>(values: Partial<T>, ctor: new () => T): T {
+  public static assign<T>(values: Partial<T>, ctor: new () => T): T {
     const instance = new ctor();
     return Object.keys(instance).reduce((acc, key) => {
       acc[key] = values[key];
       return acc;
     }, {}) as T;
+  }
+
+  public static combineIndex(index1: string, index2: string): string {
+    if (!CommonUtil.isNullOrWhitespace(index1) && !CommonUtil.isNullOrWhitespace(index2)) {
+      if (index1 > index2) {
+        return `${index2}_${index1}`;
+      }
+      return `${index1}_${index2}`;
+    }
+    return undefined;
   }
 }

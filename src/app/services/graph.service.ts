@@ -17,6 +17,7 @@ import {
   NodeGraphModel
 } from '../models/graph.model';
 import { EventRepository } from '../repositories/event.repository';
+import { CommonUtil } from '../utils/common.util';
 import { Ensure } from '../utils/ensure.util';
 import { FileUtil } from '../utils/file.util';
 import { ConfigService } from './config.service';
@@ -29,6 +30,7 @@ export class GraphService {
   private _onChangeSubject: Subject<any>;
   private _data: GraphContainerModel;
   private _nodeMap: Map<string, NodeGraphModel>;
+  private _edgeMap: Map<string, EdgeGraphModel>;
 
   public isLoading = false;
   public isSimulating = false;
@@ -77,6 +79,7 @@ export class GraphService {
   public clear(): void {
     this._data = undefined;
     this._nodeMap = undefined;
+    this._edgeMap = undefined;
     this.submitDataSubjectEvent(undefined);
   }
 
@@ -218,6 +221,7 @@ export class GraphService {
 
   private async loadAsync(): Promise<void> {
     this._nodeMap = new Map<string, NodeGraphModel>();
+    this._edgeMap = new Map<string, EdgeGraphModel>();
     if (this.configService.config?.selectedChain) {
       const data = await this.init(this.configService.config?.selectedChain);
       this.submitDataSubjectEvent(data);
@@ -270,7 +274,7 @@ export class GraphService {
   private addGraphElements(transfer: TransferEventModel, data: GraphContainerModel): void {
     this.tryAddNode(transfer.argsFrom, data);
     this.tryAddNode(transfer.argsTo, data);
-    data.edges.push(this.createEdgeModel(transfer));
+    this.tryAddEdge(transfer, data);
   }
 
   private tryAddNode(address: string, data: GraphContainerModel): void {
@@ -281,6 +285,21 @@ export class GraphService {
       const node = this.createNodeModel(address);
       this._nodeMap.set(address, node);
       data.nodes.push(node);
+    }
+  }
+
+  private tryAddEdge(transfer: TransferEventModel, data: GraphContainerModel): void {
+    const index = CommonUtil.combineIndex(transfer.argsFrom, transfer.argsTo);
+    if (CommonUtil.isNullOrWhitespace(index)) {
+      throw new Error('Invalid transfer');
+    }
+    if (this._edgeMap.has(index)) {
+      const edge = this._edgeMap.get(index);
+      edge.data.strength = Math.min(++edge.data.strength, 100);
+    } else {
+      const edge = this.createEdgeModel(transfer);
+      this._edgeMap.set(index, edge);
+      data.edges.push(edge);
     }
   }
 

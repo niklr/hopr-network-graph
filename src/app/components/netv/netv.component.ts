@@ -3,7 +3,7 @@ import * as d3 from 'd3';
 import NetV from 'netv';
 import { Subscription } from 'rxjs';
 import { GraphElementType, GraphEventType } from '../../enums/graph.enum';
-import { EdgeDataModel, EdgeGraphModel, GraphEventModel, GraphScratchModel, GraphStateModel, NodeDataModel, NodeGraphModel } from '../../models/graph.model';
+import { EdgeGraphModel, GraphEventModel, GraphStateModel, NodeGraphModel } from '../../models/graph.model';
 import { GraphService } from '../../services/graph.service';
 
 @Component({
@@ -20,14 +20,10 @@ export class NetvComponent implements OnInit, OnDestroy {
   private width: number;
   private height: number;
   private canvas: any;
-  private context: CanvasRenderingContext2D;
-  private base: d3.Selection<HTMLElement, unknown, HTMLElement, any>;
-  private zoom: d3.ZoomBehavior<Element, unknown>;
   private edges: any;
   private nodes: any;
   private data: any;
   private simulation: d3.Simulation<d3.SimulationNodeDatum, undefined>;
-  private transform: any;
   private state: GraphStateModel;
   private connectedLookup: any = {};
   private subs: Subscription[] = [];
@@ -174,112 +170,5 @@ export class NetvComponent implements OnInit, OnDestroy {
         }
       }
     });
-  }
-
-  private drag(): any {
-
-    const dragsubject = (event: any) => {
-      console.log(event);
-      return this.simulation.find(event.x, event.y);
-    };
-
-    const dragstarted = (event: any, d: any) => {
-      if (!event.active) {
-        this.simulation.alphaTarget(0.3).restart();
-      }
-      event.subject.fx = event.subject.x;
-      event.subject.fy = event.subject.y;
-    };
-
-    const dragged = (event: any, d: any) => {
-      event.subject.fx = event.x;
-      event.subject.fy = event.y;
-    };
-
-    const dragended = (event: any, d: any) => {
-      if (!event.active) {
-        this.simulation.alphaTarget(0);
-      }
-      event.subject.fx = null;
-      event.subject.fy = null;
-    };
-
-    return d3.drag()
-      // .subject(dragsubject)
-      .on('start', dragstarted)
-      .on('drag', dragged)
-      .on('end', dragended);
-  }
-
-  private isConnected(a: any, b: any): boolean {
-    return this.isConnectedAsTarget(a, b) || this.isConnectedAsSource(a, b) || a === b;
-  }
-
-  private isConnectedAsSource(a: any, b: any): boolean {
-    return this.connectedLookup[`${a},${b}`];
-  }
-
-  private isConnectedAsTarget(a: any, b: any): boolean {
-    return this.connectedLookup[`${b},${a}`];
-  }
-
-  private handleClick = (event: any, d: any) => {
-    event.stopPropagation();
-    this.base.selectAll('.graphElement').style('opacity', (o: any) => {
-      if (d.type === GraphElementType.EDGE) {
-        if (o.type === GraphElementType.EDGE) {
-          // d = EDGE and o = EDGE
-          if (o === d) {
-            return 1.0;
-          }
-          return 0;
-        } else {
-          // d = EDGE and o = NODE
-          if (o.id === d.source.id || o.id === d.target.id) {
-            return 1.0;
-          }
-          return 0;
-        }
-      } else {
-        if (o.type === GraphElementType.EDGE) {
-          // d = NODE and o = EDGE
-          if (o.source.id === d.id || o.target.id === d.id) {
-            return 1.0;
-          }
-          return 0;
-        } else {
-          // d = NODE and o = NODE
-          if (o.id === d.id) {
-            return 1;
-          }
-          if (this.isConnected(o.id, d.id)) {
-            return 0.5;
-          }
-          return 0;
-        }
-      }
-    });
-    d3.select(event.target).style('opacity', 1);
-
-    if (d.type === GraphElementType.EDGE) {
-      this.selectEmitter.emit(new EdgeGraphModel({
-        data: new EdgeDataModel({
-          source: d.source.id,
-          target: d.target.id,
-          strength: d.strength
-        }),
-        scratch: new GraphScratchModel({
-          transfer: d.transfer
-        })
-      }));
-    } else if (d.type === GraphElementType.NODE) {
-      this.selectEmitter.emit(new NodeGraphModel({
-        data: new NodeDataModel({
-          id: d.id,
-          name: d.name,
-          weight: d.weight
-        })
-      }));
-    }
   }
 }
