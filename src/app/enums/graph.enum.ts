@@ -6,7 +6,9 @@ export enum GraphElementType {
 export enum GraphLibraryType {
   D3 = 0,
   CYTOSCAPE = 1,
-  NETV = 2
+  STARDUST = 2,
+  D3_CANVAS = 3,
+  NETV = 4
 }
 
 export enum GraphEventType {

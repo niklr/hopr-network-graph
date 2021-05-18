@@ -1,17 +1,18 @@
 import { Component, ElementRef, EventEmitter, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import * as d3 from 'd3';
-import NetV from 'netv';
 import { Subscription } from 'rxjs';
+import { AppConstants } from '../../app.constants';
+import { ChainTxEventType } from '../../enums/chain.enum';
 import { GraphElementType, GraphEventType } from '../../enums/graph.enum';
 import { EdgeDataModel, EdgeGraphModel, GraphEventModel, GraphScratchModel, GraphStateModel, NodeDataModel, NodeGraphModel } from '../../models/graph.model';
 import { GraphService } from '../../services/graph.service';
 
 @Component({
-  selector: 'hopr-netv',
-  templateUrl: './netv.component.html',
-  styleUrls: ['./netv.component.css']
+  selector: 'hopr-d3canvas',
+  templateUrl: './d3canvas.component.html',
+  styleUrls: ['./d3canvas.component.css']
 })
-export class NetvComponent implements OnInit, OnDestroy {
+export class D3canvasComponent implements OnInit, OnDestroy {
 
   @Output() selectEmitter: EventEmitter<any> = new EventEmitter<any>();
 
@@ -19,13 +20,12 @@ export class NetvComponent implements OnInit, OnDestroy {
 
   private width: number;
   private height: number;
-  private canvas: any;
+  private canvas: d3.Selection<HTMLCanvasElement, unknown, HTMLElement, any>;
   private context: CanvasRenderingContext2D;
   private base: d3.Selection<HTMLElement, unknown, HTMLElement, any>;
   private zoom: d3.ZoomBehavior<Element, unknown>;
   private edges: any;
   private nodes: any;
-  private data: any;
   private simulation: d3.Simulation<d3.SimulationNodeDatum, undefined>;
   private transform: any;
   private state: GraphStateModel;
@@ -105,11 +105,6 @@ export class NetvComponent implements OnInit, OnDestroy {
           transfer: e.scratch?.transfer
         };
       });
-      this.data = {
-        nodes: this.nodes,
-        links: this.edges
-      };
-      this.canvas.data(this.data);
       if (this.simulation) {
         this.simulation.stop();
       }
@@ -134,7 +129,7 @@ export class NetvComponent implements OnInit, OnDestroy {
         this.connectedLookup[`${d.source.id},${d.target.id}`] = true;
       });
 
-      // this.center(0);
+      this.center(0);
       this.graphService.isLoading = false;
     }
   }
@@ -150,30 +145,79 @@ export class NetvComponent implements OnInit, OnDestroy {
 
   private render(): void {
     this.state.requestedAnimationFrame = undefined;
-    this.data.nodes.forEach((n) => {
-      const node = this.canvas.getNodeById(n.id);
-      node.x(n.x);
-      node.y(n.y);
+    this.context.save();
+    this.context.clearRect(0, 0, this.width, this.height);
+    this.context.translate(this.transform.x, this.transform.y);
+    this.context.scale(this.transform.k, this.transform.k);
+    this.drawEdges();
+    this.drawNodes();
+    this.context.restore();
+  }
+
+  private drawEdges(): void {
+    // draw links
+    this.context.strokeStyle = AppConstants.TX_EVENT_TRANSFER_COLOR;
+    this.context.beginPath();
+    this.edges.forEach((d) => {
+      if (d?.transfer?.type) {
+        switch (d.transfer.type) {
+          case ChainTxEventType.MINT:
+            this.context.strokeStyle = AppConstants.TX_EVENT_MINT_COLOR;
+            break;
+          case ChainTxEventType.BURN:
+            this.context.strokeStyle = AppConstants.TX_EVENT_BURN_COLOR;
+            break;
+          default:
+            this.context.strokeStyle = AppConstants.TX_EVENT_TRANSFER_COLOR;
+            break;
+        }
+      } else {
+        this.context.strokeStyle = AppConstants.TX_EVENT_TRANSFER_COLOR;
+      }
+      this.context.moveTo(d.source.x, d.source.y);
+      this.context.lineTo(d.target.x, d.target.y);
     });
-    this.canvas.draw();
+    this.context.stroke();
+  }
+
+  private drawNodes(): void {
+    this.context.fillStyle = AppConstants.NODE_COLOR;
+    this.context.beginPath();
+    this.nodes.forEach((d) => {
+      const radius = Math.max(5, (d.weight / 10) + 5);
+      this.context.moveTo(d.x + radius, d.y);
+      this.context.arc(d.x, d.y, radius, 0, 2 * Math.PI);
+    });
+    this.context.fill();
   }
 
   private createCanvas(): void {
-    this.canvas = new NetV({
-      container: this.containerElementRef.nativeElement,
-      width: this.width,
-      height: this.height,
-      node: {
-        style: {
-          r: 4,
-        }
-      },
-      link: {
-        style: {
-          strokeWidth: 1
-        }
-      }
-    });
+    d3.select('#canvasContainer').remove();
+    this.canvas = d3.select('#container')
+      .append('canvas')
+      .attr('id', 'canvasContainer')
+      .attr('width', this.width)
+      .attr('height', this.height)
+      .on('click', () => {
+        this.base.selectAll('.graphElement').style('opacity', 1);
+        this.selectEmitter.emit(undefined);
+      });
+
+    this.context = this.canvas.node().getContext('2d');
+    this.base = d3.select(document.createElement('base'));
+    this.transform = d3.zoomIdentity;
+
+    // this.canvas.call(d3.drag().subject((e) => console.log(e)));
+    // this.canvas.call(this.drag());
+    this.zoom = d3.zoom()
+      .extent([[0, 0], [this.width, this.height]])
+      .scaleExtent([0, 10])
+      .on('zoom', (e: any) => {
+        this.state.isZoomed = true;
+        this.transform = e.transform;
+        this.requestRender();
+      });
+    this.canvas.call(this.zoom);
   }
 
   private drag(): any {
@@ -280,6 +324,29 @@ export class NetvComponent implements OnInit, OnDestroy {
           weight: d.weight
         })
       }));
+    }
+  }
+
+  private center(count: number): void {
+    if (!this.state.isDestroyed && !this.state.isZoomed) {
+      const width = this.canvas.node().clientWidth;
+      const height = this.canvas.node().clientHeight;
+      // TODO: set min/max nodes
+      console.log(width, height);
+      if (width && height) {
+        const scale = Math.min(this.width / width, this.height / height) * 0.8;
+        if (count > 0) {
+          console.log(width, height, scale);
+          this.canvas.transition()
+            .duration(750)
+            .call(this.zoom.scaleTo, scale);
+        }
+      }
+      if (this.graphService.isSimulating && count < 5) {
+        setTimeout(() => {
+          this.center(++count);
+        }, 1000);
+      }
     }
   }
 }

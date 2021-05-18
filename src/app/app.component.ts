@@ -41,6 +41,14 @@ export class AppComponent {
     new LibraryModel({
       type: GraphLibraryType.NETV,
       name: 'netv'
+    }),
+    new LibraryModel({
+      type: GraphLibraryType.D3_CANVAS,
+      name: 'd3-canvas'
+    }),
+    new LibraryModel({
+      type: GraphLibraryType.STARDUST,
+      name: 'stardust'
     })
   ];
 
