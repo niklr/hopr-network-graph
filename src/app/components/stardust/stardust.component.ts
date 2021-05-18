@@ -26,6 +26,8 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
   private zoom: d3.ZoomBehavior<Element, unknown>;
   private edges: any;
   private nodes: any;
+  private selectedElement: any;
+  private isSelectionPermanent: boolean;
   private simulation: d3.Simulation<d3.SimulationNodeDatum, undefined>;
   private transform: any;
   private platform: StardustWebGL.WebGLPlatform;
@@ -34,6 +36,7 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
   private starNodesBg: Stardust.Mark;
   private starNodesSelected: Stardust.Mark;
   private starEdges: Stardust.Mark;
+  private starEdgesSelected: Stardust.Mark;
   private starNodeText: Stardust.Mark;
   private starEdgeText: Stardust.Mark;
 
@@ -91,10 +94,10 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
       }
 
       this.starNodes.attr('radius', 2).attr('color', mapColor([31, 119, 180]));
-      // this.starNodesBg.attr('radius', 3).attr('color', mapColor([1, 1, 1, 0.5]));
+      this.starNodesBg.attr('radius', 3).attr('color', mapColor([255, 255, 255], 0.5));
       this.starNodesSelected.attr('radius', 4).attr('color', mapColor([228, 26, 28]));
-      this.starEdges.attr('width', (d: any) => Math.max(1, d.strength / 10) * this.transform.k)
-        .attr('color', mapColor([0.5, 0.5, 0.5], 0.1));
+      this.starEdges.attr('width', 1).attr('color', mapColor([169, 169, 169]));
+      this.starEdgesSelected.attr('width', 1).attr('color', mapColor([228, 26, 28]));
       this.starNodeText.attr('text', (d: any) => d.name)
         // .attr('up', [0, 1])
         .attr('fontFamily', 'Arial')
@@ -124,18 +127,20 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
       const positionScale = Stardust.scale.custom('array(pos, value)').attr('pos', 'Vector2Array', this.positions);
       const edgePositionScale = Stardust.scale.custom('array(pos, value)').attr('pos', 'Vector2Array', edgePositions);
 
-      this.starNodesSelected.attr('center', positionScale(d => d.index));
       this.starNodes.attr('center', positionScale(d => d.index));
       this.starNodesBg.attr('center', positionScale(d => d.index));
+      this.starNodesSelected.attr('center', positionScale(d => d.index));
+      this.starNodeText.attr('position', positionScale(d => d.index));
       this.starEdges.attr('p1', positionScale(d => d.source.index));
       this.starEdges.attr('p2', positionScale(d => d.target.index));
-      this.starNodeText.attr('position', positionScale(d => d.index));
+      this.starEdgesSelected.attr('p1', positionScale(d => d.source.index));
+      this.starEdgesSelected.attr('p2', positionScale(d => d.target.index));
       this.starEdgeText.attr('position', edgePositionScale(d => d.index));
 
-      this.starNodesBg.data(this.nodes);
       this.starNodes.data(this.nodes);
-      this.starEdges.data(this.edges);
+      this.starNodesBg.data(this.nodes);
       this.starNodeText.data(this.nodes);
+      this.starEdges.data(this.edges);
       this.starEdgeText.data(this.edges);
 
       if (this.simulation) {
@@ -177,18 +182,40 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
   private render(): void {
     this.state.requestedAnimationFrame = undefined;
 
+    if (this.selectedElement) {
+      switch (this.selectedElement.type) {
+        case GraphElementType.NODE:
+          this.starNodesSelected.data([this.selectedElement]);
+          this.starEdgesSelected.data([]);
+          break;
+        case GraphElementType.EDGE:
+          this.starEdgesSelected.data([this.selectedElement]);
+          this.starNodesSelected.data([]);
+          break;
+        default:
+          break;
+      }
+    } else {
+      this.starEdgesSelected.data([]);
+      this.starNodesSelected.data([]);
+    }
+
     // Cleanup and re-render.
     // this.platform.clear([1, 1, 1, 1]);
+    this.starEdges.attr('width', (d: any) => GraphUtil.calculateEdgeWidth(d.strength) * this.transform.k);
     this.starEdges.render();
-    // this.starNodesBg.render();
+    this.starEdgesSelected.attr('width', (d: any) => GraphUtil.calculateEdgeWidth(d.strength) * this.transform.k + 1);
+    this.starEdgesSelected.render();
+    this.starNodesBg.attr('radius', (d: any) => GraphUtil.calculateNodeRadius(d.weight) * this.transform.k + 1);
+    this.starNodesBg.render();
     this.starNodes.attr('radius', (d: any) => GraphUtil.calculateNodeRadius(d.weight) * this.transform.k);
     this.starNodes.render();
+    this.starNodesSelected.attr('radius', (d: any) => GraphUtil.calculateNodeRadius(d.weight) * this.transform.k);
     this.starNodesSelected.render();
     this.starNodeText.attr('scale', this.transform.k);
     this.starNodeText.render();
     this.starNodeText.attr('alignX', 0.5);
     this.starNodeText.attr('alignY', 0.5);
-
 
     this.starEdgeText.attr('scale', this.transform.k);
     this.starEdgeText.render();
@@ -196,10 +223,10 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
     this.starEdgeText.attr('alignY', 0.5);
 
     // Render the picking buffer.
-    // this.platform.beginPicking(this.width, this.height);
-    // this.starNodes.attr('radius', 6); // make radius larger so it's easier to select.
-    // this.starNodes.render();
-    // this.platform.endPicking();
+    this.platform.beginPicking(this.width, this.height);
+    this.starEdges.render();
+    this.starNodes.render();
+    this.platform.endPicking();
   }
 
   private createCanvas(): void {
@@ -223,6 +250,7 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
     this.starNodesBg = Stardust.mark.create(Stardust.mark.circle(), this.platform);
     this.starNodesSelected = Stardust.mark.create(Stardust.mark.circle(), this.platform);
     this.starEdges = Stardust.mark.create(Stardust.mark.line(), this.platform);
+    this.starEdgesSelected = Stardust.mark.create(Stardust.mark.line(), this.platform);
     this.starNodeText = Stardust.mark.createText('2d', this.platform);
     this.starEdgeText = Stardust.mark.createText('2d', this.platform);
 
@@ -239,6 +267,28 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
         this.requestRender();
       });
     this.canvasContainer.call(this.zoom);
+
+    this.registerMouseMoveEvent();
+  }
+
+  private registerMouseMoveEvent(): void {
+    this.canvas.onmousemove = (e: any) => {
+      const x = e.clientX - this.canvas.getBoundingClientRect().left;
+      const y = e.clientY - this.canvas.getBoundingClientRect().top;
+      const p = this.platform.getPickingPixel(x, y);
+      if (p) {
+        const element = p[0].data()[p[1]];
+        if (this.selectedElement !== element) {
+          this.selectedElement = element;
+          this.requestRender();
+        }
+      } else {
+        if (this.selectedElement != null && !this.isSelectionPermanent) {
+          this.selectedElement = null;
+          this.requestRender();
+        }
+      }
+    };
   }
 
   private handleClick = (event: any, d: any) => {
