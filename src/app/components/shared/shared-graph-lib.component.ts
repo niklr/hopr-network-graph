@@ -44,7 +44,7 @@ export abstract class SharedGraphLibComponent {
   }
 
   protected onDestroy(): void {
-    this.logger.info(`${this.componentName} onDestroy called.`);
+    this.logger.info(`${this.componentName} onDestroy called.`)();
     this.destroy();
     this.state.isDestroyed = true;
     this.subs.forEach(sub => {
@@ -79,7 +79,7 @@ export abstract class SharedGraphLibComponent {
   protected abstract center(count: number): void;
 
   protected beforeInit(): void {
-    this.logger.info(`${this.componentName} init called.`);
+    this.logger.info(`${this.componentName} init called.`)();
     this.state.isZoomed = false;
     this.graphService.isLoading = true;
   }

@@ -31,12 +31,12 @@ class Extractor {
   private async extractChainAsync(chain: ChainConfigModel): Promise<void> {
     const chainName = ChainType[chain.type];
     if (CommonUtil.isNullOrWhitespace(chain.rpcProviderUrl)) {
-      this.logger.info(`Skipping ${chainName} because rpcProviderUrl is empty.`);
+      this.logger.info(`Skipping ${chainName} because rpcProviderUrl is empty.`)();
       return;
     }
-    this.logger.info(`Extract ${chainName} started.`);
+    this.logger.info(`Extract ${chainName} started.`)();
     const events = await this.client.getAllEvents(chain);
-    this.logger.info(`Extract ${chainName} ended.`);
+    this.logger.info(`Extract ${chainName} ended.`)();
     this.fileUtil.writeFile(CommonUtil.toJsonString(events), `./src/assets/data/${chainName}_EVENTS.json`);
   }
 }

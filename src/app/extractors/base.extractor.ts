@@ -18,13 +18,13 @@ export abstract class BaseChainExtractor implements IChainExtractor {
 
   public async extractAsync(chain: ChainConfigModel): Promise<EventModel[]> {
     Ensure.notNull(chain, 'chain');
-    this.logger.info(`${this.name} extraction of ${ChainType[chain.type]} started.`);
+    this.logger.info(`${this.name} extraction of ${ChainType[chain.type]} started.`)();
     try {
       const result = await this.extractAsyncInternal(chain);
-      this.logger.info(`${this.name} extraction of ${ChainType[chain.type]} ended.`);
+      this.logger.info(`${this.name} extraction of ${ChainType[chain.type]} ended.`)();
       return result;
     } catch (error) {
-      this.logger.error(error);
+      this.logger.error(error)();
       return Promise.reject('Chain data could not be extracted.');
     }
   }

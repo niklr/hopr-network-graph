@@ -45,7 +45,7 @@ export class LogsComponent implements OnInit, OnDestroy {
 
   private async testAsync(): Promise<void> {
     for (let index = 0; index < 30; index++) {
-      this.logger.debug(`Log test message ${index}.`);
+      this.logger.debug(`Log test message ${index}.`)();
       await CommonUtil.timeout(500);
     }
   }
@@ -55,7 +55,7 @@ export class LogsComponent implements OnInit, OnDestroy {
       try {
         this.containerElementRef.nativeElement.scrollTop = this.containerElementRef.nativeElement.scrollHeight;
       } catch (e) {
-        this.logger.info(e);
+        this.logger.info(e)();
       }
     }, 0);
   }

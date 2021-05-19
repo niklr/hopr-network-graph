@@ -58,7 +58,7 @@ export class DefaultLoggerService extends Logger {
     if (this.isEnabled) {
       return (...args: any[]) => {
         const result = this.createLogEventModel('DEBUG', args);
-        console.debug(result.banner, ...args);
+        return Function.prototype.bind.call(console.debug, console, result.banner, ...args);
       };
     } else {
       return noop;
@@ -69,7 +69,7 @@ export class DefaultLoggerService extends Logger {
     if (this.isEnabled) {
       return (...args: any[]) => {
         const result = this.createLogEventModel('INFO', args);
-        console.info(result.banner, ...args);
+        return Function.prototype.bind.call(console.info, console, result.banner, ...args);
       };
     } else {
       return noop;
@@ -80,7 +80,7 @@ export class DefaultLoggerService extends Logger {
     if (this.isEnabled) {
       return (...args: any[]) => {
         const result = this.createLogEventModel('WARN', args);
-        console.warn(result.banner, ...args);
+        return Function.prototype.bind.call(console.warn, console, result.banner, ...args);
       };
     } else {
       return noop;
@@ -96,7 +96,7 @@ export class DefaultLoggerService extends Logger {
           }
         }
         const result = this.createLogEventModel('ERROR', args);
-        console.error(result.banner, ...args);
+        return Function.prototype.bind.call(console.error, console, result.banner, ...args);
       };
     } else {
       return noop;

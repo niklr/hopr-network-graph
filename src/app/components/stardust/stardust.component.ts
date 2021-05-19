@@ -66,7 +66,7 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
   }
 
   private stopSimulation(): void {
-    this.logger.info(`${this.componentName} stop simulation called.`);
+    this.logger.info(`${this.componentName} stop simulation called.`)();
     this.simulation?.stop();
     this.graphService.isSimulating = false;
   }
@@ -162,7 +162,7 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
         .force('y', d3.forceY())
         .on('end', () => {
           this.graphService.isSimulating = false;
-          this.logger.info(`${this.componentName} simulation ended.`);
+          this.logger.info(`${this.componentName} simulation ended.`)();
         });
       this.graphService.isSimulating = true;
 

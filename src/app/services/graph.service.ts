@@ -98,7 +98,7 @@ export class GraphService {
   public load(): void {
     this.isLoading = true;
     this.loadAsync().catch((error) => {
-      this.logger.info(error);
+      this.logger.info(error)();
     }).finally(() => {
       this.isLoading = false;
     });
@@ -130,7 +130,7 @@ export class GraphService {
     let eventsDataFrame = new DataForge.DataFrame(events).setIndex('_id').bake();
     eventsDataFrame = eventsDataFrame.where(e => e.chainType === chain1.type || e.chainType === chain2.type);
     const transfersDataFrame = eventsDataFrame.where(e => e.type === ChainTxEventType.TRANSFER).cast<TransferEventModel>();
-    this.logger.info('transfersDataFrame', transfersDataFrame.count());
+    this.logger.info('transfersDataFrame', transfersDataFrame.count())();
 
     const startEvents = eventsDataFrame.where(e => e.type === ChainTxEventType.BRIDGE_START).cast<TokensBridgingInitiatedEventModel>()
       .join(
@@ -144,8 +144,8 @@ export class GraphService {
             transfer: right1
           };
         });
-    this.logger.info('startEvents', startEvents.count());
-    this.logger.info(startEvents.take(3).toArray());
+    this.logger.info('startEvents', startEvents.count())();
+    this.logger.info(startEvents.take(3).toArray())();
     const endEvents = eventsDataFrame.where(e => e.type === ChainTxEventType.BRIDGE_END).cast<TokensBridgedEventModel>()
       .join(
         startEvents,
@@ -177,8 +177,8 @@ export class GraphService {
           return innerResult;
         }
       ).setIndex('index').bake();
-    this.logger.info('endEvents', endEvents.count());
-    this.logger.info(endEvents.take(3).toArray());
+    this.logger.info('endEvents', endEvents.count())();
+    this.logger.info(endEvents.take(3).toArray())();
     // this.logger.info(leftEvents.where(e => e._id === rightEnd.first().transfer?._id).first());
     const projectedTransfers = endEvents.distinct(e => e.transactionHash).join(
       transfersDataFrame,
@@ -194,10 +194,10 @@ export class GraphService {
         }
         return right1;
       }).setIndex('_id').bake();
-    this.logger.info('projectedTransfers', projectedTransfers.count());
-    this.logger.info(projectedTransfers.take(4).toArray());
+    this.logger.info('projectedTransfers', projectedTransfers.count())();
+    this.logger.info(projectedTransfers.take(4).toArray())();
     const projectedTransfer = projectedTransfers.first();
-    this.logger.info(projectedTransfer);
+    this.logger.info(projectedTransfer)();
 
     // Build final transfers array...
     // const finalResult = transfersDataFrame.joinOuterLeft(
@@ -211,7 +211,7 @@ export class GraphService {
     //     return left1;
     //   }
     // );
-    this.logger.info('excludeTransfer', endEvents.where(e => e.excludeTransfer).count());
+    this.logger.info('excludeTransfer', endEvents.where(e => e.excludeTransfer).count())();
     const endEventsMap = new Map(endEvents.toPairs());
     const projectedTransfersMap = new Map(projectedTransfers.toPairs());
     const finalResult: TransferEventModel[] = [];
@@ -227,8 +227,8 @@ export class GraphService {
         finalResult.push(e);
       }
     });
-    this.logger.info('finalResult', finalResult.length);
-    this.logger.info(finalResult.find(e => e._id === projectedTransfer._id));
+    this.logger.info('finalResult', finalResult.length)();
+    this.logger.info(finalResult.find(e => e._id === projectedTransfer._id))();
   }
 
   private async loadAsync(): Promise<void> {
@@ -238,7 +238,7 @@ export class GraphService {
       const data = await this.init(this.configService.config?.selectedChain);
       this.submitDataSubjectEvent(data);
     } else {
-      this.logger.info('No chain is selected.');
+      this.logger.info('No chain is selected.')();
       this.submitDataSubjectEvent(undefined);
     }
   }
@@ -327,12 +327,12 @@ export class GraphService {
   private filterByWeight(data: GraphContainerModel, minWeight: number): GraphContainerModel {
     const result = this.createGraphContainerModel();
     if (data) {
-      this.logger.info('filterByWeight nodes/edges before', data.nodes.length, data.edges.length);
+      this.logger.info('filterByWeight nodes/edges before', data.nodes.length, data.edges.length)();
       result.nodes = data.nodes.filter((e: NodeGraphModel) => e.data.weight > minWeight);
       result.edges = data.edges.filter(
         (e: EdgeGraphModel) => this._nodeMap.get(e.data.source)?.data.weight > minWeight
           && this._nodeMap.get(e.data.target)?.data.weight > minWeight);
-      this.logger.info('filterByWeight nodes/edges after', result.nodes.length, result.edges.length);
+      this.logger.info('filterByWeight nodes/edges after', result.nodes.length, result.edges.length)();
     }
     return result;
   }

@@ -52,7 +52,7 @@ export class D3Component extends SharedGraphLibComponent implements OnInit, OnDe
   }
 
   private stopSimulation(): void {
-    this.logger.info(`${this.componentName} stop simulation called.`);
+    this.logger.info(`${this.componentName} stop simulation called.`)();
     this.simulation?.stop();
     this.graphService.isSimulating = false;
   }

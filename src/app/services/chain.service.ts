@@ -40,22 +40,22 @@ export class ChainService {
 
   public async clearAllAsync(): Promise<void> {
     try {
-      this.logger.info('Clearing local data.');
+      this.logger.info('Clearing local data.')();
       await this.statRepository.clearAllAsync();
       await this.eventRepository.clearAllAsync();
     } catch (error) {
-      this.logger.error(error);
+      this.logger.error(error)();
     }
   }
 
   public async extractAsync(): Promise<void> {
-    this.logger.info('Data extraction started.');
+    this.logger.info('Data extraction started.')();
     this._isExtracting = true;
     for (const chain of this.configService.config.chains) {
       await this.extractChainAsync(chain.type);
     }
     this._isExtracting = false;
-    this.logger.info('Data extraction ended.');
+    this.logger.info('Data extraction ended.')();
   }
 
   private async extractChainAsync(type: ChainType): Promise<void> {
@@ -70,7 +70,7 @@ export class ChainService {
 
     const existing = await this.eventRepository.getByChainTypeAsync(chain.type);
     if (existing && existing.length > 0) {
-      this.logger.info(`Found ${existing.length} existing events for ${ChainType[chain.type]}`);
+      this.logger.info(`Found ${existing.length} existing events for ${ChainType[chain.type]}`)();
       this._isExtracting = false;
       return;
     }
@@ -124,7 +124,7 @@ export class ChainService {
       const extractor = this.extractorFactory.get(extractorType);
       return await extractor.extractAsync(chain);
     } catch (error) {
-      this.logger.error(error);
+      this.logger.error(error)();
       return undefined;
     }
   }

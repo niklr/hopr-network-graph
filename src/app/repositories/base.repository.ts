@@ -79,7 +79,7 @@ export abstract class BaseRepository<T> {
         localStorage.setItem(this.localStorageKey, CommonUtil.compress(json));
       }
     } catch (error) {
-      this.logger.error(error);
+      this.logger.error(error)();
     }
   }
 
@@ -93,7 +93,7 @@ export abstract class BaseRepository<T> {
       }
       return undefined;
     } catch (error) {
-      this.logger.error(error);
+      this.logger.error(error)();
     }
   }
 }
