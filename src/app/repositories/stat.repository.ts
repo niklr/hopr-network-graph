@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { ChainType } from '../enums/chain.enum';
 import { StatModel } from '../models/stat.model';
 import { ConfigService } from '../services/config.service';
+import { Logger } from '../services/logger.service';
 import { BaseRepository } from './base.repository';
 
 @Injectable({
@@ -9,8 +10,8 @@ import { BaseRepository } from './base.repository';
 })
 export class StatRepository extends BaseRepository<StatModel> {
 
-  constructor(private configService: ConfigService) {
-    super();
+  constructor(protected logger: Logger, private configService: ConfigService) {
+    super(logger);
   }
 
   protected init(): void {

@@ -1,4 +1,5 @@
 import { taffy } from 'taffydb';
+import { Logger } from '../services/logger.service';
 import { CommonUtil } from '../utils/common.util';
 import { Ensure } from '../utils/ensure.util';
 
@@ -9,7 +10,7 @@ export abstract class BaseRepository<T> {
   private _dbName: string;
   protected _db: any;
 
-  constructor() {
+  constructor(protected logger: Logger) {
     this.init();
   }
 
@@ -78,7 +79,7 @@ export abstract class BaseRepository<T> {
         localStorage.setItem(this.localStorageKey, CommonUtil.compress(json));
       }
     } catch (error) {
-      console.log(error);
+      this.logger.error(error);
     }
   }
 
@@ -92,7 +93,7 @@ export abstract class BaseRepository<T> {
       }
       return undefined;
     } catch (error) {
-      console.log(error);
+      this.logger.error(error);
     }
   }
 }

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ChainType } from '../enums/chain.enum';
 import { EventModel } from '../models/event.model';
+import { Logger } from '../services/logger.service';
 import { BaseRepository } from './base.repository';
 
 @Injectable({
@@ -8,8 +9,8 @@ import { BaseRepository } from './base.repository';
 })
 export class EventRepository extends BaseRepository<EventModel> {
 
-  constructor() {
-    super();
+  constructor(protected logger: Logger) {
+    super(logger);
   }
 
   protected init(): void {

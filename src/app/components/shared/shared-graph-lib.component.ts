@@ -12,6 +12,7 @@ import {
   NodeGraphModel
 } from '../../models/graph.model';
 import { GraphService } from '../../services/graph.service';
+import { Logger } from '../../services/logger.service';
 
 export abstract class SharedGraphLibComponent {
 
@@ -19,7 +20,7 @@ export abstract class SharedGraphLibComponent {
 
   protected state: GraphStateModel;
 
-  constructor(protected graphService: GraphService) {
+  constructor(protected logger: Logger, protected graphService: GraphService) {
 
   }
 
@@ -43,6 +44,7 @@ export abstract class SharedGraphLibComponent {
   }
 
   protected onDestroy(): void {
+    this.logger.info(`${this.componentName} onDestroy called.`);
     this.destroy();
     this.state.isDestroyed = true;
     this.subs.forEach(sub => {
@@ -77,7 +79,7 @@ export abstract class SharedGraphLibComponent {
   protected abstract center(count: number): void;
 
   protected beforeInit(): void {
-    console.log(`${this.componentName} init called.`);
+    this.logger.info(`${this.componentName} init called.`);
     this.state.isZoomed = false;
     this.graphService.isLoading = true;
   }

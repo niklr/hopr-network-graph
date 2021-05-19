@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ChainConfigModel } from '../models/config.model';
 import { EventModel } from '../models/event.model';
+import { Logger } from '../services/logger.service';
 import { BaseChainExtractor } from './base.extractor';
 
 @Injectable({
@@ -8,8 +9,8 @@ import { BaseChainExtractor } from './base.extractor';
 })
 export class GraphqlChainExtractor extends BaseChainExtractor {
 
-  constructor() {
-    super();
+  constructor(protected logger: Logger) {
+    super(logger);
   }
 
   protected async extractAsyncInternal(chain: ChainConfigModel): Promise<EventModel[]> {

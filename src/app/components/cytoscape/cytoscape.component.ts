@@ -6,6 +6,7 @@ import { AppConstants } from '../../app.constants';
 import { ChainTxEventType } from '../../enums/chain.enum';
 import { EdgeDataModel, EdgeGraphModel, GraphContainerModel, GraphScratchModel, NodeDataModel, NodeGraphModel } from '../../models/graph.model';
 import { GraphService } from '../../services/graph.service';
+import { Logger } from '../../services/logger.service';
 import { SharedGraphLibComponent } from '../shared/shared-graph-lib.component';
 
 @Component({
@@ -28,8 +29,8 @@ export class CytoscapeComponent extends SharedGraphLibComponent implements OnIni
 
   private cy: cytoscape.Core;
 
-  constructor(protected graphService: GraphService) {
-    super(graphService);
+  constructor(protected logger: Logger, protected graphService: GraphService) {
+    super(logger, graphService);
     cytoscape.use(fcose);
     cytoscape.use(klay);
 
@@ -106,7 +107,6 @@ export class CytoscapeComponent extends SharedGraphLibComponent implements OnIni
   }
 
   protected destroy(): void {
-    console.log('Cytoscape stop destroy called.');
     this.cy.destroy();
   }
 

@@ -5,6 +5,7 @@ import { ChainTxEventType } from '../../enums/chain.enum';
 import { GraphElementType } from '../../enums/graph.enum';
 import { EdgeGraphModel, GraphContainerModel, NodeGraphModel } from '../../models/graph.model';
 import { GraphService } from '../../services/graph.service';
+import { Logger } from '../../services/logger.service';
 import { GraphUtil } from '../../utils/graph.util';
 import { SharedGraphLibComponent } from '../shared/shared-graph-lib.component';
 
@@ -31,8 +32,8 @@ export class D3CanvasComponent extends SharedGraphLibComponent implements OnInit
   private simulation: d3.Simulation<d3.SimulationNodeDatum, undefined>;
   private transform: any;
 
-  constructor(protected graphService: GraphService) {
-    super(graphService);
+  constructor(protected logger: Logger, protected graphService: GraphService) {
+    super(logger, graphService);
   }
 
   ngOnInit(): void {
@@ -48,7 +49,7 @@ export class D3CanvasComponent extends SharedGraphLibComponent implements OnInit
   }
 
   private stopSimulation(): void {
-    console.log('D3-canvas stop simulation called.');
+    this.logger.info(`${this.componentName} stop simulation called.`);
     this.simulation?.stop();
     this.graphService.isSimulating = false;
   }
@@ -87,7 +88,7 @@ export class D3CanvasComponent extends SharedGraphLibComponent implements OnInit
         .force('y', d3.forceY())
         .on('end', () => {
           this.graphService.isSimulating = false;
-          console.log('Simulation ended.');
+          this.logger.info(`${this.componentName} simulation ended.`);
         });
       this.graphService.isSimulating = true;
 
@@ -203,11 +204,9 @@ export class D3CanvasComponent extends SharedGraphLibComponent implements OnInit
       const width = this.canvas.node().clientWidth;
       const height = this.canvas.node().clientHeight;
       // TODO: set min/max nodes
-      console.log(width, height);
       if (width && height) {
         const scale = Math.min(this.width / width, this.height / height) * 0.8;
         if (count > 0) {
-          console.log(width, height, scale);
           this.canvas.transition()
             .duration(750)
             .call(this.zoom.scaleTo, scale);

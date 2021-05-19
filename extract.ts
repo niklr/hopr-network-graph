@@ -1,18 +1,21 @@
 import { EthersClient } from './src/app/clients/ethers.client';
 import { ChainType } from './src/app/enums/chain.enum';
 import { ChainConfigModel, ConfigModel } from './src/app/models/config.model';
+import { DefaultLoggerService, Logger } from './src/app/services/logger.service';
 import { CommonUtil } from './src/app/utils/common.util';
 import { LocalFileUtil } from './src/app/utils/local-file.util';
 
 class Extractor {
 
+  private logger: Logger;
   private fileUtil: LocalFileUtil;
   private client: EthersClient;
 
   constructor() {
+    this.logger = new DefaultLoggerService();
     this.fileUtil = new LocalFileUtil();
     this.fileUtil.baseDir = __dirname;
-    this.client = new EthersClient(this.fileUtil);
+    this.client = new EthersClient(this.logger, this.fileUtil);
   }
 
   public async extractAsync(): Promise<void> {
@@ -28,12 +31,12 @@ class Extractor {
   private async extractChainAsync(chain: ChainConfigModel): Promise<void> {
     const chainName = ChainType[chain.type];
     if (CommonUtil.isNullOrWhitespace(chain.rpcProviderUrl)) {
-      console.log(`Skipping ${chainName} because rpcProviderUrl is empty.`);
+      this.logger.info(`Skipping ${chainName} because rpcProviderUrl is empty.`);
       return;
     }
-    console.log(`Extract ${chainName} started.`);
+    this.logger.info(`Extract ${chainName} started.`);
     const events = await this.client.getAllEvents(chain);
-    console.log(`Extract ${chainName} ended.`);
+    this.logger.info(`Extract ${chainName} ended.`);
     this.fileUtil.writeFile(CommonUtil.toJsonString(events), `./src/assets/data/${chainName}_EVENTS.json`);
   }
 }

@@ -44,7 +44,7 @@ export class ChainService {
       await this.statRepository.clearAllAsync();
       await this.eventRepository.clearAllAsync();
     } catch (error) {
-      console.log(error);
+      this.logger.error(error);
     }
   }
 
@@ -70,7 +70,7 @@ export class ChainService {
 
     const existing = await this.eventRepository.getByChainTypeAsync(chain.type);
     if (existing && existing.length > 0) {
-      console.log(`Found ${existing.length} existing events for ${ChainType[chain.type]}`);
+      this.logger.info(`Found ${existing.length} existing events for ${ChainType[chain.type]}`);
       this._isExtracting = false;
       return;
     }
@@ -119,7 +119,7 @@ export class ChainService {
       const extractor = this.extractorFactory.get(extractorType);
       return await extractor.extractAsync(chain);
     } catch (error) {
-      console.log(error);
+      this.logger.error(error);
       return undefined;
     }
   }

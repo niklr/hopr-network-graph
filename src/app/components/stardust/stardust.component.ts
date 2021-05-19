@@ -7,6 +7,7 @@ import { AppConstants } from '../../app.constants';
 import { GraphElementType } from '../../enums/graph.enum';
 import { EdgeGraphModel, GraphContainerModel, NodeGraphModel } from '../../models/graph.model';
 import { GraphService } from '../../services/graph.service';
+import { Logger } from '../../services/logger.service';
 import { CommonUtil } from '../../utils/common.util';
 import { GraphUtil } from '../../utils/graph.util';
 import { SharedGraphLibComponent } from '../shared/shared-graph-lib.component';
@@ -46,8 +47,8 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
   private starNodeText: Stardust.Mark;
   private starEdgeText: Stardust.Mark;
 
-  constructor(protected graphService: GraphService) {
-    super(graphService);
+  constructor(protected logger: Logger, protected graphService: GraphService) {
+    super(logger, graphService);
     const webGLversion = StardustWebGL.version;
   }
 
@@ -65,7 +66,7 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
   }
 
   private stopSimulation(): void {
-    console.log('Stardust stop simulation called.');
+    this.logger.info(`${this.componentName} stop simulation called.`);
     this.simulation?.stop();
     this.graphService.isSimulating = false;
   }
@@ -161,7 +162,7 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
         .force('y', d3.forceY())
         .on('end', () => {
           this.graphService.isSimulating = false;
-          console.log('Simulation ended.');
+          this.logger.info(`${this.componentName} simulation ended.`);
         });
       this.graphService.isSimulating = true;
 

@@ -21,6 +21,7 @@ import { CommonUtil } from '../utils/common.util';
 import { Ensure } from '../utils/ensure.util';
 import { FileUtil } from '../utils/file.util';
 import { ConfigService } from './config.service';
+import { Logger } from './logger.service';
 
 @Injectable({
   providedIn: 'root'
@@ -40,7 +41,12 @@ export class GraphService {
   public drawNodeLabel = false;
   public readonly filter: Map<string, ChainFilterItemModel>;
 
-  constructor(private configService: ConfigService, private eventRepository: EventRepository, private fileUtil: FileUtil) {
+  constructor(
+    private logger: Logger,
+    private configService: ConfigService,
+    private eventRepository: EventRepository,
+    private fileUtil: FileUtil
+  ) {
     this._onChangeSubject = new Subject<GraphEventModel>();
     this.filter = new Map<string, ChainFilterItemModel>([
       [
@@ -92,7 +98,7 @@ export class GraphService {
   public load(): void {
     this.isLoading = true;
     this.loadAsync().catch((error) => {
-      console.log(error);
+      this.logger.info(error);
     }).finally(() => {
       this.isLoading = false;
     });
@@ -124,7 +130,7 @@ export class GraphService {
     let eventsDataFrame = new DataForge.DataFrame(events).setIndex('_id').bake();
     eventsDataFrame = eventsDataFrame.where(e => e.chainType === chain1.type || e.chainType === chain2.type);
     const transfersDataFrame = eventsDataFrame.where(e => e.type === ChainTxEventType.TRANSFER).cast<TransferEventModel>();
-    console.log('transfersDataFrame', transfersDataFrame.count());
+    this.logger.info('transfersDataFrame', transfersDataFrame.count());
 
     const startEvents = eventsDataFrame.where(e => e.type === ChainTxEventType.BRIDGE_START).cast<TokensBridgingInitiatedEventModel>()
       .join(
@@ -138,8 +144,8 @@ export class GraphService {
             transfer: right1
           };
         });
-    console.log('startEvents', startEvents.count());
-    console.log(startEvents.take(3).toArray());
+    this.logger.info('startEvents', startEvents.count());
+    this.logger.info(startEvents.take(3).toArray());
     const endEvents = eventsDataFrame.where(e => e.type === ChainTxEventType.BRIDGE_END).cast<TokensBridgedEventModel>()
       .join(
         startEvents,
@@ -171,9 +177,9 @@ export class GraphService {
           return innerResult;
         }
       ).setIndex('index').bake();
-    console.log('endEvents', endEvents.count());
-    console.log(endEvents.take(3).toArray());
-    // console.log(leftEvents.where(e => e._id === rightEnd.first().transfer?._id).first());
+    this.logger.info('endEvents', endEvents.count());
+    this.logger.info(endEvents.take(3).toArray());
+    // this.logger.info(leftEvents.where(e => e._id === rightEnd.first().transfer?._id).first());
     const projectedTransfers = endEvents.distinct(e => e.transactionHash).join(
       transfersDataFrame,
       left => left.transactionHash,
@@ -188,10 +194,10 @@ export class GraphService {
         }
         return right1;
       }).setIndex('_id').bake();
-    console.log('projectedTransfers', projectedTransfers.count());
-    console.log(projectedTransfers.take(4).toArray());
+    this.logger.info('projectedTransfers', projectedTransfers.count());
+    this.logger.info(projectedTransfers.take(4).toArray());
     const projectedTransfer = projectedTransfers.first();
-    console.log(projectedTransfer);
+    this.logger.info(projectedTransfer);
 
     // Build final transfers array...
     // const finalResult = transfersDataFrame.joinOuterLeft(
@@ -205,7 +211,7 @@ export class GraphService {
     //     return left1;
     //   }
     // );
-    console.log('excludeTransfer', endEvents.where(e => e.excludeTransfer).count());
+    this.logger.info('excludeTransfer', endEvents.where(e => e.excludeTransfer).count());
     const endEventsMap = new Map(endEvents.toPairs());
     const projectedTransfersMap = new Map(projectedTransfers.toPairs());
     const finalResult: TransferEventModel[] = [];
@@ -221,8 +227,8 @@ export class GraphService {
         finalResult.push(e);
       }
     });
-    console.log('finalResult', finalResult.length);
-    console.log(finalResult.find(e => e._id === projectedTransfer._id));
+    this.logger.info('finalResult', finalResult.length);
+    this.logger.info(finalResult.find(e => e._id === projectedTransfer._id));
   }
 
   private async loadAsync(): Promise<void> {
@@ -232,7 +238,7 @@ export class GraphService {
       const data = await this.init(this.configService.config?.selectedChain);
       this.submitDataSubjectEvent(data);
     } else {
-      console.log('No chain is selected.');
+      this.logger.info('No chain is selected.');
       this.submitDataSubjectEvent(undefined);
     }
   }
@@ -321,12 +327,12 @@ export class GraphService {
   private filterByWeight(data: GraphContainerModel, minWeight: number): GraphContainerModel {
     const result = this.createGraphContainerModel();
     if (data) {
-      console.log('nodes/edges before filterByWeight', data.nodes.length, '/', data.edges.length);
+      this.logger.info('nodes/edges before filterByWeight', data.nodes.length, '/', data.edges.length);
       result.nodes = data.nodes.filter((e: NodeGraphModel) => e.data.weight > minWeight);
       result.edges = data.edges.filter(
         (e: EdgeGraphModel) => this._nodeMap.get(e.data.source)?.data.weight > minWeight
           && this._nodeMap.get(e.data.target)?.data.weight > minWeight);
-      console.log('nodes/edges after filterByWeight', result.nodes.length, '/', result.edges.length);
+      this.logger.info('nodes/edges after filterByWeight', result.nodes.length, '/', result.edges.length);
     }
     return result;
   }

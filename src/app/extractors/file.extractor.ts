@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ChainConfigModel } from '../models/config.model';
 import { EventModel } from '../models/event.model';
+import { Logger } from '../services/logger.service';
 import { FileUtil } from '../utils/file.util';
 import { BaseChainExtractor } from './base.extractor';
 
@@ -9,8 +10,8 @@ import { BaseChainExtractor } from './base.extractor';
 })
 export class FileChainExtractor extends BaseChainExtractor {
 
-  constructor(private fileUtil: FileUtil) {
-    super();
+  constructor(protected logger: Logger, private fileUtil: FileUtil) {
+    super(logger);
   }
 
   public async extractAsyncInternal(chain: ChainConfigModel): Promise<EventModel[]> {
