@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, Subscriber } from 'rxjs';
+import { SubgraphTransactionModel } from '../models/subgraph.model';
 import { Logger } from '../services/logger.service';
 
 @Injectable({
@@ -12,27 +13,51 @@ export class TheGraphClient {
 
   }
 
-  public test(url: string): Observable<void> {
+  private handleResponse(response: any, observer: Subscriber<void>, transformFn: (e: any) => void): void {
+    if (response?.data || response?.error) {
+      if (response.data) {
+        if (Array.isArray(response.data)) {
+          observer.next(response.data.map((e: any) => transformFn(e)));
+        } else {
+          observer.next(transformFn(response.data));
+        }
+        observer.complete();
+      } else {
+        observer.error(response.error);
+      }
+    } else {
+      observer.error(response);
+    }
+  }
+
+  public getTransactions(url: string, limit: number = 1000, lastIndex: number = 0): Observable<void> {
     return new Observable<void>((observer) => this.http.post(url, {
       query: `{
-        accounts(first: 5) {
+        transactions(first: ${limit}, orderBy: index, orderDirection: asc, where: { index_gt: ${lastIndex} }) {
           id
           index
-          totalSupply
-          xHoprBalance
-        }
-        accountSnapshots(first: 5) {
-          id
-          index
-          account {
+          from
+          to
+          blockNumber
+          blockTimestamp
+          transferEvents {
             id
+            index
+            transaction
+            logIndex
+            blockNumber
+            blockTimestamp
+            from
+            to
+            amount
+            tokenType
           }
-          xHoprBalance
         }
       }`
     }).subscribe(result => {
-      console.log(result);
-      observer.complete();
+      this.handleResponse(result, observer, (e: any) => {
+        return e?.transactions?.map((e1: any) => SubgraphTransactionModel.fromJS(e1));
+      });
     }, error => {
       observer.error(error);
     }));

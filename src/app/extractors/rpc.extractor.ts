@@ -14,6 +14,10 @@ export class RpcChainExtractor extends BaseChainExtractor {
     super(logger);
   }
 
+  protected get name(): string {
+    return 'RPC';
+  }
+
   protected async extractAsyncInternal(chain: ChainConfigModel): Promise<EventModel[]> {
     throw new Error('Not implemented.');
   }

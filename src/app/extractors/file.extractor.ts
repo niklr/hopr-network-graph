@@ -14,6 +14,10 @@ export class FileChainExtractor extends BaseChainExtractor {
     super(logger);
   }
 
+  protected get name(): string {
+    return 'File';
+  }
+
   public async extractAsyncInternal(chain: ChainConfigModel): Promise<EventModel[]> {
     let rawData = await this.fileUtil.readFileAsync(chain.eventsPath);
     rawData = JSON.parse(rawData);

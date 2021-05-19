@@ -90,7 +90,11 @@ export class DefaultLoggerService extends Logger {
   get error() {
     if (this.isEnabled) {
       return (...args: any[]) => {
-        args?.push('(See console output for more information.)');
+        if (args?.length > 0) {
+          if (!CommonUtil.isString(args[0])) {
+            args.push('(See console output for more information.)');
+          }
+        }
         const result = this.createLogEventModel('ERROR', args);
         console.error(result.banner, ...args);
       };

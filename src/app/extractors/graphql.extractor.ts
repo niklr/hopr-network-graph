@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { TheGraphClient } from '../clients/thegraph.client';
-import { ChainType } from '../enums/chain.enum';
 import { ChainConfigModel } from '../models/config.model';
 import { EventModel } from '../models/event.model';
 import { Logger } from '../services/logger.service';
@@ -15,10 +14,14 @@ export class GraphqlChainExtractor extends BaseChainExtractor {
     super(logger);
   }
 
+  protected get name(): string {
+    return 'GraphQL';
+  }
+
   protected async extractAsyncInternal(chain: ChainConfigModel): Promise<EventModel[]> {
-    this.logger.info(`GraphQL extraction of ${ChainType[chain.type]} started.`);
     return new Promise((resolve, reject) => {
-      this.client.test(chain.theGraphUrl).subscribe(result => {
+      this.client.getTransactions(chain.theGraphUrl, 10).subscribe(result => {
+        console.log(result);
         resolve([]);
       }, error => {
         reject(error);

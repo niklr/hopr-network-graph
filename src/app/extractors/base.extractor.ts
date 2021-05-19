@@ -1,3 +1,4 @@
+import { ChainType } from '../enums/chain.enum';
 import { ChainConfigModel } from '../models/config.model';
 import { EventModel } from '../models/event.model';
 import { Logger } from '../services/logger.service';
@@ -13,10 +14,15 @@ export abstract class BaseChainExtractor implements IChainExtractor {
 
   }
 
+  protected abstract get name(): string;
+
   public async extractAsync(chain: ChainConfigModel): Promise<EventModel[]> {
     Ensure.notNull(chain, 'chain');
+    this.logger.info(`${this.name} extraction of ${ChainType[chain.type]} started.`);
     try {
-      return await this.extractAsyncInternal(chain);
+      const result = await this.extractAsyncInternal(chain);
+      this.logger.info(`${this.name} extraction of ${ChainType[chain.type]} ended.`);
+      return result;
     } catch (error) {
       this.logger.error(error);
       return Promise.reject('Chain data could not be extracted.');

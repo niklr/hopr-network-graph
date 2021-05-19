@@ -1,5 +1,10 @@
-button {
+button,
+select {
   margin: 0 5px 0 5px;
+}
+
+#header div {
+  display: inline-block;
 }
 
 #main {
