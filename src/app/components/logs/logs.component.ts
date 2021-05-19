@@ -1,5 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
+import { LogEventModel } from '../../models/log.model';
 import { Logger } from '../../services/logger.service';
 
 @Component({
@@ -12,14 +13,14 @@ export class LogsComponent implements OnInit, OnDestroy {
   private subs: Subscription[] = [];
   private maxSize: 10;
 
-  public logs: any[] = [];
+  public logs: LogEventModel[] = [];
 
   constructor(private logger: Logger) { }
 
   ngOnInit(): void {
     if (this.logger.onLogMessageSubject) {
       const sub1 = this.logger.onLogMessageSubject.subscribe({
-        next: (data: any) => {
+        next: (data: LogEventModel) => {
           this.logs.unshift(data);
           if (this.logs.length > this.maxSize) {
             this.logs.pop();

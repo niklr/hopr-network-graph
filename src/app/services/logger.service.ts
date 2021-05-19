@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
+import { LogEventModel } from '../models/log.model';
 
 export abstract class Logger {
-  abstract get onLogMessageSubject(): Subject<any>;
+  abstract get onLogMessageSubject(): Subject<LogEventModel>;
   abstract debug: any;
   abstract info: any;
   abstract warn: any;
@@ -16,14 +17,14 @@ const noop = (): any => undefined;
 })
 export class DefaultLoggerService extends Logger {
 
-  private _onLogMessageSubject: Subject<any>;
+  private _onLogMessageSubject: Subject<LogEventModel>;
 
   constructor() {
     super();
-    this._onLogMessageSubject = new Subject<any>();
+    this._onLogMessageSubject = new Subject<LogEventModel>();
   }
 
-  public get onLogMessageSubject(): Subject<any> {
+  public get onLogMessageSubject(): Subject<LogEventModel> {
     return this._onLogMessageSubject;
   }
 
@@ -31,9 +32,25 @@ export class DefaultLoggerService extends Logger {
     return true;
   }
 
+  private timestamp(type: string): string {
+    return `[${type} ${new Date().toLocaleTimeString()}]`;
+  }
+
+  private createLogEventModel(type: string, ...args: any[]): LogEventModel {
+    const result = new LogEventModel({
+      banner: this.timestamp(type),
+      args
+    });
+    this._onLogMessageSubject.next(result);
+    return result;
+  }
+
   get debug() {
     if (this.isEnabled) {
-      return console.debug.bind(console);
+      return (...args: any[]) => {
+        const result = this.createLogEventModel('DEBUG', args);
+        console.debug(result.banner, ...args);
+      };
     } else {
       return noop;
     }
@@ -41,7 +58,10 @@ export class DefaultLoggerService extends Logger {
 
   get info() {
     if (this.isEnabled) {
-      return console.info.bind(console);
+      return (...args: any[]) => {
+        const result = this.createLogEventModel('INFO', args);
+        console.info(result.banner, ...args);
+      };
     } else {
       return noop;
     }
@@ -49,7 +69,10 @@ export class DefaultLoggerService extends Logger {
 
   get warn() {
     if (this.isEnabled) {
-      return console.warn.bind(console);
+      return (...args: any[]) => {
+        const result = this.createLogEventModel('WARN', args);
+        console.warn(result.banner, ...args);
+      };
     } else {
       return noop;
     }
@@ -57,14 +80,12 @@ export class DefaultLoggerService extends Logger {
 
   get error() {
     if (this.isEnabled) {
-      return console.error.bind(console);
+      return (...args: any[]) => {
+        const result = this.createLogEventModel('ERROR', args);
+        console.error(result.banner, ...args);
+      };
     } else {
       return noop;
     }
-  }
-
-  invokeConsoleMethod(type: string, args?: any): any {
-    this._onLogMessageSubject.next(args);
-    return (console)[type] || console.log || noop;
   }
 }

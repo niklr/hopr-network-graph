@@ -61,6 +61,7 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
 
   protected destroy(): void {
     this.stopSimulation();
+    this.nodesDataFrame = undefined;
   }
 
   private stopSimulation(): void {
@@ -299,28 +300,30 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
 
   protected center(count: number): void {
     if (!this.state.isDestroyed && !this.state.isZoomed) {
-      const seriesX = this.nodesDataFrame.deflate(e => e.x);
-      const seriesY = this.nodesDataFrame.deflate(e => e.y);
-      const minMaxNodes = {
-        minX: seriesX.min(),
-        minY: seriesY.min(),
-        maxX: seriesX.max(),
-        maxY: seriesY.max()
-      };
-      const width = minMaxNodes.maxX - minMaxNodes.minX;
-      const height = minMaxNodes.maxY - minMaxNodes.minY;
-      if (width && height) {
-        const scale = Math.min(this.width / width, this.height / height) * 0.8;
-        if (count > 0) {
-          this.canvasContainer.transition()
-            .duration(750)
-            .call(this.zoom.scaleTo, scale);
+      if (this.nodesDataFrame) {
+        const seriesX = this.nodesDataFrame.deflate(e => e.x);
+        const seriesY = this.nodesDataFrame.deflate(e => e.y);
+        const minMaxNodes = {
+          minX: seriesX.min(),
+          minY: seriesY.min(),
+          maxX: seriesX.max(),
+          maxY: seriesY.max()
+        };
+        const width = minMaxNodes.maxX - minMaxNodes.minX;
+        const height = minMaxNodes.maxY - minMaxNodes.minY;
+        if (width && height) {
+          const scale = Math.min(this.width / width, this.height / height) * 0.8;
+          if (count > 0) {
+            this.canvasContainer.transition()
+              .duration(750)
+              .call(this.zoom.scaleTo, scale);
+          }
         }
-      }
-      if (this.graphService.isSimulating && count < 5) {
-        setTimeout(() => {
-          this.center(++count);
-        }, 1000);
+        if (this.graphService.isSimulating && count < 5) {
+          setTimeout(() => {
+            this.center(++count);
+          }, 1000);
+        }
       }
     }
   }
