@@ -93,6 +93,7 @@ export class GraphService {
     this.isLoading = true;
     this.loadAsync().catch((error) => {
       console.log(error);
+    }).finally(() => {
       this.isLoading = false;
     });
   }
@@ -310,45 +311,51 @@ export class GraphService {
 
   private applyFilters(data: GraphContainerModel): GraphContainerModel {
     let filteredData: GraphContainerModel;
-    filteredData = this.filterByWeight(data, this.configService.config.minWeight);
-    filteredData = this.filterBySelection(filteredData);
+    if (data) {
+      filteredData = this.filterByWeight(data, this.configService.config.minWeight);
+      filteredData = this.filterBySelection(filteredData);
+    }
     return filteredData;
   }
 
   private filterByWeight(data: GraphContainerModel, minWeight: number): GraphContainerModel {
-    console.log('nodes/edges before filterByWeight', data.nodes.length, '/', data.edges.length);
     const result = this.createGraphContainerModel();
-    result.nodes = data.nodes.filter((e: NodeGraphModel) => e.data.weight > minWeight);
-    result.edges = data.edges.filter(
-      (e: EdgeGraphModel) => this._nodeMap.get(e.data.source)?.data.weight > minWeight
-        && this._nodeMap.get(e.data.target)?.data.weight > minWeight);
-    console.log('nodes/edges after filterByWeight', result.nodes.length, '/', result.edges.length);
+    if (data) {
+      console.log('nodes/edges before filterByWeight', data.nodes.length, '/', data.edges.length);
+      result.nodes = data.nodes.filter((e: NodeGraphModel) => e.data.weight > minWeight);
+      result.edges = data.edges.filter(
+        (e: EdgeGraphModel) => this._nodeMap.get(e.data.source)?.data.weight > minWeight
+          && this._nodeMap.get(e.data.target)?.data.weight > minWeight);
+      console.log('nodes/edges after filterByWeight', result.nodes.length, '/', result.edges.length);
+    }
     return result;
   }
 
   private filterBySelection(data: GraphContainerModel): GraphContainerModel {
     let result: GraphContainerModel;
-    const filterItems: ChainFilterItemModel[] = Array.from(this.filter.values());
-    // Check if any item is not selected
-    if (filterItems.filter(e => !e.isSelected).length > 0) {
-      result = this.createGraphContainerModel();
-      // Check if any item is selected
-      const selectedItems: ChainFilterItemModel[] = filterItems.filter(e => e.isSelected);
-      if (selectedItems.length === 0) {
-        return result;
-      }
-      const types: string[] = selectedItems.map(e => e.id);
-      for (const edge of data.edges) {
-        if (types.includes(ChainTxEventType[edge.scratch?.transfer?.type])) {
-          result.edges.push(edge);
-          result.nodes.push(this._nodeMap.get(edge.data.source));
-          result.nodes.push(this._nodeMap.get(edge.data.target));
+    if (data) {
+      const filterItems: ChainFilterItemModel[] = Array.from(this.filter.values());
+      // Check if any item is not selected
+      if (filterItems.filter(e => !e.isSelected).length > 0) {
+        result = this.createGraphContainerModel();
+        // Check if any item is selected
+        const selectedItems: ChainFilterItemModel[] = filterItems.filter(e => e.isSelected);
+        if (selectedItems.length === 0) {
+          return result;
         }
+        const types: string[] = selectedItems.map(e => e.id);
+        for (const edge of data.edges) {
+          if (types.includes(ChainTxEventType[edge.scratch?.transfer?.type])) {
+            result.edges.push(edge);
+            result.nodes.push(this._nodeMap.get(edge.data.source));
+            result.nodes.push(this._nodeMap.get(edge.data.target));
+          }
+        }
+        // Remove duplicates
+        result.nodes = [...new Set(result.nodes)];
+      } else {
+        result = data;
       }
-      // Remove duplicates
-      result.nodes = [...new Set(result.nodes)];
-    } else {
-      result = data;
     }
     return result;
   }

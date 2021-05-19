@@ -3,7 +3,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { AppComponent } from './app.component';
 import { CytoscapeComponent } from './components/cytoscape/cytoscape.component';
 import { D3Component } from './components/d3/d3.component';
-import { D3canvasComponent } from './components/d3canvas/d3canvas.component';
+import { D3CanvasComponent } from './components/d3canvas/d3canvas.component';
 import { GraphComponent } from './components/graph/graph.component';
 import { LogsComponent } from './components/logs/logs.component';
 import { StardustComponent } from './components/stardust/stardust.component';
@@ -21,7 +21,7 @@ export function initConfig(config: ConfigService) {
     AppComponent,
     CytoscapeComponent,
     D3Component,
-    D3canvasComponent,
+    D3CanvasComponent,
     GraphComponent,
     LogsComponent,
     StardustComponent

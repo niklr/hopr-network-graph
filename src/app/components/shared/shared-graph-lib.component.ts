@@ -68,9 +68,24 @@ export abstract class SharedGraphLibComponent {
 
   protected abstract get selectEmitter(): EventEmitter<any>;
 
+  protected abstract get componentName(): string;
+
   protected abstract init(data: GraphContainerModel): void;
 
   protected abstract destroy(): void;
+
+  protected abstract center(count: number): void;
+
+  protected beforeInit(): void {
+    console.log(`${this.componentName} init called.`);
+    this.state.isZoomed = false;
+    this.graphService.isLoading = true;
+  }
+
+  protected afterInit(): void {
+    this.center(0);
+    this.graphService.isLoading = false;
+  }
 
   protected registerMouseWheelEvent(element: HTMLElement | SVGSVGElement): void {
     if (element) {

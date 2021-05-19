@@ -22,10 +22,10 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
 
   @ViewChild('containerElementRef') containerElementRef: ElementRef;
 
+  protected readonly componentName: string = 'Stardust';
+
   private width: number;
   private height: number;
-  private top: number;
-  private left: number;
   private canvas: HTMLElement;
   private canvasContainer: d3.Selection<HTMLCanvasElement, unknown, HTMLElement, any>;
   private zoom: d3.ZoomBehavior<Element, unknown>;
@@ -70,9 +70,7 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
   }
 
   protected init(data: GraphContainerModel): void {
-    console.log('Stardust init called.');
-    this.state.isZoomed = false;
-    this.graphService.isLoading = true;
+    super.beforeInit();
     this.width = this.containerElementRef.nativeElement.clientWidth;
     this.height = this.containerElementRef.nativeElement.clientHeight;
     this.createCanvas();
@@ -172,10 +170,8 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
       });
 
       this.requestRender();
-
-      this.center(0);
-      this.graphService.isLoading = false;
     }
+    super.afterInit();
   }
 
   public requestRender(): void {
@@ -254,9 +250,6 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
     this.platform = Stardust.platform('webgl-2d', this.canvas, this.width, this.height) as StardustWebGL.WebGLPlatform;
     // this.platform.pixelRatio = window.devicePixelRatio || 1;
 
-    this.top = this.canvas.getBoundingClientRect().top;
-    this.left = this.canvas.getBoundingClientRect().left;
-
     this.starNodes = Stardust.mark.create(Stardust.mark.circle(), this.platform);
     this.starNodesBg = Stardust.mark.create(Stardust.mark.circle(), this.platform);
     this.starNodesSelected = Stardust.mark.create(Stardust.mark.circle(), this.platform);
@@ -284,8 +277,9 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
   private registerMouseEvents(): void {
     super.registerMouseWheelEvent(this.canvas);
     this.canvas.onmousemove = (e: any) => {
-      const x = e.clientX - this.left;
-      const y = e.clientY - this.top;
+      const bb = this.canvas.getBoundingClientRect();
+      const x = e.clientX - bb.left;
+      const y = e.clientY - bb.top;
       const p = this.platform.getPickingPixel(x, y);
       if (p) {
         const element = p[0].data()[p[1]];
@@ -303,7 +297,7 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
     };
   }
 
-  private center(count: number): void {
+  protected center(count: number): void {
     if (!this.state.isDestroyed && !this.state.isZoomed) {
       const seriesX = this.nodesDataFrame.deflate(e => e.x);
       const seriesY = this.nodesDataFrame.deflate(e => e.y);

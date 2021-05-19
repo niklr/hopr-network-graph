@@ -20,6 +20,8 @@ export class D3Component extends SharedGraphLibComponent implements OnInit, OnDe
 
   @ViewChild('containerElementRef') containerElementRef: ElementRef;
 
+  protected readonly componentName: string = 'D3';
+
   private width: number;
   private height: number;
   private svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any>;
@@ -55,8 +57,7 @@ export class D3Component extends SharedGraphLibComponent implements OnInit, OnDe
   }
 
   protected init(data: GraphContainerModel): void {
-    this.state.isZoomed = false;
-    this.graphService.isLoading = true;
+    super.beforeInit();
     this.width = this.containerElementRef.nativeElement.clientWidth;
     this.height = this.containerElementRef.nativeElement.clientHeight;
     this.createSvg();
@@ -188,10 +189,8 @@ export class D3Component extends SharedGraphLibComponent implements OnInit, OnDe
       edges.forEach((d: any) => {
         this.connectedLookup[CommonUtil.combineIndex(d.source.id, d.target.id)] = true;
       });
-
-      this.center(0);
-      this.graphService.isLoading = false;
     }
+    super.afterInit();
   }
 
   private createSvg(): void {
@@ -310,7 +309,7 @@ export class D3Component extends SharedGraphLibComponent implements OnInit, OnDe
     super.handleSelectedElement(d);
   }
 
-  private center(count: number): void {
+  protected center(count: number): void {
     if (!this.state.isDestroyed && !this.state.isZoomed) {
       const { width, height } = this.g.node().getBBox();
       if (width && height) {

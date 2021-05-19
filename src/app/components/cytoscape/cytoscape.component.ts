@@ -24,6 +24,8 @@ export class CytoscapeComponent extends SharedGraphLibComponent implements OnIni
 
   @ViewChild('containerElementRef') containerElementRef: ElementRef;
 
+  protected readonly componentName: string = 'Cytoscape';
+
   private cy: cytoscape.Core;
 
   constructor(protected graphService: GraphService) {
@@ -109,7 +111,7 @@ export class CytoscapeComponent extends SharedGraphLibComponent implements OnIni
   }
 
   protected init(data: GraphContainerModel): void {
-    this.graphService.isLoading = true;
+    super.beforeInit();
     if (data) {
       if (this.cy) {
         this.cy.destroy();
@@ -171,12 +173,15 @@ export class CytoscapeComponent extends SharedGraphLibComponent implements OnIni
         }
       });
     }
-
-    this.graphService.isLoading = false;
+    super.afterInit();
   }
 
   private unselectAll(): void {
     this.cy.elements().removeClass('faded');
     this.selectEmitter.emit(undefined);
+  }
+
+  protected center(counter: number): void {
+
   }
 }

@@ -13,11 +13,13 @@ import { SharedGraphLibComponent } from '../shared/shared-graph-lib.component';
   templateUrl: './d3canvas.component.html',
   styleUrls: ['./d3canvas.component.css']
 })
-export class D3canvasComponent extends SharedGraphLibComponent implements OnInit, OnDestroy {
+export class D3CanvasComponent extends SharedGraphLibComponent implements OnInit, OnDestroy {
 
   @Output() selectEmitter: EventEmitter<any> = new EventEmitter<any>();
 
   @ViewChild('containerElementRef') containerElementRef: ElementRef;
+
+  protected readonly componentName: string = 'D3Canvas';
 
   private width: number;
   private height: number;
@@ -52,8 +54,7 @@ export class D3canvasComponent extends SharedGraphLibComponent implements OnInit
   }
 
   protected init(data: GraphContainerModel): void {
-    this.state.isZoomed = false;
-    this.graphService.isLoading = true;
+    super.beforeInit();
     this.width = this.containerElementRef.nativeElement.clientWidth;
     this.height = this.containerElementRef.nativeElement.clientHeight;
     this.createCanvas();
@@ -93,10 +94,8 @@ export class D3canvasComponent extends SharedGraphLibComponent implements OnInit
       this.simulation.on('tick', () => {
         this.requestRender();
       });
-
-      this.center(0);
-      this.graphService.isLoading = false;
     }
+    super.afterInit();
   }
 
   public requestRender(): void {
@@ -199,7 +198,7 @@ export class D3canvasComponent extends SharedGraphLibComponent implements OnInit
     this.canvas.call(this.zoom);
   }
 
-  private center(count: number): void {
+  protected center(count: number): void {
     if (!this.state.isDestroyed && !this.state.isZoomed) {
       const width = this.canvas.node().clientWidth;
       const height = this.canvas.node().clientHeight;
