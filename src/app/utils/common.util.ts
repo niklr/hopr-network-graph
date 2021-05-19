@@ -17,6 +17,10 @@ export class CommonUtil {
     }
   }
 
+  public static isObject(value: any): boolean {
+    return value && typeof value === 'object';
+  }
+
   public static isFunction(value: any): boolean {
     return value && typeof value === 'function';
   }
@@ -72,5 +76,12 @@ export class CommonUtil {
     const g = (bigint >> 8) & 255;
     const b = bigint & 255;
     return [r, g, b];
+  }
+
+  public static scrollTo(element: HTMLElement, offset: number): void {
+    if (element) {
+      const y = element.getBoundingClientRect().top + window.pageYOffset - offset;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    }
   }
 }

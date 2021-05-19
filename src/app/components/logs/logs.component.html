@@ -1,4 +1,4 @@
-<div id="logsContainer">
+<div id="logsContainer" #containerElementRef>
   <i>Logs</i>
   <div class="logMessage" *ngFor="let log of logs">
     {{log.banner}} {{log.args}}

@@ -73,6 +73,7 @@ export class ChainConfigModel {
 
   type: ChainType;
   rpcProviderUrl: string;
+  theGraphUrl: string;
   startBlock: number;
   addressUrl: string;
   txUrl: string;
@@ -96,6 +97,7 @@ export class ChainConfigModel {
     if (data) {
       this.type = data.type;
       this.rpcProviderUrl = data.rpcProviderUrl;
+      this.theGraphUrl = data.theGraphUrl;
       this.startBlock = data.startBlock;
       this.addressUrl = data.addressUrl;
       this.txUrl = data.txUrl;

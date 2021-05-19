@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
 import { LogEventModel } from '../models/log.model';
+import { CommonUtil } from '../utils/common.util';
 
 export abstract class Logger {
   abstract get onLogMessageSubject(): Subject<LogEventModel>;
@@ -37,9 +38,17 @@ export class DefaultLoggerService extends Logger {
   }
 
   private createLogEventModel(type: string, ...args: any[]): LogEventModel {
+    const mapFn = (e: any) => {
+      if (CommonUtil.isString(e)) {
+        return e;
+      } else if (e instanceof Error) {
+        return e.message;
+      }
+      return CommonUtil.toJsonString(e);
+    };
     const result = new LogEventModel({
       banner: this.timestamp(type),
-      args
+      args: args?.map(e => Array.isArray(e) ? e.map(e1 => mapFn(e1)) : mapFn(e))
     });
     this._onLogMessageSubject.next(result);
     return result;

@@ -76,6 +76,11 @@ export class ChainService {
     }
     let events: EventModel[];
     let source = ChainExtractorType.UNKNOWN;
+    if (!CommonUtil.isNullOrWhitespace(chain.theGraphUrl)) {
+      // Use GraphQL extractor
+      source = ChainExtractorType.GRAPHQL;
+      events = await this.extractEventsAsync(chain, source);
+    }
     if ((!events || events?.length <= 0) && !CommonUtil.isNullOrWhitespace(chain.rpcProviderUrl)) {
       // Use RPC extractor
       source = ChainExtractorType.RPC;
