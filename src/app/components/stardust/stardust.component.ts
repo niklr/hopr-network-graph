@@ -37,7 +37,7 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
   private isSelectionPermanent: boolean;
   private simulation: d3.Simulation<d3.SimulationNodeDatum, undefined>;
   private transform: any;
-  private platform: StardustWebGL.WebGLPlatform;
+  private platform: StardustWebGL.WebGLCanvasPlatform2D;
   private positions: Stardust.ArrayBinding;
   private starNodes: Stardust.Mark;
   private starNodesBg: Stardust.Mark;
@@ -249,8 +249,8 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
       });
 
     this.canvas = document.getElementById(canvasId);
-    this.platform = Stardust.platform('webgl-2d', this.canvas, this.width, this.height) as StardustWebGL.WebGLPlatform;
-    // this.platform.pixelRatio = window.devicePixelRatio || 1;
+    this.platform = Stardust.platform('webgl-2d', this.canvas, this.width, this.height) as StardustWebGL.WebGLCanvasPlatform2D;
+    this.platform.pixelRatio = window.devicePixelRatio || 1;
 
     this.starNodes = Stardust.mark.create(Stardust.mark.circle(), this.platform);
     this.starNodesBg = Stardust.mark.create(Stardust.mark.circle(), this.platform);
@@ -282,7 +282,7 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
       const bb = this.canvas.getBoundingClientRect();
       const x = e.clientX - bb.left;
       const y = e.clientY - bb.top;
-      const p = this.platform.getPickingPixel(x, y);
+      const p = this.platform.getPickingPixel(x * this.platform.pixelRatio, y * this.platform.pixelRatio);
       if (p) {
         const element = p[0].data()[p[1]];
         if (this.selectedElement !== element) {
