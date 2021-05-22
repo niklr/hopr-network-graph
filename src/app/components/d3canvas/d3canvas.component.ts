@@ -2,8 +2,7 @@ import { Component, ElementRef, EventEmitter, OnDestroy, OnInit, Output, ViewChi
 import * as d3 from 'd3';
 import { AppConstants } from '../../app.constants';
 import { ChainTxEventType } from '../../enums/chain.enum';
-import { GraphElementType } from '../../enums/graph.enum';
-import { EdgeGraphModel, GraphContainerModel, NodeGraphModel } from '../../models/graph.model';
+import { GraphContainerModel } from '../../models/graph.model';
 import { GraphService } from '../../services/graph.service';
 import { Logger } from '../../services/logger.service';
 import { GraphUtil } from '../../utils/graph.util';
@@ -27,8 +26,6 @@ export class D3CanvasComponent extends SharedGraphLibComponent implements OnInit
   private canvas: d3.Selection<HTMLCanvasElement, unknown, HTMLElement, any>;
   private context: CanvasRenderingContext2D;
   private zoom: d3.ZoomBehavior<Element, unknown>;
-  private edges: any;
-  private nodes: any;
   private simulation: d3.Simulation<d3.SimulationNodeDatum, undefined>;
   private transform: any;
 
@@ -55,28 +52,11 @@ export class D3CanvasComponent extends SharedGraphLibComponent implements OnInit
   }
 
   protected init(data: GraphContainerModel): void {
-    super.beforeInit();
+    super.beforeInit(data);
     this.width = this.containerElementRef.nativeElement.clientWidth;
     this.height = this.containerElementRef.nativeElement.clientHeight;
     this.createCanvas();
-    if (data) {
-      this.nodes = data.nodes.map((e: NodeGraphModel) => {
-        return {
-          type: GraphElementType.NODE,
-          id: e.data.id,
-          name: e.data.name,
-          weight: e.data.weight
-        };
-      });
-      this.edges = data.edges.map((e: EdgeGraphModel) => {
-        return {
-          type: GraphElementType.EDGE,
-          source: e.data.source,
-          target: e.data.target,
-          strength: e.data.strength,
-          transfer: e.scratch?.transfer
-        };
-      });
+    if (this.nodes && this.edges) {
       if (this.simulation) {
         this.simulation.stop();
       }

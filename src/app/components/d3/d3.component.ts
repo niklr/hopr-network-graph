@@ -3,7 +3,7 @@ import * as d3 from 'd3';
 import { AppConstants } from '../../app.constants';
 import { ChainTxEventType } from '../../enums/chain.enum';
 import { GraphElementType } from '../../enums/graph.enum';
-import { EdgeGraphModel, GraphContainerModel, NodeGraphModel } from '../../models/graph.model';
+import { GraphContainerModel } from '../../models/graph.model';
 import { GraphService } from '../../services/graph.service';
 import { Logger } from '../../services/logger.service';
 import { CommonUtil } from '../../utils/common.util';
@@ -33,7 +33,6 @@ export class D3Component extends SharedGraphLibComponent implements OnInit, OnDe
   private node: d3.Selection<d3.BaseType | SVGCircleElement, unknown, SVGGElement, unknown>;
   private nodeLabel: d3.Selection<SVGTextElement, unknown, SVGGElement, unknown>;
   private simulation: d3.Simulation<d3.SimulationNodeDatum, undefined>;
-  private connectedLookup: any = {};
 
   constructor(protected logger: Logger, protected graphService: GraphService) {
     super(logger, graphService);
@@ -58,33 +57,16 @@ export class D3Component extends SharedGraphLibComponent implements OnInit, OnDe
   }
 
   protected init(data: GraphContainerModel): void {
-    super.beforeInit();
+    super.beforeInit(data);
     this.width = this.containerElementRef.nativeElement.clientWidth;
     this.height = this.containerElementRef.nativeElement.clientHeight;
     this.createSvg();
-    if (data) {
-      const nodes: any = data.nodes.map((e: NodeGraphModel) => {
-        return {
-          type: GraphElementType.NODE,
-          id: e.data.id,
-          name: e.data.name,
-          weight: e.data.weight
-        };
-      });
-      const edges: any = data.edges.map((e: EdgeGraphModel) => {
-        return {
-          type: GraphElementType.EDGE,
-          source: e.data.source,
-          target: e.data.target,
-          strength: e.data.strength,
-          transfer: e.scratch?.transfer
-        };
-      });
+    if (this.nodes && this.edges) {
       if (this.simulation) {
         this.simulation.stop();
       }
-      this.simulation = d3.forceSimulation(nodes)
-        .force('link', d3.forceLink(edges).id((d: any) => d.id))
+      this.simulation = d3.forceSimulation(this.nodes)
+        .force('link', d3.forceLink(this.edges).id((d: any) => d.id))
         .force('charge', d3.forceManyBody().strength(-400))
         .force('center', d3.forceCenter(this.width / 2, this.height / 2))
         .force('x', d3.forceX())
@@ -96,7 +78,7 @@ export class D3Component extends SharedGraphLibComponent implements OnInit, OnDe
 
       this.edge = this.g
         .selectAll('.edge')
-        .data(edges)
+        .data(this.edges)
         .join('line')
         .attr('class', 'graphElement')
         .attr('marker-end', 'url(#arrowhead)')
@@ -120,7 +102,7 @@ export class D3Component extends SharedGraphLibComponent implements OnInit, OnDe
       if (this.graphService.drawEdgeLabel) {
         this.edgeLabel = this.g
           .selectAll('.edgeLabel')
-          .data(edges)
+          .data(this.edges)
           .enter()
           .append('text')
           .style('pointer-events', 'none')
@@ -132,7 +114,7 @@ export class D3Component extends SharedGraphLibComponent implements OnInit, OnDe
 
       this.node = this.g
         .selectAll('.node')
-        .data(nodes)
+        .data(this.nodes)
         .join('circle')
         .attr('stroke', '#fff')
         .attr('stroke-width', 1.5)
@@ -145,7 +127,7 @@ export class D3Component extends SharedGraphLibComponent implements OnInit, OnDe
       if (this.graphService.drawNodeLabel) {
         this.nodeLabel = this.g
           .selectAll('.nodeLabel')
-          .data(nodes)
+          .data(this.nodes)
           .enter()
           .append('text')
           .attr('font-size', 10)
@@ -184,11 +166,6 @@ export class D3Component extends SharedGraphLibComponent implements OnInit, OnDe
             .attr('x', (d: any) => d.x)
             .attr('y', (d: any) => d.y);
         }
-      });
-
-      this.connectedLookup = {};
-      edges.forEach((d: any) => {
-        this.connectedLookup[CommonUtil.combineIndex(d.source.id, d.target.id)] = true;
       });
     }
     super.afterInit();

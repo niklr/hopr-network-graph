@@ -8,17 +8,23 @@ import {
   GraphEventModel,
   GraphScratchModel,
   GraphStateModel,
+  IEdgeViewGraphModel,
+  INodeViewGraphModel,
   NodeDataModel,
   NodeGraphModel
 } from '../../models/graph.model';
 import { GraphService } from '../../services/graph.service';
 import { Logger } from '../../services/logger.service';
+import { CommonUtil } from '../../utils/common.util';
 
 export abstract class SharedGraphLibComponent {
 
   private subs: Subscription[] = [];
 
   protected state: GraphStateModel;
+  protected nodes: INodeViewGraphModel[];
+  protected edges: IEdgeViewGraphModel[];
+  protected connectedLookup: any = {};
 
   constructor(protected logger: Logger, protected graphService: GraphService) {
 
@@ -46,6 +52,9 @@ export abstract class SharedGraphLibComponent {
   protected onDestroy(): void {
     this.logger.info(`${this.componentName} onDestroy called.`)();
     this.destroy();
+    this.nodes = undefined;
+    this.edges = undefined;
+    this.connectedLookup = undefined;
     this.state.isDestroyed = true;
     this.subs.forEach(sub => {
       sub.unsubscribe();
@@ -78,13 +87,36 @@ export abstract class SharedGraphLibComponent {
 
   protected abstract center(count: number): void;
 
-  protected beforeInit(): void {
+  protected beforeInit(data: GraphContainerModel): void {
     this.logger.info(`${this.componentName} init called.`)();
     this.state.isZoomed = false;
     this.graphService.isLoading = true;
+    if (data) {
+      this.nodes = data.nodes.map((e: NodeGraphModel) => {
+        return {
+          type: GraphElementType.NODE,
+          id: e.data.id,
+          name: e.data.name,
+          weight: e.data.weight
+        };
+      });
+      this.edges = data.edges.map((e: EdgeGraphModel) => {
+        return {
+          type: GraphElementType.EDGE,
+          source: e.data.source,
+          target: e.data.target,
+          strength: e.data.strength,
+          transfer: e.scratch?.transfer
+        };
+      });
+    }
   }
 
   protected afterInit(): void {
+    this.connectedLookup = {};
+    this.edges?.forEach((d: any) => {
+      this.connectedLookup[CommonUtil.combineIndex(d.source.id, d.target.id)] = true;
+    });
     this.center(0);
     this.graphService.isLoading = false;
   }

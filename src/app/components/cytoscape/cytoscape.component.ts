@@ -111,7 +111,7 @@ export class CytoscapeComponent extends SharedGraphLibComponent implements OnIni
   }
 
   protected init(data: GraphContainerModel): void {
-    super.beforeInit();
+    super.beforeInit(data);
     if (data) {
       if (this.cy) {
         this.cy.destroy();

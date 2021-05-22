@@ -5,7 +5,7 @@ import * as Stardust from 'stardust-core';
 import * as StardustWebGL from 'stardust-webgl';
 import { AppConstants } from '../../app.constants';
 import { GraphElementType } from '../../enums/graph.enum';
-import { EdgeGraphModel, GraphContainerModel, NodeGraphModel } from '../../models/graph.model';
+import { GraphContainerModel } from '../../models/graph.model';
 import { GraphService } from '../../services/graph.service';
 import { Logger } from '../../services/logger.service';
 import { CommonUtil } from '../../utils/common.util';
@@ -30,8 +30,6 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
   private canvas: HTMLElement;
   private canvasContainer: d3.Selection<HTMLCanvasElement, unknown, HTMLElement, any>;
   private zoom: d3.ZoomBehavior<Element, unknown>;
-  private edges: any;
-  private nodes: any;
   private nodesDataFrame: DataForge.IDataFrame<number, any>;
   private selectedElement: any;
   private isSelectionPermanent: boolean;
@@ -72,29 +70,11 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
   }
 
   protected init(data: GraphContainerModel): void {
-    super.beforeInit();
+    super.beforeInit(data);
     this.width = this.containerElementRef.nativeElement.clientWidth;
     this.height = this.containerElementRef.nativeElement.clientHeight;
     this.createCanvas();
-    if (data) {
-      this.nodes = data.nodes.map((e: NodeGraphModel) => {
-        return {
-          type: GraphElementType.NODE,
-          id: e.data.id,
-          name: e.data.name,
-          weight: e.data.weight
-        };
-      });
-      this.edges = data.edges.map((e: EdgeGraphModel) => {
-        return {
-          type: GraphElementType.EDGE,
-          source: e.data.source,
-          target: e.data.target,
-          strength: e.data.strength,
-          transfer: e.scratch?.transfer
-        };
-      });
-
+    if (this.nodes && this.edges) {
       this.nodesDataFrame = new DataForge.DataFrame(this.nodes).bake();
 
       function mapColor(color: number[], opacity: number = 1) {
@@ -154,7 +134,7 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
       if (this.simulation) {
         this.simulation.stop();
       }
-      this.simulation = d3.forceSimulation(this.nodes)
+      this.simulation = d3.forceSimulation(this.nodes as any)
         .force('link', d3.forceLink(this.edges).id((d: any) => d.id))
         .force('charge', d3.forceManyBody().strength(-400))
         .force('center', d3.forceCenter(this.width / 2, this.height / 2))

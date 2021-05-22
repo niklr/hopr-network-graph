@@ -1,4 +1,4 @@
-import { GraphEventType } from '../enums/graph.enum';
+import { GraphElementType, GraphEventType } from '../enums/graph.enum';
 import { TransferEventModel } from './event.model';
 import { PositionModel } from './position.model';
 
@@ -43,6 +43,15 @@ export class NodeDataModel {
   }
 }
 
+export interface INodeViewGraphModel {
+  type: GraphElementType;
+  id: string;
+  name: string;
+  weight: number;
+  x?: number;
+  y?: number;
+}
+
 export class EdgeGraphModel extends BaseGraphModel {
   data: EdgeDataModel; // element data
 
@@ -65,6 +74,14 @@ export class EdgeDataModel {
   public constructor(init?: Partial<EdgeDataModel>) {
     Object.assign(this, init);
   }
+}
+
+export interface IEdgeViewGraphModel {
+  type: GraphElementType;
+  source: any;
+  target: any;
+  strength: number;
+  transfer: TransferEventModel;
 }
 
 export class GraphContainerModel {

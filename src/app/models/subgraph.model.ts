@@ -89,3 +89,30 @@ export class SubgraphTransferEventModel extends SubgraphTransactionEventModel {
     }
   }
 }
+
+export class SubgraphStatContainerModel {
+  id: string;
+  lastAccountIndex: string;
+  lastAccountSnapshotIndex: string;
+  lastTransactionIndex: string;
+  lastTransferEventIndex: string;
+
+  public constructor(data?: Partial<SubgraphStatContainerModel>) {
+    this.init(data);
+  }
+
+  static fromJS(data: any): SubgraphStatContainerModel {
+    data = typeof data === 'object' ? data : {};
+    return new SubgraphStatContainerModel(data);
+  }
+
+  init(data?: any): void {
+    if (data) {
+      this.id = data.id;
+      this.lastAccountIndex = data.lastAccountIndex;
+      this.lastAccountSnapshotIndex = data.lastAccountSnapshotIndex;
+      this.lastTransactionIndex = data.lastTransactionIndex;
+      this.lastTransferEventIndex = data.lastTransferEventIndex;
+    }
+  }
+}
