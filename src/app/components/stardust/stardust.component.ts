@@ -4,8 +4,7 @@ import * as DataForge from 'data-forge';
 import * as Stardust from 'stardust-core';
 import * as StardustWebGL from 'stardust-webgl';
 import { AppConstants } from '../../app.constants';
-import { GraphElementType } from '../../enums/graph.enum';
-import { GraphContainerModel } from '../../models/graph.model';
+import { EdgeViewGraphModel, GraphContainerModel, NodeViewGraphModel } from '../../models/graph.model';
 import { GraphService } from '../../services/graph.service';
 import { Logger } from '../../services/logger.service';
 import { CommonUtil } from '../../utils/common.util';
@@ -168,24 +167,6 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
   private render(): void {
     this.state.requestedAnimationFrame = undefined;
 
-    if (this.selectedElement) {
-      switch (this.selectedElement.type) {
-        case GraphElementType.NODE:
-          this.starNodesSelected.data([this.selectedElement]);
-          this.starEdgesSelected.data([]);
-          break;
-        case GraphElementType.EDGE:
-          this.starEdgesSelected.data([this.selectedElement]);
-          this.starNodesSelected.data([]);
-          break;
-        default:
-          break;
-      }
-    } else {
-      this.starEdgesSelected.data([]);
-      this.starNodesSelected.data([]);
-    }
-
     // Cleanup and re-render.
     // this.platform.clear([1, 1, 1, 1]);
     this.starEdges.attr('width', (d: any) => GraphUtil.calculateEdgeWidth(d.strength) * this.transform.k);
@@ -222,11 +203,7 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
       .append('canvas')
       .attr('id', canvasId)
       .attr('width', this.width)
-      .attr('height', this.height)
-      .on('click', () => {
-        // this.base.selectAll('.graphElement').style('opacity', 1);
-        this.selectEmitter.emit(undefined);
-      });
+      .attr('height', this.height);
 
     this.canvas = document.getElementById(canvasId);
     this.platform = Stardust.platform('webgl-2d', this.canvas, this.width, this.height) as StardustWebGL.WebGLCanvasPlatform2D;
@@ -258,25 +235,75 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
 
   private registerMouseEvents(): void {
     super.registerMouseWheelEvent(this.canvas);
-    this.canvas.onmousemove = (e: any) => {
-      const bb = this.canvas.getBoundingClientRect();
-      const x = e.clientX - bb.left;
-      const y = e.clientY - bb.top;
-      const p = this.platform.getPickingPixel(x * this.platform.pixelRatio, y * this.platform.pixelRatio);
-      if (p) {
-        const element = p[0].data()[p[1]];
-        if (this.selectedElement !== element) {
-          this.selectedElement = element;
-          super.handleSelectedElement(element);
-          this.requestRender();
-        }
-      } else {
-        if (this.selectedElement != null && !this.isSelectionPermanent) {
-          this.selectedElement = null;
-          this.requestRender();
+    this.canvas.onmousemove = (e: MouseEvent) => {
+      e.stopPropagation();
+      if (!this.isSelectionPermanent) {
+        const element = this.tryGetSelectedElement(e);
+        if (element) {
+          if (this.selectedElement !== element) {
+            this.handleSelectedElement(element);
+          }
+        } else {
+          this.deselectElement();
         }
       }
     };
+    this.canvas.onclick = (e: MouseEvent) => {
+      e.stopPropagation();
+      const element = this.tryGetSelectedElement(e);
+      if (element) {
+        if (this.isSelectionPermanent) {
+          if (this.selectedElement === element) {
+            this.isSelectionPermanent = false;
+            this.deselectElement();
+          } else {
+            this.handleSelectedElement(element);
+          }
+        } else {
+          this.isSelectionPermanent = true;
+          if (this.selectedElement !== element) {
+            this.handleSelectedElement(element);
+          }
+        }
+      } else {
+        this.deselectElement();
+      }
+    };
+  }
+
+  protected handleSelectedElement(element: EdgeViewGraphModel | NodeViewGraphModel): void {
+    super.handleSelectedElement(element);
+    this.selectedElement = element;
+    if (this.selectedElement instanceof EdgeViewGraphModel) {
+      this.starEdgesSelected.data([this.selectedElement]);
+      this.starNodesSelected.data([]);
+    } else if (this.selectedElement instanceof NodeViewGraphModel) {
+      this.starNodesSelected.data([this.selectedElement]);
+      this.starEdgesSelected.data([]);
+    }
+    this.requestRender();
+  }
+
+  private deselectElement(): void {
+    if (this.selectedElement != null) {
+      this.isSelectionPermanent = false;
+      this.selectedElement = null;
+      this.requestRender();
+      this.selectEmitter.emit(undefined);
+      this.starEdgesSelected.data([]);
+      this.starNodesSelected.data([]);
+    }
+  }
+
+  private tryGetSelectedElement(e: MouseEvent): EdgeViewGraphModel | NodeViewGraphModel {
+    const bb = this.canvas.getBoundingClientRect();
+    const x = e.clientX - bb.left;
+    const y = e.clientY - bb.top;
+    const p = this.platform.getPickingPixel(x * this.platform.pixelRatio, y * this.platform.pixelRatio);
+    if (p) {
+      return p[0].data()[p[1]];
+    }
+    return undefined;
   }
 
   protected center(count: number): void {

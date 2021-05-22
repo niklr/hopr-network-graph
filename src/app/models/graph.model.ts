@@ -43,13 +43,17 @@ export class NodeDataModel {
   }
 }
 
-export interface INodeViewGraphModel {
+export class NodeViewGraphModel {
   type: GraphElementType;
   id: string;
   name: string;
   weight: number;
   x?: number;
   y?: number;
+
+  public constructor(init?: Partial<NodeViewGraphModel>) {
+    Object.assign(this, init);
+  }
 }
 
 export class EdgeGraphModel extends BaseGraphModel {
@@ -76,12 +80,16 @@ export class EdgeDataModel {
   }
 }
 
-export interface IEdgeViewGraphModel {
+export class EdgeViewGraphModel {
   type: GraphElementType;
   source: any;
   target: any;
   strength: number;
   transfer: TransferEventModel;
+
+  public constructor(init?: Partial<EdgeViewGraphModel>) {
+    Object.assign(this, init);
+  }
 }
 
 export class GraphContainerModel {

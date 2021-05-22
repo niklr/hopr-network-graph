@@ -6,7 +6,6 @@ import { GraphElementType } from '../../enums/graph.enum';
 import { GraphContainerModel } from '../../models/graph.model';
 import { GraphService } from '../../services/graph.service';
 import { Logger } from '../../services/logger.service';
-import { CommonUtil } from '../../utils/common.util';
 import { GraphUtil } from '../../utils/graph.util';
 import { SharedGraphLibComponent } from '../shared/shared-graph-lib.component';
 
@@ -240,10 +239,6 @@ export class D3Component extends SharedGraphLibComponent implements OnInit, OnDe
       .on('start', dragstarted)
       .on('drag', dragged)
       .on('end', dragended);
-  }
-
-  private isConnected(a: string, b: string): boolean {
-    return this.connectedLookup[CommonUtil.combineIndex(a, b)] || a === b;
   }
 
   private handleClick = (event: any, d: any) => {

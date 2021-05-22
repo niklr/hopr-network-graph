@@ -4,14 +4,14 @@ import { GraphElementType, GraphEventType } from '../../enums/graph.enum';
 import {
   EdgeDataModel,
   EdgeGraphModel,
+  EdgeViewGraphModel,
   GraphContainerModel,
   GraphEventModel,
   GraphScratchModel,
   GraphStateModel,
-  IEdgeViewGraphModel,
-  INodeViewGraphModel,
   NodeDataModel,
-  NodeGraphModel
+  NodeGraphModel,
+  NodeViewGraphModel
 } from '../../models/graph.model';
 import { GraphService } from '../../services/graph.service';
 import { Logger } from '../../services/logger.service';
@@ -22,8 +22,8 @@ export abstract class SharedGraphLibComponent {
   private subs: Subscription[] = [];
 
   protected state: GraphStateModel;
-  protected nodes: INodeViewGraphModel[];
-  protected edges: IEdgeViewGraphModel[];
+  protected nodes: NodeViewGraphModel[];
+  protected edges: EdgeViewGraphModel[];
   protected connectedLookup: any = {};
 
   constructor(protected logger: Logger, protected graphService: GraphService) {
@@ -93,28 +93,28 @@ export abstract class SharedGraphLibComponent {
     this.graphService.isLoading = true;
     if (data) {
       this.nodes = data.nodes.map((e: NodeGraphModel) => {
-        return {
+        return new NodeViewGraphModel({
           type: GraphElementType.NODE,
           id: e.data.id,
           name: e.data.name,
           weight: e.data.weight
-        };
+        });
       });
       this.edges = data.edges.map((e: EdgeGraphModel) => {
-        return {
+        return new EdgeViewGraphModel({
           type: GraphElementType.EDGE,
           source: e.data.source,
           target: e.data.target,
           strength: e.data.strength,
           transfer: e.scratch?.transfer
-        };
+        });
       });
     }
   }
 
   protected afterInit(): void {
     this.connectedLookup = {};
-    this.edges?.forEach((d: any) => {
+    this.edges?.forEach((d: EdgeViewGraphModel) => {
       this.connectedLookup[CommonUtil.combineIndex(d.source.id, d.target.id)] = true;
     });
     this.center(0);
@@ -129,8 +129,8 @@ export abstract class SharedGraphLibComponent {
     }
   }
 
-  protected handleSelectedElement(element: any): void {
-    if (element.type === GraphElementType.EDGE) {
+  protected handleSelectedElement(element: EdgeViewGraphModel | NodeViewGraphModel): void {
+    if (element instanceof EdgeViewGraphModel) {
       this.selectEmitter.emit(new EdgeGraphModel({
         data: new EdgeDataModel({
           source: element.source.id,
@@ -141,7 +141,7 @@ export abstract class SharedGraphLibComponent {
           transfer: element.transfer
         })
       }));
-    } else if (element.type === GraphElementType.NODE) {
+    } else if (element instanceof NodeViewGraphModel) {
       this.selectEmitter.emit(new NodeGraphModel({
         data: new NodeDataModel({
           id: element.id,
@@ -150,5 +150,9 @@ export abstract class SharedGraphLibComponent {
         })
       }));
     }
+  }
+
+  protected isConnected(a: string, b: string): boolean {
+    return this.connectedLookup[CommonUtil.combineIndex(a, b)] || a === b;
   }
 }
