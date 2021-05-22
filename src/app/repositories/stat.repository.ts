@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ChainType } from '../enums/chain.enum';
-import { StatModel } from '../models/stat.model';
+import { ChainStatModel } from '../models/stat.model';
 import { ConfigService } from '../services/config.service';
 import { Logger } from '../services/logger.service';
 import { BaseRepository } from './base.repository';
@@ -8,7 +8,7 @@ import { BaseRepository } from './base.repository';
 @Injectable({
   providedIn: 'root'
 })
-export class StatRepository extends BaseRepository<StatModel> {
+export class StatRepository extends BaseRepository<ChainStatModel> {
 
   constructor(protected logger: Logger, private configService: ConfigService) {
     super(logger);
@@ -18,14 +18,15 @@ export class StatRepository extends BaseRepository<StatModel> {
     super.createDatabase('stats');
   }
 
-  public async getOrCreateByChainTypeAsync(type: ChainType): Promise<StatModel> {
+  public async getOrCreateByChainTypeAsync(type: ChainType): Promise<ChainStatModel> {
     const id = ChainType[type];
     try {
-      let result = await super.getByIdAsync(id);
+      let result: ChainStatModel = await super.getByIdAsync(id);
       if (!result) {
-        result = new StatModel({
+        result = new ChainStatModel({
           _id: id,
-          version: this.configService.config.version
+          version: this.configService.config.version,
+          type
         });
         await super.insertAsync(result);
       }

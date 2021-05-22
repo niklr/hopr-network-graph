@@ -19,7 +19,7 @@ export class StatModel {
 export class ChainStatModel extends StatModel {
   type: ChainType;
 
-  public constructor(init?: Partial<StatModel>) {
+  public constructor(init?: Partial<ChainStatModel>) {
     super(init);
   }
 }

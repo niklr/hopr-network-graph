@@ -8,6 +8,7 @@ export class EventModel {
   chainType: ChainType;
   blockNumber: number;
   blockHash: string;
+  blockTimestamp: string;
   transactionIndex: number;
   removed: boolean;
   address: string;
@@ -45,6 +46,7 @@ export class EventModel {
       this.chainType = data.chainType;
       this.blockNumber = data.blockNumber;
       this.blockHash = data.blockHash;
+      this.blockTimestamp = data.blockTimestamp;
       this.transactionIndex = data.transactionIndex;
       this.removed = data.removed;
       this.address = data.address;
@@ -97,6 +99,9 @@ export class TransferEventModel extends EventModel {
       this.argsTo = data.argsTo;
       this.argsAmount = data.argsAmount;
     }
+    if (!this.type) {
+      this.type = ChainTxEventType.TRANSFER;
+    }
   }
 }
 
@@ -131,6 +136,9 @@ export class TokensBridgingInitiatedEventModel extends EventModel {
       this.argsValue = data.argsValue;
       this.argsMessageId = data.argsMessageId;
     }
+    if (!this.type) {
+      this.type = ChainTxEventType.BRIDGE_START;
+    }
   }
 }
 
@@ -164,6 +172,9 @@ export class TokensBridgedEventModel extends EventModel {
       this.argsRecipient = data.argsRecipient;
       this.argsValue = data.argsValue;
       this.argsMessageId = data.argsMessageId;
+    }
+    if (!this.type) {
+      this.type = ChainTxEventType.BRIDGE_END;
     }
   }
 }

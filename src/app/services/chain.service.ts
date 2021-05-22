@@ -3,7 +3,7 @@ import { ChainExtractorType, ChainType } from '../enums/chain.enum';
 import { ChainExtractorFactory } from '../factories/extractor.factory';
 import { ChainConfigModel } from '../models/config.model';
 import { EventModel } from '../models/event.model';
-import { StatModel } from '../models/stat.model';
+import { ChainStatModel } from '../models/stat.model';
 import { EventRepository } from '../repositories/event.repository';
 import { StatRepository } from '../repositories/stat.repository';
 import { CommonUtil } from '../utils/common.util';
@@ -17,7 +17,6 @@ import { Logger } from './logger.service';
 export class ChainService {
 
   private _isExtracting: boolean;
-  private _stat: StatModel;
 
   constructor(
     private logger: Logger,
@@ -33,11 +32,6 @@ export class ChainService {
     return this._isExtracting;
   }
 
-  // TODO: set stat based on selected chain
-  public get stat(): StatModel {
-    return this._stat;
-  }
-
   public async clearAllAsync(): Promise<void> {
     try {
       this.logger.info('Clearing local data.')();
@@ -46,6 +40,10 @@ export class ChainService {
     } catch (error) {
       this.logger.error(error)();
     }
+  }
+
+  public getChainStatByType(chainType: ChainType): Promise<ChainStatModel> {
+    return this.statRepository.getOrCreateByChainTypeAsync(chainType);
   }
 
   public async extractAsync(): Promise<void> {
@@ -66,7 +64,7 @@ export class ChainService {
     const chain = this.configService.config.getChainByType(type);
     Ensure.notNull(chain, 'chain');
 
-    await this.initStatAsync(chain);
+    const chainStat = await this.initChainStatAsync(chain);
 
     const existing = await this.eventRepository.getByChainTypeAsync(chain.type);
     if (existing && existing.length > 0) {
@@ -95,28 +93,30 @@ export class ChainService {
     if (events?.length > 0) {
       await this.eventRepository.insertManyAsync(events);
       const lastBlock = await this.eventRepository.getLastBlockByChainTypeAsync(chain.type);
-      await this.updateStatAsync(true, source, lastBlock);
+      await this.updateChainStatAsync(chainStat, true, source, lastBlock);
     } else {
       await this.eventRepository.clearByChainType(chain.type);
-      await this.updateStatAsync(false, source, 0);
+      await this.updateChainStatAsync(chainStat, false, source, 0);
     }
   }
 
-  private async initStatAsync(chain: ChainConfigModel): Promise<void> {
+  private async initChainStatAsync(chain: ChainConfigModel): Promise<ChainStatModel> {
     let result = await this.statRepository.getOrCreateByChainTypeAsync(chain.type);
     if (result.version !== this.configService.config.version) {
       await this.clearAllAsync();
       result = await this.statRepository.getOrCreateByChainTypeAsync(chain.type);
     }
-    this._stat = result;
+    return result;
   }
 
-  private async updateStatAsync(success: boolean, source: ChainExtractorType, lastBlock: number): Promise<void> {
-    this._stat.extractSuccess = success;
-    this._stat.extractedDate = new Date();
-    this._stat.source = ChainExtractorType[source];
-    this._stat.lastBlock = lastBlock;
-    await this.statRepository.insertAsync(this._stat);
+  private async updateChainStatAsync(
+    chainStat: ChainStatModel, success: boolean, source: ChainExtractorType, lastBlock: number
+  ): Promise<void> {
+    chainStat.extractSuccess = success;
+    chainStat.extractedDate = new Date();
+    chainStat.source = ChainExtractorType[source];
+    chainStat.lastBlock = lastBlock;
+    await this.statRepository.insertAsync(chainStat);
   }
 
   private async extractEventsAsync(chain: ChainConfigModel, extractorType: ChainExtractorType): Promise<EventModel[]> {

@@ -19,6 +19,7 @@ export class AppComponent implements AfterViewInit {
   public minWeight = 0;
   public selectedLibraryType: GraphLibraryType = GraphLibraryType.D3;
   public selectedChainType: ChainType = ChainType.TEST;
+  public selectedChainStat: StatModel;
   public chains: ChainModel[] = [
     new ChainModel({
       type: ChainType.ETH_MAIN,
@@ -57,10 +58,12 @@ export class AppComponent implements AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.setMinWeight();
-    this.setSelectedLibraryType();
-    this.setSelectedChainType();
-    this.load();
+    setTimeout(() => {
+      this.setMinWeight();
+      this.setSelectedLibraryType();
+      this.setSelectedChainType();
+      this.load();
+    }, 0);
   }
 
   public changeMinWeight($event: any): void {
@@ -72,6 +75,7 @@ export class AppComponent implements AfterViewInit {
   public changeChain($event: any): void {
     this.configService.config.selectedChainType = ChainType[ChainType[$event.target.value]];
     this.setSelectedChainType();
+    this.setSelectedChainStat();
     this.load();
   }
 
@@ -90,10 +94,6 @@ export class AppComponent implements AfterViewInit {
 
   public get showStopSimulationButton(): boolean {
     return this.graphService.isSimulating;
-  }
-
-  public get stat(): StatModel {
-    return this.chainService.stat;
   }
 
   public get appVersion(): string {
@@ -116,6 +116,12 @@ export class AppComponent implements AfterViewInit {
 
   private setMinWeight(): void {
     this.minWeight = this.configService.config.minWeight;
+  }
+
+  private setSelectedChainStat(): void {
+    this.chainService.getChainStatByType(this.configService.config.selectedChainType).then(result => {
+      this.selectedChainStat = result;
+    });
   }
 
   private setSelectedChainType(): void {

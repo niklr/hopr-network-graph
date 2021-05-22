@@ -28,9 +28,11 @@
 
 <div id="footer">
   <div *ngIf="!isLoading; else showLoadingBlock">
-    <div *ngIf="stat?.extractSuccess; else extractFailedBlock">Last block: {{stat.lastBlock}}</div>
+    <div *ngIf="selectedChainStat?.extractSuccess; else extractFailedBlock">
+      Last block: {{selectedChainStat.lastBlock}}
+    </div>
     <ng-template #extractFailedBlock>Load failed</ng-template>
-    <div *ngIf="stat?.source">&nbsp;/ Source: {{stat.source}}</div>
+    <div *ngIf="selectedChainStat?.source">&nbsp;/ Source: {{selectedChainStat.source}}</div>
     <button (click)="reload()">Reload</button>
   </div>
   <ng-template #showLoadingBlock>Loading...</ng-template>

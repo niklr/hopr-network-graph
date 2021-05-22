@@ -2,18 +2,17 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, Subscriber } from 'rxjs';
 import { SubgraphTransactionModel } from '../models/subgraph.model';
-import { Logger } from '../services/logger.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class TheGraphClient {
 
-  constructor(private logger: Logger, private http: HttpClient) {
+  constructor(private http: HttpClient) {
 
   }
 
-  private handleResponse(response: any, observer: Subscriber<void>, transformFn: (e: any) => void): void {
+  private handleResponse(response: any, observer: Subscriber<any>, transformFn: (e: any) => void): void {
     if (response?.data || response?.error) {
       if (response.data) {
         if (Array.isArray(response.data)) {
@@ -30,8 +29,8 @@ export class TheGraphClient {
     }
   }
 
-  public getTransactions(url: string, limit: number = 1000, lastIndex: number = 0): Observable<void> {
-    return new Observable<void>((observer) => this.http.post(url, {
+  public getTransactions(url: string, limit: number = 1000, lastIndex: number = 0): Observable<SubgraphTransactionModel[]> {
+    return new Observable<SubgraphTransactionModel[]>((observer) => this.http.post(url, {
       query: `{
         transactions(first: ${limit}, orderBy: index, orderDirection: asc, where: { index_gt: ${lastIndex} }) {
           id

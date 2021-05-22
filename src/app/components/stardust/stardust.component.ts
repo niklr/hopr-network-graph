@@ -250,7 +250,7 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
 
     this.canvas = document.getElementById(canvasId);
     this.platform = Stardust.platform('webgl-2d', this.canvas, this.width, this.height) as StardustWebGL.WebGLCanvasPlatform2D;
-    this.platform.pixelRatio = window.devicePixelRatio || 1;
+    this.platform.pixelRatio = 1;
 
     this.starNodes = Stardust.mark.create(Stardust.mark.circle(), this.platform);
     this.starNodesBg = Stardust.mark.create(Stardust.mark.circle(), this.platform);

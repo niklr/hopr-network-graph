@@ -37,6 +37,14 @@ export class CommonUtil {
     return ethers.utils.formatUnits(BigNumber.from(bn), 18);
   }
 
+  public static tryParseInt(value: string): number {
+    try {
+      return parseInt(value, 10);
+    } catch (error) {
+      return undefined;
+    }
+  }
+
   public static timeout(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
   }

@@ -1,3 +1,8 @@
+export abstract class SubgraphTokenTypes {
+  static readonly XHOPR: string = 'xHOPR';
+  static readonly WXHOPR: string = 'wxHOPR';
+}
+
 export class SubgraphTransactionModel {
   id: string;
   index: string;
