@@ -30,13 +30,13 @@
 
     <ng-template #showEdgeBlock>
       Selected edge (transactionHash:
-      <a [href]="buildTxUrl(edge?.scratch?.transfer?.transactionHash)"
-        target="_blank">{{edge?.scratch?.transfer?.transactionHash}})</a>
+      <a [href]="buildTxUrl(edge?.scratch?.refTransfer?.transactionHash)"
+        target="_blank">{{edge?.scratch?.refTransfer?.transactionHash}})</a>
       <ul>
         <li>label: {{edge?.data?.name}}</li>
         <li>source: <a [href]="buildAddressUrl(edge?.data?.source)" target="_blank">{{edge?.data?.source}}</a></li>
         <li>target: <a [href]="buildAddressUrl(edge?.data?.target)" target="_blank">{{edge?.data?.target}}</a></li>
-        <li>amount: {{edge?.scratch?.transfer?.argsAmount}}</li>
+        <li>amount: {{edge?.scratch?.refTransfer?.argsAmount}}</li>
       </ul>
     </ng-template>
   </div>

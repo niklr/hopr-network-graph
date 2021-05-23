@@ -172,7 +172,7 @@ export class EdgeViewGraphModel {
   source: any;
   target: any;
   strength: number;
-  transfer: TransferEventModel;
+  refTransfer: TransferEventModel;
 
   public constructor(init?: Partial<EdgeViewGraphModel>) {
     this.init(init);
@@ -185,8 +185,8 @@ export class EdgeViewGraphModel {
       this.source = init.source;
       this.target = init.target;
       this.strength = init.strength;
-      if (init.transfer) {
-        this.transfer = new TransferEventModel(init.transfer);
+      if (init.refTransfer) {
+        this.refTransfer = new TransferEventModel(init.refTransfer);
       }
     }
   }
@@ -216,7 +216,8 @@ export class GraphContainerModel {
 
 export class GraphScratchModel {
   itemCount: number;
-  transfer: TransferEventModel;
+  refTransfer: TransferEventModel;
+  transfers: TransferEventModel[];
 
   public constructor(init?: Partial<GraphScratchModel>) {
     this.init(init);
@@ -225,11 +226,15 @@ export class GraphScratchModel {
   init(init?: any): void {
     if (init) {
       this.itemCount = init.itemCount;
-      if (init.transfer) {
-        this.transfer = new TransferEventModel(init.transfer);
+      if (init?.refTransfer) {
+        this.refTransfer = new TransferEventModel(init.refTransfer);
       }
+      this.transfers = init.transfers?.map((e: any) => new TransferEventModel(e));
     }
     this.itemCount = this.itemCount ?? 1;
+    if (!this.transfers) {
+      this.transfers = [];
+    }
   }
 }
 

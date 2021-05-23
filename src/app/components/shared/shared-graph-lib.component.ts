@@ -107,7 +107,7 @@ export abstract class SharedGraphLibComponent {
           source: e.data.source,
           target: e.data.target,
           strength: e.data.strength,
-          transfer: e.scratch?.transfer
+          refTransfer: e.scratch?.refTransfer
         });
       });
     }
@@ -140,7 +140,7 @@ export abstract class SharedGraphLibComponent {
           strength: element.strength
         }),
         scratch: new GraphScratchModel({
-          transfer: element.transfer
+          refTransfer: element.refTransfer
         })
       }));
     } else if (element instanceof NodeViewGraphModel) {

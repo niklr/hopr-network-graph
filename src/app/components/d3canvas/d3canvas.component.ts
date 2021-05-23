@@ -104,8 +104,8 @@ export class D3CanvasComponent extends SharedGraphLibComponent implements OnInit
     this.context.strokeStyle = AppConstants.TX_EVENT_TRANSFER_COLOR;
     this.context.beginPath();
     this.edges.forEach((d) => {
-      if (d?.transfer?.type) {
-        switch (d.transfer.type) {
+      if (d?.refTransfer?.type) {
+        switch (d.refTransfer.type) {
           case ChainTxEventType.MINT:
             this.context.strokeStyle = AppConstants.TX_EVENT_MINT_COLOR;
             break;

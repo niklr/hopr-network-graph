@@ -2,8 +2,7 @@ import { Component, ElementRef, EventEmitter, OnDestroy, OnInit, Output, ViewChi
 import * as d3 from 'd3';
 import { AppConstants } from '../../app.constants';
 import { ChainTxEventType } from '../../enums/chain.enum';
-import { GraphElementType } from '../../enums/graph.enum';
-import { GraphContainerModel } from '../../models/graph.model';
+import { EdgeViewGraphModel, GraphContainerModel, NodeViewGraphModel } from '../../models/graph.model';
 import { GraphService } from '../../services/graph.service';
 import { Logger } from '../../services/logger.service';
 import { GraphUtil } from '../../utils/graph.util';
@@ -81,9 +80,9 @@ export class D3Component extends SharedGraphLibComponent implements OnInit, OnDe
         .join('line')
         .attr('class', 'graphElement')
         .attr('marker-end', 'url(#arrowhead)')
-        .attr('stroke', (d: any) => {
-          if (d?.transfer?.type) {
-            switch (d.transfer.type) {
+        .attr('stroke', (d: EdgeViewGraphModel) => {
+          if (d?.refTransfer?.type) {
+            switch (d.refTransfer.type) {
               case ChainTxEventType.MINT:
                 return AppConstants.TX_EVENT_MINT_COLOR;
               case ChainTxEventType.BURN:
@@ -108,7 +107,7 @@ export class D3Component extends SharedGraphLibComponent implements OnInit, OnDe
           .attr('font-size', 5)
           .attr('fill', 'black')
           .attr('class', 'graphElement')
-          .text((d: any) => d.transfer?.argsAmount ?? d.type);
+          .text((d: EdgeViewGraphModel) => d.name);
       }
 
       this.node = this.g
@@ -117,7 +116,7 @@ export class D3Component extends SharedGraphLibComponent implements OnInit, OnDe
         .join('circle')
         .attr('stroke', '#fff')
         .attr('stroke-width', 1.5)
-        .attr('r', (d: any) => GraphUtil.calculateNodeRadius(d.weight))
+        .attr('r', (d: NodeViewGraphModel) => GraphUtil.calculateNodeRadius(d.weight))
         .attr('fill', AppConstants.SECONDARY_COLOR)
         .attr('class', 'graphElement')
         .on('click', this.handleClick)
@@ -132,38 +131,36 @@ export class D3Component extends SharedGraphLibComponent implements OnInit, OnDe
           .attr('font-size', 10)
           .attr('fill', 'black')
           .attr('class', 'graphElement')
-          .text((d: any) => d.name);
+          .text((d: NodeViewGraphModel) => d.name);
       }
 
       this.node.append('title')
-        .text((d: any) => d.id);
+        .text((d: NodeViewGraphModel) => d.id);
 
       this.node.append('text')
         .attr('font-size', 10)
         .attr('fill', 'black')
-        .text((d: any) => {
-          return d.name;
-        });
+        .text((d: NodeViewGraphModel) => d.name);
 
       this.simulation.on('tick', () => {
         this.graphService.isSimulating = true;
         this.edge
-          .attr('x1', (d: any) => d.source.x)
-          .attr('y1', (d: any) => d.source.y)
-          .attr('x2', (d: any) => d.target.x)
-          .attr('y2', (d: any) => d.target.y);
+          .attr('x1', (d: EdgeViewGraphModel) => d.source.x)
+          .attr('y1', (d: EdgeViewGraphModel) => d.source.y)
+          .attr('x2', (d: EdgeViewGraphModel) => d.target.x)
+          .attr('y2', (d: EdgeViewGraphModel) => d.target.y);
         if (this.graphService.drawEdgeLabel) {
           this.edgeLabel
-            .attr('x', (d: any) => (d.source.x + d.target.x) / 2)
-            .attr('y', (d: any) => (d.source.y + d.target.y) / 2);
+            .attr('x', (d: EdgeViewGraphModel) => (d.source.x + d.target.x) / 2)
+            .attr('y', (d: EdgeViewGraphModel) => (d.source.y + d.target.y) / 2);
         }
         this.node
-          .attr('cx', (d: any) => d.x)
-          .attr('cy', (d: any) => d.y);
+          .attr('cx', (d: NodeViewGraphModel) => d.x)
+          .attr('cy', (d: NodeViewGraphModel) => d.y);
         if (this.graphService.drawNodeLabel) {
           this.nodeLabel
-            .attr('x', (d: any) => d.x)
-            .attr('y', (d: any) => d.y);
+            .attr('x', (d: NodeViewGraphModel) => d.x)
+            .attr('y', (d: NodeViewGraphModel) => d.y);
         }
       });
     }
@@ -241,31 +238,33 @@ export class D3Component extends SharedGraphLibComponent implements OnInit, OnDe
       .on('end', dragended);
   }
 
-  private handleClick = (event: any, d: any) => {
+  private handleClick = (event: any, d: NodeViewGraphModel | EdgeViewGraphModel) => {
     event.stopPropagation();
     this.g.selectAll('.graphElement').style('opacity', (o: any) => {
-      if (d.type === GraphElementType.EDGE) {
-        if (o.type === GraphElementType.EDGE) {
+      if (d instanceof EdgeViewGraphModel) {
+        if (o instanceof EdgeViewGraphModel) {
           // d = EDGE and o = EDGE
           if (o === d) {
             return 1.0;
           }
           return 0;
-        } else {
+        } else if (o instanceof NodeViewGraphModel) {
           // d = EDGE and o = NODE
           if (o.id === d.source.id || o.id === d.target.id) {
             return 1.0;
           }
           return 0;
+        } else {
+          return 0;
         }
       } else {
-        if (o.type === GraphElementType.EDGE) {
+        if (o instanceof EdgeViewGraphModel) {
           // d = NODE and o = EDGE
           if (o.source.id === d.id || o.target.id === d.id) {
             return 1.0;
           }
           return 0;
-        } else {
+        } else if (o instanceof NodeViewGraphModel) {
           // d = NODE and o = NODE
           if (o.id === d.id) {
             return 1;
@@ -273,6 +272,8 @@ export class D3Component extends SharedGraphLibComponent implements OnInit, OnDe
           if (this.isConnected(o.id, d.id)) {
             return 0.5;
           }
+          return 0;
+        } else {
           return 0;
         }
       }

@@ -162,7 +162,7 @@ export class CytoscapeComponent extends SharedGraphLibComponent implements OnIni
               strength: edge.data('strength')
             }),
             scratch: new GraphScratchModel({
-              transfer: edge.scratch('transfer')
+              refTransfer: edge.scratch('refTransfer')
             })
           }));
         }

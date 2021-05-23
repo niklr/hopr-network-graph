@@ -284,12 +284,12 @@ export class GraphService {
   }
 
   private addGraphElements(transfer: TransferEventModel, data: GraphContainerModel): void {
-    this.tryAddNode(transfer.argsFrom, data);
-    this.tryAddNode(transfer.argsTo, data);
+    this.tryAddNode(transfer.argsFrom, transfer, data);
+    this.tryAddNode(transfer.argsTo, transfer, data);
     this.tryAddEdge(transfer, data);
   }
 
-  private tryAddNode(address: string, data: GraphContainerModel): void {
+  private tryAddNode(address: string, transfer: TransferEventModel, data: GraphContainerModel): void {
     if (this._nodeMap.has(address)) {
       const node = this._nodeMap.get(address);
       node.scratch.itemCount = ++node.scratch.itemCount;
@@ -309,6 +309,7 @@ export class GraphService {
     }
     if (this._edgeMap.has(index)) {
       const edge = this._edgeMap.get(index);
+      edge.scratch.transfers.push(transfer);
       edge.scratch.itemCount = ++edge.scratch.itemCount;
       edge.data.strength = Math.min(++edge.scratch.itemCount, 100);
       edge.data.name = edge.scratch.itemCount.toString();
@@ -355,7 +356,7 @@ export class GraphService {
         }
         const types: string[] = selectedItems.map(e => e.id);
         for (const edge of data.edges) {
-          if (types.includes(ChainTxEventType[edge.scratch?.transfer?.type])) {
+          if (types.includes(ChainTxEventType[edge.scratch?.refTransfer?.type])) {
             result.edges.push(edge);
             result.nodes.push(this._nodeMap.get(edge.data.source));
             result.nodes.push(this._nodeMap.get(edge.data.target));
@@ -415,7 +416,8 @@ export class GraphService {
         target: transfer.argsTo
       }),
       scratch: new GraphScratchModel({
-        transfer
+        refTransfer: transfer,
+        transfers: [transfer]
       })
     });
   }
