@@ -14,7 +14,35 @@ export abstract class BaseGraphModel {
   scratch: GraphScratchModel; // scratchpad data (usually temp or nonserialisable data)
 
   public constructor(init?: Partial<BaseGraphModel>) {
-    Object.assign(this, init);
+    this.init(init);
+  }
+
+  init(init?: any): void {
+    if (init) {
+      this.selected = init.selected;
+      this.selectable = init.selectable;
+      this.locked = init.locked;
+      this.grabbable = init.grabbable;
+      this.pannable = init.pannable;
+      if (Array.isArray(init.classes)) {
+        this.classes = [];
+        for (const item of init.classes) {
+          this.classes.push(item);
+        }
+      }
+      if (init.position) {
+        this.position = new PositionModel(init.position);
+      }
+      if (init.renderedPosition) {
+        this.renderedPosition = new PositionModel(init.renderedPosition);
+      }
+      if (init.scratch) {
+        this.scratch = new GraphScratchModel(init.scratch);
+      }
+    }
+    if (!this.classes) {
+      this.classes = [];
+    }
   }
 }
 
@@ -23,7 +51,15 @@ export class NodeGraphModel extends BaseGraphModel {
 
   public constructor(init?: Partial<NodeGraphModel>) {
     super(init);
-    Object.assign(this, init);
+  }
+
+  init(init?: any): void {
+    super.init(init);
+    if (init) {
+      if (init.data) {
+        this.data = new NodeDataModel(init.data);
+      }
+    }
   }
 
   public get group(): string {
@@ -40,7 +76,18 @@ export class NodeDataModel {
   shapeType: string;
 
   public constructor(init?: Partial<NodeDataModel>) {
-    Object.assign(this, init);
+    this.init(init);
+  }
+
+  init(init?: any): void {
+    if (init) {
+      this.id = init.id;
+      this.name = init.name;
+      this.weight = init.weight;
+      this.connectionCount = init.connectionCount;
+      this.colorCode = init.colorCode;
+      this.shapeType = init.shapeType;
+    }
   }
 }
 
@@ -54,7 +101,18 @@ export class NodeViewGraphModel {
   y?: number;
 
   public constructor(init?: Partial<NodeViewGraphModel>) {
-    Object.assign(this, init);
+    this.init(init);
+  }
+
+  init(init?: any): void {
+    if (init) {
+      this.id = init.id;
+      this.name = init.name;
+      this.weight = init.weight;
+      this.connectionCount = init.connectionCount;
+      this.x = init.x;
+      this.y = init.y;
+    }
   }
 }
 
@@ -63,7 +121,15 @@ export class EdgeGraphModel extends BaseGraphModel {
 
   public constructor(init?: Partial<EdgeGraphModel>) {
     super(init);
-    Object.assign(this, init);
+  }
+
+  init(init?: any): void {
+    super.init(init);
+    if (init) {
+      if (init.data) {
+        this.data = new EdgeDataModel(init.data);
+      }
+    }
   }
 
   public get group(): string {
@@ -78,7 +144,16 @@ export class EdgeDataModel {
   colorCode: string;
 
   public constructor(init?: Partial<EdgeDataModel>) {
-    Object.assign(this, init);
+    this.init(init);
+  }
+
+  init(init?: any): void {
+    if (init) {
+      this.source = init.source;
+      this.target = init.target;
+      this.strength = init.strength;
+      this.colorCode = init.colorCode;
+    }
   }
 }
 
@@ -90,7 +165,19 @@ export class EdgeViewGraphModel {
   transfer: TransferEventModel;
 
   public constructor(init?: Partial<EdgeViewGraphModel>) {
-    Object.assign(this, init);
+    this.init(init);
+  }
+
+  init(init?: any): void {
+    if (init) {
+      this.type = init.type;
+      this.source = init.source;
+      this.target = init.target;
+      this.strength = init.strength;
+      if (init.transfer) {
+        this.transfer = new TransferEventModel(init.transfer);
+      }
+    }
   }
 }
 
@@ -99,7 +186,14 @@ export class GraphContainerModel {
   edges: EdgeGraphModel[];
 
   public constructor(init?: Partial<GraphContainerModel>) {
-    Object.assign(this, init);
+    this.init(init);
+  }
+
+  init(init?: any): void {
+    if (init) {
+      this.nodes = init.nodes?.map((e: any) => new NodeGraphModel(e));
+      this.edges = init.edges?.map((e: any) => new EdgeGraphModel(e));
+    }
     if (!this.nodes) {
       this.nodes = [];
     }
@@ -113,7 +207,15 @@ export class GraphScratchModel {
   transfer: TransferEventModel;
 
   public constructor(init?: Partial<GraphScratchModel>) {
-    Object.assign(this, init);
+    this.init(init);
+  }
+
+  init(init?: any): void {
+    if (init) {
+      if (init.transfer) {
+        this.transfer = new TransferEventModel(init.transfer);
+      }
+    }
   }
 }
 
@@ -122,7 +224,14 @@ export class GraphEventModel {
   payload: any;
 
   public constructor(init?: Partial<GraphEventModel>) {
-    Object.assign(this, init);
+    this.init(init);
+  }
+
+  init(init?: any): void {
+    if (init) {
+      this.type = init.type;
+      this.payload = init.payload;
+    }
   }
 }
 
@@ -132,6 +241,14 @@ export class GraphStateModel {
   requestedAnimationFrame: number;
 
   public constructor(init?: Partial<GraphStateModel>) {
-    Object.assign(this, init);
+    this.init(init);
+  }
+
+  init(init?: any): void {
+    if (init) {
+      this.isDestroyed = init.isDestroyed;
+      this.isZoomed = init.isZoomed;
+      this.requestedAnimationFrame = init.requestedAnimationFrame;
+    }
   }
 }

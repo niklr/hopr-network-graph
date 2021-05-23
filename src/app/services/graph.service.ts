@@ -374,7 +374,7 @@ export class GraphService {
     }));
   }
 
-  private createGraphContainerModel(): GraphContainerModel {
+  private createGraphContainerModel(): any {
     // Cytoscape does not work with instance of GraphContainerModel
     // TODO: replace with "return new GraphContainerModel();"
     return {
