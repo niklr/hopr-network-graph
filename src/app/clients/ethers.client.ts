@@ -53,7 +53,7 @@ export class EthersClient {
     const blockNumber = await this.getBlockNumberAsync(provider);
     const abi = await this.fileUtil.readFileAsync(chain.tokenContractAbiPath);
     const contract = new ethers.Contract(chain.tokenContractAddress, JSON.parse(abi), provider);
-    this.logger.info(chain.tokenContractAddress, await contract.name())();
+    // this.logger.info(chain.tokenContractAddress, await contract.name())();
     let events = [];
     for (const eventType of [ChainTxEventType.MINT, ChainTxEventType.TRANSFER, ChainTxEventType.BURN]) {
       events = events.concat(await this.getEventsByTypeAsync(chain, contract, eventType, blockNumber));
@@ -66,7 +66,7 @@ export class EthersClient {
     const blockNumber = await this.getBlockNumberAsync(provider);
     const abi = await this.fileUtil.readFileAsync(chain.bridgeContractAbiPath);
     const contract = new ethers.Contract(chain.bridgeContractAddress, JSON.parse(abi), provider);
-    this.logger.info(chain.bridgeContractAddress)();
+    // this.logger.info(chain.bridgeContractAddress)();
     let events = [];
     for (const eventType of [ChainTxEventType.BRIDGE_START, ChainTxEventType.BRIDGE_END]) {
       events = events.concat(await this.getEventsByTypeAsync(chain, contract, eventType, blockNumber));

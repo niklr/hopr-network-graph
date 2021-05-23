@@ -43,10 +43,10 @@ export class AppComponent implements AfterViewInit {
       type: GraphLibraryType.STARDUST,
       name: 'stardust'
     }),
-    new LibraryModel({
-      type: GraphLibraryType.D3_CANVAS,
-      name: 'd3-canvas'
-    })
+    // new LibraryModel({
+    //   type: GraphLibraryType.D3_CANVAS,
+    //   name: 'd3-canvas'
+    // })
   ];
 
   constructor(
@@ -135,6 +135,7 @@ export class AppComponent implements AfterViewInit {
   private load(): void {
     this.graphService.clear();
     this.chainService.extractAsync().then(() => {
+      this.setSelectedChainStat();
       this.graphService.load();
       // this.graphService.transformCrossChain();
     });

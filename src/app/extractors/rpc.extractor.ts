@@ -19,7 +19,14 @@ export class RpcChainExtractor extends BaseChainExtractor {
   }
 
   protected async extractAsyncInternal(chain: ChainConfigModel): Promise<EventModel[]> {
-    throw new Error('Not implemented.');
+    return this.client.getAllEvents(chain).then(result => {
+      if (Array.isArray(result)) {
+        return Promise.resolve(result.map(e => EventModel.fromJS(e, chain)));
+      }
+      return Promise.resolve(undefined);
+    }).catch(error => {
+      return Promise.reject(error);
+    });
   }
 
 }

@@ -22,16 +22,17 @@ export class GraphqlChainExtractor extends BaseChainExtractor {
   }
 
   protected async extractAsyncInternal(chain: ChainConfigModel): Promise<EventModel[]> {
-    return new Promise((resolve, reject) => {
-      // Get all transactions and transform them
-      const events: EventModel[] = [];
-      this.client.getTransactions(chain.theGraphUrl, 10).subscribe(result => {
-        this.transform(chain.type, result, events);
-        resolve(events);
-      }, error => {
-        reject(error);
-      });
-    });
+    const stat = await this.client.getStatContainer(chain.theGraphUrl);
+    if (!stat) {
+      throw new Error(`${this.name} stat container could not be retrieved.`);
+    }
+    const stepSize = 10;
+    const transactionCount = CommonUtil.tryParseInt(stat.lastTransactionIndex);
+    // Get all transactions and transform them
+    const events: EventModel[] = [];
+    const transactions = await this.client.getTransactions(chain.theGraphUrl, 10);
+    this.transform(chain.type, transactions, events);
+    return events;
   }
 
   private transform(chainType: ChainType, transactions: SubgraphTransactionModel[], events: EventModel[]): void {
@@ -39,7 +40,7 @@ export class GraphqlChainExtractor extends BaseChainExtractor {
       for (const transaction of transactions) {
         for (const transfer of transaction.transferEvents) {
           if (!this.shouldSkip(chainType, transfer.tokenType)) {
-            const event = this.transformTransfer(chainType, transfer);
+            const event = this.transformTransfer(chainType, transaction, transfer);
             if (event) {
               events.push(event);
             }
@@ -49,12 +50,15 @@ export class GraphqlChainExtractor extends BaseChainExtractor {
     }
   }
 
-  private transformTransfer(chainType: ChainType, transfer: SubgraphTransferEventModel): TransferEventModel {
+  private transformTransfer(
+    chainType: ChainType, transaction: SubgraphTransactionModel, transfer: SubgraphTransferEventModel
+  ): TransferEventModel {
     if (transfer) {
       return new TransferEventModel({
         chainType,
         blockNumber: CommonUtil.tryParseInt(transfer.blockNumber),
         blockTimestamp: transfer.blockTimestamp,
+        transactionHash: transaction.id,
         logIndex: CommonUtil.tryParseInt(transfer.logIndex),
         argsFrom: transfer.from,
         argsTo: transfer.to,

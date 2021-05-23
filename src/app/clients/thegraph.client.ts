@@ -1,6 +1,5 @@
-import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, Subscriber } from 'rxjs';
+import axios from 'axios';
 import { SubgraphStatContainerModel, SubgraphTransactionModel } from '../models/subgraph.model';
 
 @Injectable({
@@ -8,29 +7,25 @@ import { SubgraphStatContainerModel, SubgraphTransactionModel } from '../models/
 })
 export class TheGraphClient {
 
-  constructor(private http: HttpClient) {
+  constructor() {
 
   }
 
-  private handleResponse(response: any, observer: Subscriber<any>, transformFn: (e: any) => void): void {
+  private handleResponse(response: any, transformFn: (e: any) => any): Promise<any> {
     if (response?.data || response?.error) {
       if (response.data) {
         if (Array.isArray(response.data)) {
-          observer.next(response.data.map((e: any) => transformFn(e)));
+          return Promise.resolve(response.data.map((e: any) => transformFn(e)));
         } else {
-          observer.next(transformFn(response.data));
+          return Promise.resolve(transformFn(response.data));
         }
-        observer.complete();
-      } else {
-        observer.error(response.error);
       }
-    } else {
-      observer.error(response);
     }
+    return Promise.reject(response);
   }
 
-  public getTransactions(url: string, limit: number = 1000, lastIndex: number = 0): Observable<SubgraphTransactionModel[]> {
-    return new Observable<SubgraphTransactionModel[]>((observer) => this.http.post(url, {
+  public getTransactions(url: string, limit: number = 1000, lastIndex: number = 0): Promise<SubgraphTransactionModel[]> {
+    return axios.post(url, {
       query: `{
         transactions(first: ${limit}, orderBy: index, orderDirection: asc, where: { index_gt: ${lastIndex} }) {
           id
@@ -53,17 +48,17 @@ export class TheGraphClient {
           }
         }
       }`
-    }).subscribe(result => {
-      this.handleResponse(result, observer, (e: any) => {
+    }).then(result => {
+      return this.handleResponse(result?.data, (e: any) => {
         return e?.transactions?.map((e1: any) => SubgraphTransactionModel.fromJS(e1));
       });
-    }, error => {
-      observer.error(error);
-    }));
+    }).catch(error => {
+      return Promise.reject(error);
+    });
   }
 
-  public getStatContainer(url: string): Observable<SubgraphStatContainerModel> {
-    return new Observable<SubgraphStatContainerModel>((observer) => this.http.post(url, {
+  public getStatContainer(url: string): Promise<SubgraphStatContainerModel> {
+    return axios.post(url, {
       query: `{
         statsContainers {
           id,
@@ -73,13 +68,13 @@ export class TheGraphClient {
           lastTransferEventIndex
         }
       }`
-    }).subscribe(result => {
-      this.handleResponse(result, observer, (e: any) => {
+    }).then(result => {
+      return this.handleResponse(result?.data, (e: any) => {
         const containers = e?.statsContainers?.map((e1: any) => SubgraphStatContainerModel.fromJS(e1));
         return containers?.length > 0 ? containers[0] : undefined;
       });
-    }, error => {
-      observer.error(error);
-    }));
+    }).catch(error => {
+      return Promise.reject(error);
+    });
   }
 }
