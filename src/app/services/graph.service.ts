@@ -262,8 +262,8 @@ export class GraphService {
   private convertTestData(testData: any): GraphContainerModel {
     const data = this.createGraphContainerModel();
     if (Array.isArray(testData?.nodes) && Array.isArray(testData?.edges)) {
-      data.nodes = testData?.nodes;
-      data.edges = testData?.edges;
+      data.nodes = testData?.nodes?.map((e: any) => new NodeGraphModel(e));
+      data.edges = testData?.edges?.map((e: any) => new EdgeGraphModel(e));
       for (const node of data.nodes) {
         this._nodeMap.set(node.data.id, node);
       }

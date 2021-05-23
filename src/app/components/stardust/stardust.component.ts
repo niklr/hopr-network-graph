@@ -85,7 +85,7 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
       this.starNodesSelected.attr('radius', 4).attr('color', mapColor(CommonUtil.hexToRgb(AppConstants.SECONDARY_COLOR)));
       this.starEdges.attr('width', 1).attr('color', mapColor([169, 169, 169]));
       this.starEdgesSelected.attr('width', 1).attr('color', mapColor(CommonUtil.hexToRgb(AppConstants.SECONDARY_COLOR)));
-      this.starNodeText.attr('text', (d: NodeViewGraphModel) => d.connectionCount ?? d.weight)
+      this.starNodeText.attr('text', (d: NodeViewGraphModel) => d.connectionCount)
         // .attr('up', [0, 1])
         .attr('fontFamily', 'Arial')
         .attr('fontSize', 12)
@@ -182,12 +182,12 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
     this.starNodeText.attr('scale', this.transform.k);
     this.starNodeText.render();
     this.starNodeText.attr('alignX', 0.5);
-    this.starNodeText.attr('alignY', 0.5);
+    this.starNodeText.attr('alignY', 0.6);
 
     this.starEdgeText.attr('scale', this.transform.k);
     this.starEdgeText.render();
     this.starEdgeText.attr('alignX', 0.5);
-    this.starEdgeText.attr('alignY', 0.5);
+    this.starEdgeText.attr('alignY', 0.6);
 
     // Render the picking buffer.
     this.platform.beginPicking(this.width, this.height);

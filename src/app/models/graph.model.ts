@@ -3,11 +3,11 @@ import { TransferEventModel } from './event.model';
 import { PositionModel } from './position.model';
 
 export abstract class BaseGraphModel {
-  selected = false; // whether the element is selected (default false)
-  selectable = true; // whether the selection state is mutable (default true)
-  locked = false; // when locked a node's position is immutable (default false)
-  grabbable = true; // whether the node can be grabbed and moved by the user
-  pannable = false; // whether dragging the node causes panning instead of grabbing
+  selected: boolean; // whether the element is selected (default false)
+  selectable: boolean; // whether the selection state is mutable (default true)
+  locked: boolean; // when locked a node's position is immutable (default false)
+  grabbable: boolean; // whether the node can be grabbed and moved by the user
+  pannable: boolean; // whether dragging the node causes panning instead of grabbing
   classes: string[]; // an array of class names that the element has
   position: PositionModel; // the model position of the node (optional on init, mandatory after)
   renderedPosition: PositionModel; // can alternatively specify position in rendered on-screen pixels
@@ -19,11 +19,11 @@ export abstract class BaseGraphModel {
 
   init(init?: any): void {
     if (init) {
-      this.selected = init.selected;
-      this.selectable = init.selectable;
-      this.locked = init.locked;
-      this.grabbable = init.grabbable;
-      this.pannable = init.pannable;
+      this.selected = init.selected ?? false;
+      this.selectable = init.selectable ?? true;
+      this.locked = init.locked ?? false;
+      this.grabbable = init.grabbable ?? true;
+      this.pannable = init.pannable ?? false;
       if (Array.isArray(init.classes)) {
         this.classes = [];
         for (const item of init.classes) {
@@ -70,8 +70,8 @@ export class NodeGraphModel extends BaseGraphModel {
 export class NodeDataModel {
   id: string;
   name: string;
-  weight = 1;
-  connectionCount = 1;
+  weight: number;
+  connectionCount: number;
   colorCode: string;
   shapeType: string;
 
@@ -83,8 +83,8 @@ export class NodeDataModel {
     if (init) {
       this.id = init.id;
       this.name = init.name;
-      this.weight = init.weight;
-      this.connectionCount = init.connectionCount;
+      this.weight = init.weight ?? 1;
+      this.connectionCount = init.connectionCount ?? 1;
       this.colorCode = init.colorCode;
       this.shapeType = init.shapeType;
     }
@@ -140,7 +140,7 @@ export class EdgeGraphModel extends BaseGraphModel {
 export class EdgeDataModel {
   source: string; // the source node id (edge comes from this node)
   target: string; // the target node id (edge goes to this node)
-  strength = 1;
+  strength: number;
   colorCode: string;
 
   public constructor(init?: Partial<EdgeDataModel>) {
@@ -151,7 +151,7 @@ export class EdgeDataModel {
     if (init) {
       this.source = init.source;
       this.target = init.target;
-      this.strength = init.strength;
+      this.strength = init.strength ?? 1;
       this.colorCode = init.colorCode;
     }
   }
