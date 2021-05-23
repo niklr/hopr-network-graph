@@ -292,7 +292,8 @@ export class GraphService {
   private tryAddNode(address: string, data: GraphContainerModel): void {
     if (this._nodeMap.has(address)) {
       const node = this._nodeMap.get(address);
-      node.data.weight = Math.min(++node.data.weight, 100);
+      node.data.connectionCount = ++node.data.connectionCount;
+      node.data.weight = Math.min(node.data.connectionCount, 100);
     } else {
       const node = this.createNodeModel(address);
       this._nodeMap.set(address, node);

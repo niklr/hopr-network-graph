@@ -35,6 +35,7 @@ export class NodeDataModel {
   id: string;
   name: string;
   weight = 1;
+  connectionCount = 1;
   colorCode: string;
   shapeType: string;
 
@@ -48,6 +49,7 @@ export class NodeViewGraphModel {
   id: string;
   name: string;
   weight: number;
+  connectionCount: number;
   x?: number;
   y?: number;
 

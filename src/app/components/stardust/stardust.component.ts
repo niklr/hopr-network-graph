@@ -85,27 +85,27 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
       this.starNodesSelected.attr('radius', 4).attr('color', mapColor(CommonUtil.hexToRgb(AppConstants.SECONDARY_COLOR)));
       this.starEdges.attr('width', 1).attr('color', mapColor([169, 169, 169]));
       this.starEdgesSelected.attr('width', 1).attr('color', mapColor(CommonUtil.hexToRgb(AppConstants.SECONDARY_COLOR)));
-      this.starNodeText.attr('text', (d: any) => d.name)
+      this.starNodeText.attr('text', (d: NodeViewGraphModel) => d.connectionCount ?? d.weight)
         // .attr('up', [0, 1])
         .attr('fontFamily', 'Arial')
         .attr('fontSize', 12)
         // .attr('scale', d => this.transform.k)
         // .attr('scale', d => 1 + Math.sin(d) / 2)
         .attr('color', mapColor([0.5, 0.5, 0.5], 1));
-      this.starEdgeText.attr('text', (d: any) => d.transfer?.argsAmount ?? d.type)
+      this.starEdgeText.attr('text', (d: EdgeViewGraphModel) => d.transfer?.argsAmount ?? d.type)
         .attr('fontFamily', 'Arial')
         .attr('fontSize', 10)
         .attr('color', mapColor([0.5, 0.5, 0.5], 1));
 
       this.positions = Stardust.array()
-        .value(d => [
+        .value((d: NodeViewGraphModel) => [
           d.x * this.transform.k + this.transform.x,
           d.y * this.transform.k + this.transform.y
         ])
         .data(this.nodes);
 
       const edgePositions = Stardust.array()
-        .value(d => [
+        .value((d: EdgeViewGraphModel) => [
           ((d.source.x * this.transform.k + this.transform.x) + (d.target.x * this.transform.k + this.transform.x)) / 2,
           ((d.source.y * this.transform.k + this.transform.y) + (d.target.y * this.transform.k + this.transform.y)) / 2
         ])

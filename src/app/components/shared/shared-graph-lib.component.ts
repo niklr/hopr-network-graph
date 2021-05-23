@@ -97,7 +97,8 @@ export abstract class SharedGraphLibComponent {
           type: GraphElementType.NODE,
           id: e.data.id,
           name: e.data.name,
-          weight: e.data.weight
+          weight: e.data.weight,
+          connectionCount: e.data.connectionCount
         });
       });
       this.edges = data.edges.map((e: EdgeGraphModel) => {
@@ -146,7 +147,8 @@ export abstract class SharedGraphLibComponent {
         data: new NodeDataModel({
           id: element.id,
           name: element.name,
-          weight: element.weight
+          weight: element.weight,
+          connectionCount: element.connectionCount
         })
       }));
     }
