@@ -96,14 +96,14 @@ export abstract class SharedGraphLibComponent {
         return new NodeViewGraphModel({
           type: GraphElementType.NODE,
           id: e.data.id,
-          name: e.data.name,
-          weight: e.data.weight,
-          connectionCount: e.data.connectionCount
+          name: e.data.name ?? '-',
+          weight: e.data.weight
         });
       });
       this.edges = data.edges.map((e: EdgeGraphModel) => {
         return new EdgeViewGraphModel({
           type: GraphElementType.EDGE,
+          name: e.data.name ?? '-',
           source: e.data.source,
           target: e.data.target,
           strength: e.data.strength,
@@ -134,6 +134,7 @@ export abstract class SharedGraphLibComponent {
     if (element instanceof EdgeViewGraphModel) {
       this.selectEmitter.emit(new EdgeGraphModel({
         data: new EdgeDataModel({
+          name: element.name,
           source: element.source.id,
           target: element.target.id,
           strength: element.strength
@@ -147,8 +148,7 @@ export abstract class SharedGraphLibComponent {
         data: new NodeDataModel({
           id: element.id,
           name: element.name,
-          weight: element.weight,
-          connectionCount: element.connectionCount
+          weight: element.weight
         })
       }));
     }

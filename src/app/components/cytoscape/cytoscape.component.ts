@@ -156,6 +156,7 @@ export class CytoscapeComponent extends SharedGraphLibComponent implements OnIni
           edge.target().removeClass('faded');
           this.selectEmitter.emit(new EdgeGraphModel({
             data: new EdgeDataModel({
+              name: edge.data('name'),
               source: edge.data('source'),
               target: edge.data('target'),
               strength: edge.data('strength')

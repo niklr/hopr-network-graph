@@ -19,11 +19,11 @@ export abstract class BaseGraphModel {
 
   init(init?: any): void {
     if (init) {
-      this.selected = init.selected ?? false;
-      this.selectable = init.selectable ?? true;
-      this.locked = init.locked ?? false;
-      this.grabbable = init.grabbable ?? true;
-      this.pannable = init.pannable ?? false;
+      this.selected = init.selected;
+      this.selectable = init.selectable;
+      this.locked = init.locked;
+      this.grabbable = init.grabbable;
+      this.pannable = init.pannable;
       if (Array.isArray(init.classes)) {
         this.classes = [];
         for (const item of init.classes) {
@@ -40,8 +40,16 @@ export abstract class BaseGraphModel {
         this.scratch = new GraphScratchModel(init.scratch);
       }
     }
+    this.selected = this.selected ?? false;
+    this.selectable = this.selectable ?? true;
+    this.locked = this.locked ?? false;
+    this.grabbable = this.grabbable ?? true;
+    this.pannable = this.pannable ?? false;
     if (!this.classes) {
       this.classes = [];
+    }
+    if (!this.scratch) {
+      this.scratch = new GraphScratchModel();
     }
   }
 }
@@ -71,7 +79,6 @@ export class NodeDataModel {
   id: string;
   name: string;
   weight: number;
-  connectionCount: number;
   colorCode: string;
   shapeType: string;
 
@@ -83,11 +90,11 @@ export class NodeDataModel {
     if (init) {
       this.id = init.id;
       this.name = init.name;
-      this.weight = init.weight ?? 1;
-      this.connectionCount = init.connectionCount ?? 1;
+      this.weight = init.weight;
       this.colorCode = init.colorCode;
       this.shapeType = init.shapeType;
     }
+    this.weight = this.weight ?? 1;
   }
 }
 
@@ -96,7 +103,6 @@ export class NodeViewGraphModel {
   id: string;
   name: string;
   weight: number;
-  connectionCount: number;
   x?: number;
   y?: number;
 
@@ -106,10 +112,10 @@ export class NodeViewGraphModel {
 
   init(init?: any): void {
     if (init) {
+      this.type = init.type;
       this.id = init.id;
       this.name = init.name;
       this.weight = init.weight;
-      this.connectionCount = init.connectionCount;
       this.x = init.x;
       this.y = init.y;
     }
@@ -138,6 +144,7 @@ export class EdgeGraphModel extends BaseGraphModel {
 }
 
 export class EdgeDataModel {
+  name: string;
   source: string; // the source node id (edge comes from this node)
   target: string; // the target node id (edge goes to this node)
   strength: number;
@@ -149,16 +156,19 @@ export class EdgeDataModel {
 
   init(init?: any): void {
     if (init) {
+      this.name = init.name;
       this.source = init.source;
       this.target = init.target;
-      this.strength = init.strength ?? 1;
+      this.strength = init.strength;
       this.colorCode = init.colorCode;
     }
+    this.strength = this.strength ?? 1;
   }
 }
 
 export class EdgeViewGraphModel {
   type: GraphElementType;
+  name: string;
   source: any;
   target: any;
   strength: number;
@@ -171,6 +181,7 @@ export class EdgeViewGraphModel {
   init(init?: any): void {
     if (init) {
       this.type = init.type;
+      this.name = init.name;
       this.source = init.source;
       this.target = init.target;
       this.strength = init.strength;
@@ -204,6 +215,7 @@ export class GraphContainerModel {
 }
 
 export class GraphScratchModel {
+  itemCount: number;
   transfer: TransferEventModel;
 
   public constructor(init?: Partial<GraphScratchModel>) {
@@ -212,10 +224,12 @@ export class GraphScratchModel {
 
   init(init?: any): void {
     if (init) {
+      this.itemCount = init.itemCount;
       if (init.transfer) {
         this.transfer = new TransferEventModel(init.transfer);
       }
     }
+    this.itemCount = this.itemCount ?? 1;
   }
 }
 

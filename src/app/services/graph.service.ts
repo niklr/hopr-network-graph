@@ -292,8 +292,9 @@ export class GraphService {
   private tryAddNode(address: string, data: GraphContainerModel): void {
     if (this._nodeMap.has(address)) {
       const node = this._nodeMap.get(address);
-      node.data.connectionCount = ++node.data.connectionCount;
-      node.data.weight = Math.min(node.data.connectionCount, 100);
+      node.scratch.itemCount = ++node.scratch.itemCount;
+      node.data.weight = Math.min(node.scratch.itemCount, 100);
+      node.data.name = node.scratch.itemCount.toString();
     } else {
       const node = this.createNodeModel(address);
       this._nodeMap.set(address, node);
@@ -308,7 +309,9 @@ export class GraphService {
     }
     if (this._edgeMap.has(index)) {
       const edge = this._edgeMap.get(index);
-      edge.data.strength = Math.min(++edge.data.strength, 100);
+      edge.scratch.itemCount = ++edge.scratch.itemCount;
+      edge.data.strength = Math.min(++edge.scratch.itemCount, 100);
+      edge.data.name = edge.scratch.itemCount.toString();
     } else {
       const edge = this.createEdgeModel(transfer);
       this._edgeMap.set(index, edge);
@@ -400,8 +403,7 @@ export class GraphService {
   private createNodeModel(address: string): NodeGraphModel {
     return new NodeGraphModel({
       data: new NodeDataModel({
-        id: address,
-        name: address.substring(0, 4)
+        id: address
       })
     });
   }
