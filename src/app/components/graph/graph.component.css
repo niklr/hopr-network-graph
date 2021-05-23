@@ -1,3 +1,8 @@
+ul {
+  margin-block-start: 8px;
+  margin-block-end: 8px;
+}
+
 #graphContainer {
   height: 100%;
 }
@@ -11,6 +16,8 @@
   float: left;
   width: 100%;
   position: relative;
+  height: 170px;
+  overflow-y: auto;
 }
 
 #filter {

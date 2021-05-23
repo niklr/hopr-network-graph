@@ -20,23 +20,25 @@
   </ng-template>
   <div *ngIf="node || edge">
     <div *ngIf="node; else showEdgeBlock">
-      Selected node
+      Selected node ({{node?.data?.name}})
       <ul>
-        <li>label: {{node?.data?.name}}</li>
         <li>address: <a [href]="buildAddressUrl(node?.data?.id)" target="_blank">{{node?.data?.id}}</a></li>
         <li>weight: {{node?.data?.weight}}</li>
       </ul>
     </div>
 
     <ng-template #showEdgeBlock>
-      Selected edge (transactionHash:
-      <a [href]="buildTxUrl(edge?.scratch?.refTransfer?.transactionHash)"
-        target="_blank">{{edge?.scratch?.refTransfer?.transactionHash}})</a>
+      Selected edge ({{edge?.data?.name}})
       <ul>
-        <li>label: {{edge?.data?.name}}</li>
         <li>source: <a [href]="buildAddressUrl(edge?.data?.source)" target="_blank">{{edge?.data?.source}}</a></li>
         <li>target: <a [href]="buildAddressUrl(edge?.data?.target)" target="_blank">{{edge?.data?.target}}</a></li>
-        <li>amount: {{edge?.scratch?.refTransfer?.argsAmount}}</li>
+      </ul>
+      Transfers
+      <ul *ngFor="let transfer of edge?.scratch?.transfers">
+        <li>amount: {{transfer.argsAmount}}</li>
+        <li *ngIf="transfer.timestamp">timestamp: {{transfer.timestamp}}</li>
+        <li *ngIf="transfer.transactionHash">transactionHash: <a [href]="buildTxUrl(transfer.transactionHash)"
+            target="_blank">{{transfer.transactionHash}})</a></li>
       </ul>
     </ng-template>
   </div>

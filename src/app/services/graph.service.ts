@@ -292,11 +292,11 @@ export class GraphService {
   private tryAddNode(address: string, transfer: TransferEventModel, data: GraphContainerModel): void {
     if (this._nodeMap.has(address)) {
       const node = this._nodeMap.get(address);
-      node.scratch.itemCount = ++node.scratch.itemCount;
-      node.data.weight = Math.min(node.scratch.itemCount, 100);
-      node.data.name = node.scratch.itemCount.toString();
+      node.scratch.transfers.push(transfer);
+      node.data.weight = Math.min(node.scratch.transfers.length, 100);
+      node.data.name = node.scratch.transfers.length.toString();
     } else {
-      const node = this.createNodeModel(address);
+      const node = this.createNodeModel(address, transfer);
       this._nodeMap.set(address, node);
       data.nodes.push(node);
     }
@@ -310,9 +310,8 @@ export class GraphService {
     if (this._edgeMap.has(index)) {
       const edge = this._edgeMap.get(index);
       edge.scratch.transfers.push(transfer);
-      edge.scratch.itemCount = ++edge.scratch.itemCount;
-      edge.data.strength = Math.min(++edge.scratch.itemCount, 100);
-      edge.data.name = edge.scratch.itemCount.toString();
+      edge.data.strength = Math.min(edge.scratch.transfers.length, 100);
+      edge.data.name = edge.scratch.transfers.length.toString();
     } else {
       const edge = this.createEdgeModel(transfer);
       this._edgeMap.set(index, edge);
@@ -356,7 +355,7 @@ export class GraphService {
         }
         const types: string[] = selectedItems.map(e => e.id);
         for (const edge of data.edges) {
-          if (types.includes(ChainTxEventType[edge.scratch?.refTransfer?.type])) {
+          if (types.includes(ChainTxEventType[edge.scratch.refTransfer?.type])) {
             result.edges.push(edge);
             result.nodes.push(this._nodeMap.get(edge.data.source));
             result.nodes.push(this._nodeMap.get(edge.data.target));
@@ -401,10 +400,15 @@ export class GraphService {
     return undefined;
   }
 
-  private createNodeModel(address: string): NodeGraphModel {
+  private createNodeModel(address: string, transfer: TransferEventModel): NodeGraphModel {
     return new NodeGraphModel({
       data: new NodeDataModel({
-        id: address
+        id: address,
+        name: '1'
+      }),
+      scratch: new GraphScratchModel({
+        refTransfer: transfer,
+        transfers: [transfer]
       })
     });
   }
@@ -412,6 +416,7 @@ export class GraphService {
   private createEdgeModel(transfer: TransferEventModel): EdgeGraphModel {
     return new EdgeGraphModel({
       data: new EdgeDataModel({
+        name: '1',
         source: transfer.argsFrom,
         target: transfer.argsTo
       }),

@@ -94,7 +94,7 @@ export class D3Component extends SharedGraphLibComponent implements OnInit, OnDe
           return AppConstants.TX_EVENT_TRANSFER_COLOR;
         })
         .attr('stroke-opacity', 0.6)
-        .attr('stroke-width', 2)
+        .attr('stroke-width', (d: EdgeViewGraphModel) => GraphUtil.calculateEdgeWidth(d.strength))
         .on('click', this.handleClick);
 
       if (this.graphService.drawEdgeLabel) {

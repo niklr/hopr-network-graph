@@ -97,7 +97,8 @@ export abstract class SharedGraphLibComponent {
           type: GraphElementType.NODE,
           id: e.data.id,
           name: e.data.name ?? '-',
-          weight: e.data.weight
+          weight: e.data.weight,
+          transfers: e.scratch.transfers
         });
       });
       this.edges = data.edges.map((e: EdgeGraphModel) => {
@@ -107,7 +108,8 @@ export abstract class SharedGraphLibComponent {
           source: e.data.source,
           target: e.data.target,
           strength: e.data.strength,
-          refTransfer: e.scratch?.refTransfer
+          refTransfer: e.scratch.refTransfer,
+          transfers: e.scratch.transfers
         });
       });
     }
@@ -140,7 +142,8 @@ export abstract class SharedGraphLibComponent {
           strength: element.strength
         }),
         scratch: new GraphScratchModel({
-          refTransfer: element.refTransfer
+          refTransfer: element.refTransfer,
+          transfers: element.transfers
         })
       }));
     } else if (element instanceof NodeViewGraphModel) {
@@ -149,6 +152,9 @@ export abstract class SharedGraphLibComponent {
           id: element.id,
           name: element.name,
           weight: element.weight
+        }),
+        scratch: new GraphScratchModel({
+          transfers: element.transfers
         })
       }));
     }

@@ -105,6 +105,7 @@ export class NodeViewGraphModel {
   weight: number;
   x?: number;
   y?: number;
+  transfers: TransferEventModel[];
 
   public constructor(init?: Partial<NodeViewGraphModel>) {
     this.init(init);
@@ -118,6 +119,10 @@ export class NodeViewGraphModel {
       this.weight = init.weight;
       this.x = init.x;
       this.y = init.y;
+      this.transfers = init.transfers?.map((e: any) => new TransferEventModel(e));
+    }
+    if (!this.transfers) {
+      this.transfers = [];
     }
   }
 }
@@ -173,6 +178,7 @@ export class EdgeViewGraphModel {
   target: any;
   strength: number;
   refTransfer: TransferEventModel;
+  transfers: TransferEventModel[];
 
   public constructor(init?: Partial<EdgeViewGraphModel>) {
     this.init(init);
@@ -188,6 +194,10 @@ export class EdgeViewGraphModel {
       if (init.refTransfer) {
         this.refTransfer = new TransferEventModel(init.refTransfer);
       }
+      this.transfers = init.transfers?.map((e: any) => new TransferEventModel(e));
+    }
+    if (!this.transfers) {
+      this.transfers = [];
     }
   }
 }
@@ -215,7 +225,6 @@ export class GraphContainerModel {
 }
 
 export class GraphScratchModel {
-  itemCount: number;
   refTransfer: TransferEventModel;
   transfers: TransferEventModel[];
 
@@ -225,13 +234,11 @@ export class GraphScratchModel {
 
   init(init?: any): void {
     if (init) {
-      this.itemCount = init.itemCount;
       if (init?.refTransfer) {
         this.refTransfer = new TransferEventModel(init.refTransfer);
       }
       this.transfers = init.transfers?.map((e: any) => new TransferEventModel(e));
     }
-    this.itemCount = this.itemCount ?? 1;
     if (!this.transfers) {
       this.transfers = [];
     }
