@@ -2,6 +2,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { GraphEventType, GraphLibraryType } from '../../enums/graph.enum';
 import { ChainFilterItemModel } from '../../models/chain.model';
+import { TransferEventModel } from '../../models/event.model';
 import { BaseGraphModel, EdgeGraphModel, GraphEventModel, NodeGraphModel } from '../../models/graph.model';
 import { ConfigService } from '../../services/config.service';
 import { GraphService } from '../../services/graph.service';
@@ -14,10 +15,13 @@ import { GraphService } from '../../services/graph.service';
 
 export class GraphComponent implements OnInit, OnDestroy {
 
+  private _showTransfers: boolean;
+
   private subs: Subscription[] = [];
 
   public node: NodeGraphModel;
   public edge: EdgeGraphModel;
+  public transfers: TransferEventModel[];
   public message: string;
 
   public graphLibraries = {
@@ -65,6 +69,8 @@ export class GraphComponent implements OnInit, OnDestroy {
   private onDataChanged(data: any): void {
     this.node = undefined;
     this.edge = undefined;
+    this.transfers = undefined;
+    this._showTransfers = false;
     if (Array.isArray(data?.nodes) && data.nodes.length > 0) {
       this.message = undefined;
     } else {
@@ -72,16 +78,24 @@ export class GraphComponent implements OnInit, OnDestroy {
     }
   }
 
+  public get showTransfers(): boolean {
+    return this._showTransfers || this.transfers?.length <= 100;
+  }
+
   public nodeChange(event: BaseGraphModel): void {
+    this._showTransfers = false;
     if (event instanceof NodeGraphModel) {
       this.node = event;
+      this.transfers = this.node.scratch.transfers;
       this.edge = undefined;
     } else if (event instanceof EdgeGraphModel) {
       this.edge = event;
+      this.transfers = this.edge.scratch.transfers;
       this.node = undefined;
     } else {
       this.node = undefined;
       this.edge = undefined;
+      this.transfers = undefined;
     }
   }
 
@@ -95,6 +109,10 @@ export class GraphComponent implements OnInit, OnDestroy {
 
   public get filter(): Map<string, ChainFilterItemModel> {
     return this.graphService.filter;
+  }
+
+  public revealTransfers(): void {
+    this._showTransfers = true;
   }
 
   public buildAddressUrl(address: string): string {
