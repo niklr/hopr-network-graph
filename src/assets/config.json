@@ -1,7 +1,7 @@
 {
   "minWeight": 20,
   "selectedChainType": 2,
-  "selectedGraphLibraryType": 0,
+  "selectedGraphLibraryType": 2,
   "chains": [
     {
       "type": 0,
@@ -10,6 +10,7 @@
     {
       "type": 1,
       "rpcProviderUrl": "",
+      "theGraphUrl": "https://api.thegraph.com/subgraphs/name/niklr/hopr-on-mainnet",
       "startBlock": 11887000,
       "addressUrl": "https://etherscan.io/address/{address}",
       "txUrl": "https://etherscan.io/tx/{transactionHash}",
@@ -29,6 +30,7 @@
     {
       "type": 2,
       "rpcProviderUrl": "https://rpc.xdaichain.com/",
+      "theGraphUrl": "https://api.thegraph.com/subgraphs/name/hoprnet/hopr-on-xdai",
       "startBlock": 14635000,
       "addressUrl": "https://blockscout.com/xdai/mainnet/address/{address}",
       "txUrl": "https://blockscout.com/xdai/mainnet/tx/{transactionHash}",
