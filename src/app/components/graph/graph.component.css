@@ -20,6 +20,10 @@ ul {
   overflow-y: auto;
 }
 
+#info {
+  padding: 8px;
+}
+
 #filter {
   position: absolute;
   top: 0;

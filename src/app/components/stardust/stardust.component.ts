@@ -83,7 +83,7 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
 
       const colors = [
         mapColor([0, 0, 0], 0.5),
-        mapColor([0.5, 0.5, 0.5], 1),
+        mapColor([0, 0, 0], 1),
         mapColor(CommonUtil.hexToRgb(AppConstants.PIMARY_COLOR)),
         mapColor(CommonUtil.hexToRgb(AppConstants.SECONDARY_COLOR)),
         mapColor(CommonUtil.hexToRgb(AppConstants.TX_EVENT_BURN_COLOR)),

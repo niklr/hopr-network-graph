@@ -18,7 +18,7 @@
   <ng-template #showMessageBlock>
     {{message}}
   </ng-template>
-  <div *ngIf="node || edge">
+  <div id="info" *ngIf="node || edge">
     <div *ngIf="node; else showEdgeBlock">
       Selected node ({{node?.data?.name}})
       <ul>
@@ -43,7 +43,7 @@
     </div>
     <ng-template #showTransfersBlock>
       <ul *ngFor="let transfer of transfers">
-        <li>amount: {{transfer.argsAmount}}</li>
+        <li [ngStyle]="{color: getTransferColor(transfer)}">amount: {{transfer.argsAmount}}</li>
         <li *ngIf="transfer.blockTimestamp">blockTimestamp: {{transfer.blockTimestamp}}</li>
         <li *ngIf="node">to: <a [href]="buildAddressUrl(transfer.argsTo)" target="_blank">{{transfer.argsTo}}</a></li>
         <li *ngIf="transfer.transactionHash">transactionHash: <a [href]="buildTxUrl(transfer.transactionHash)"

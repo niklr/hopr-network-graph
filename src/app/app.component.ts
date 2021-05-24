@@ -1,9 +1,9 @@
 import { AfterViewInit, Component } from '@angular/core';
+import { AppConstants } from './app.constants';
 import { ChainType } from './enums/chain.enum';
 import { GraphLibraryType } from './enums/graph.enum';
-import { ChainModel } from './models/chain.model';
-import { LibraryModel } from './models/library.model';
 import { StatModel } from './models/stat.model';
+import { ChainTypeModel, GraphLibraryTypeModel } from './models/type.model';
 import { ChainService } from './services/chain.service';
 import { ConfigService } from './services/config.service';
 import { GraphService } from './services/graph.service';
@@ -20,34 +20,8 @@ export class AppComponent implements AfterViewInit {
   public selectedLibraryType: GraphLibraryType = GraphLibraryType.D3;
   public selectedChainType: ChainType = ChainType.TEST;
   public selectedChainStat: StatModel;
-  public chains: ChainModel[] = [
-    new ChainModel({
-      type: ChainType.ETH_MAIN,
-      name: 'ETH mainnet'
-    }),
-    new ChainModel({
-      type: ChainType.XDAI_MAIN,
-      name: 'xDai chain'
-    })
-  ];
-  public libraries: LibraryModel[] = [
-    new LibraryModel({
-      type: GraphLibraryType.D3,
-      name: 'd3'
-    }),
-    new LibraryModel({
-      type: GraphLibraryType.CYTOSCAPE,
-      name: 'cytoscape'
-    }),
-    new LibraryModel({
-      type: GraphLibraryType.STARDUST,
-      name: 'stardust'
-    }),
-    // new LibraryModel({
-    //   type: GraphLibraryType.D3_CANVAS,
-    //   name: 'd3-canvas'
-    // })
-  ];
+  public chains: ChainTypeModel[] = AppConstants.CHAINS;
+  public libraries: GraphLibraryTypeModel[] = AppConstants.LIBRARIES;
 
   constructor(
     private momentUtil: MomentUtil,

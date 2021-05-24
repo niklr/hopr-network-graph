@@ -116,7 +116,7 @@ export class EthersClient {
       }
       catch (error) {
         const midBlock = (fromBlock + toBlock) >> 1;
-        this.logger.info('getEventsByBlockAsync midBlock', midBlock)();
+        this.logger.info(`Divide and conquer block ${midBlock}`)();
         const arr1 = await this.getEventsByBlockAsync(contract, filter, fromBlock, midBlock);
         const arr2 = await this.getEventsByBlockAsync(contract, filter, midBlock + 1, toBlock);
         return [...arr1, ...arr2];

@@ -1,5 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
+import { AppConstants } from '../../app.constants';
+import { ChainTxEventType } from '../../enums/chain.enum';
 import { GraphEventType, GraphLibraryType } from '../../enums/graph.enum';
 import { ChainFilterItemModel } from '../../models/chain.model';
 import { TransferEventModel } from '../../models/event.model';
@@ -113,6 +115,20 @@ export class GraphComponent implements OnInit, OnDestroy {
 
   public revealTransfers(): void {
     this._showTransfers = true;
+  }
+
+  public getTransferColor(transfer: TransferEventModel): string {
+    if (transfer) {
+      switch (transfer.type) {
+        case ChainTxEventType.BURN:
+          return AppConstants.TX_EVENT_BURN_COLOR;
+        case ChainTxEventType.MINT:
+          return AppConstants.TX_EVENT_MINT_COLOR;
+        default:
+          break;
+      }
+    }
+    return '#000';
   }
 
   public buildAddressUrl(address: string): string {
