@@ -1,5 +1,5 @@
 {
-  "minWeight": 20,
+  "minWeight": 10,
   "selectedChainType": 2,
   "selectedGraphLibraryType": 2,
   "chains": [
