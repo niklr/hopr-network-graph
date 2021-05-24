@@ -295,10 +295,12 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
     this.selectedElement = element;
     if (this.selectedElement instanceof EdgeViewGraphModel) {
       this.starEdgesSelected.data([this.selectedElement]);
-      this.starNodesSelected.data([]);
+      this.starNodesSelected.data(this.nodes.filter(
+        e => e.id === this.selectedElement.source.id || e.id === this.selectedElement.target.id));
     } else if (this.selectedElement instanceof NodeViewGraphModel) {
       this.starNodesSelected.data([this.selectedElement]);
-      this.starEdgesSelected.data([]);
+      this.starEdgesSelected.data(this.edges.filter(
+        e => e.source.id === this.selectedElement.id || e.target.id === this.selectedElement.id));
     }
     this.requestRender();
   }
