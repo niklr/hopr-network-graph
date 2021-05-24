@@ -20,6 +20,7 @@
             "tsConfig": "tsconfig.app.json",
             "aot": true,
             "allowedCommonJsDependencies": [
+              "axios",
               "cytoscape-fcose",
               "cytoscape-klay",
               "cytoscape",
