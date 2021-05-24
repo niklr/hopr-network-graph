@@ -20,6 +20,7 @@ import { EventRepository } from '../repositories/event.repository';
 import { CommonUtil } from '../utils/common.util';
 import { Ensure } from '../utils/ensure.util';
 import { FileUtil } from '../utils/file.util';
+import { MomentUtil } from '../utils/moment.util';
 import { ConfigService } from './config.service';
 import { Logger } from './logger.service';
 
@@ -45,7 +46,8 @@ export class GraphService {
     private logger: Logger,
     private configService: ConfigService,
     private eventRepository: EventRepository,
-    private fileUtil: FileUtil
+    private fileUtil: FileUtil,
+    private momentUtil: MomentUtil
   ) {
     this._onChangeSubject = new Subject<GraphEventModel>();
     this.filter = new Map<string, ChainFilterItemModel>([
@@ -292,11 +294,11 @@ export class GraphService {
   private tryAddNode(address: string, transfer: TransferEventModel, data: GraphContainerModel): void {
     if (this._nodeMap.has(address)) {
       const node = this._nodeMap.get(address);
-      node.scratch.transfers.push(transfer);
+      this.addTransfer(transfer, node.scratch.transfers);
       node.data.weight = Math.min(node.scratch.transfers.length, 100);
       node.data.name = node.scratch.transfers.length.toString();
     } else {
-      const node = this.createNodeModel(address, transfer);
+      const node = this.createNodeModel(address, this.copyTransfer(transfer));
       this._nodeMap.set(address, node);
       data.nodes.push(node);
     }
@@ -309,14 +311,31 @@ export class GraphService {
     }
     if (this._edgeMap.has(index)) {
       const edge = this._edgeMap.get(index);
-      edge.scratch.transfers.push(transfer);
+      this.addTransfer(transfer, edge.scratch.transfers);
       edge.data.strength = Math.min(edge.scratch.transfers.length, 100);
       edge.data.name = edge.scratch.transfers.length.toString();
     } else {
-      const edge = this.createEdgeModel(transfer);
+      const edge = this.createEdgeModel(this.copyTransfer(transfer));
       this._edgeMap.set(index, edge);
       data.edges.push(edge);
     }
+  }
+
+  private copyTransfer(transfer: TransferEventModel): TransferEventModel {
+    const transferCopy = new TransferEventModel(transfer);
+    if (transfer.blockTimestamp) {
+      const timestamp = CommonUtil.tryParseInt(transfer.blockTimestamp);
+      if (timestamp && timestamp > 0) {
+        transferCopy.blockTimestamp = this.momentUtil.getLocalReverseFormatted(this.momentUtil.getFromUnix(timestamp));
+      }
+    }
+    return transferCopy;
+  }
+
+  private addTransfer(transfer: TransferEventModel, transfers: TransferEventModel[]): TransferEventModel {
+    const transferCopy = this.copyTransfer(transfer);
+    transfers.unshift(transferCopy);
+    return transferCopy;
   }
 
   private applyFilters(data: GraphContainerModel): GraphContainerModel {

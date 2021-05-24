@@ -72,9 +72,10 @@ export class ChainService {
       this._isExtracting = false;
       return;
     }
-    let events: EventModel[];
-    let source = ChainExtractorType.UNKNOWN;
-    if (!CommonUtil.isNullOrWhitespace(chain.theGraphUrl)) {
+    // Use file extractor by default
+    let source = ChainExtractorType.FILE;
+    let events = await this.extractEventsAsync(chain, source);
+    if ((!events || events?.length <= 0) && !CommonUtil.isNullOrWhitespace(chain.theGraphUrl)) {
       // Use GraphQL extractor
       source = ChainExtractorType.GRAPHQL;
       events = await this.extractEventsAsync(chain, source);
@@ -82,11 +83,6 @@ export class ChainService {
     if ((!events || events?.length <= 0) && !CommonUtil.isNullOrWhitespace(chain.rpcProviderUrl)) {
       // Use RPC extractor
       source = ChainExtractorType.RPC;
-      events = await this.extractEventsAsync(chain, source);
-    }
-    if (!events || events?.length <= 0) {
-      // Use file extractor
-      source = ChainExtractorType.FILE;
       events = await this.extractEventsAsync(chain, source);
     }
 

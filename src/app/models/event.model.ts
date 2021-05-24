@@ -83,12 +83,14 @@ export class TransferEventModel extends EventModel {
   static fromJS(data: any): TransferEventModel {
     data = typeof data === 'object' ? data : {};
     const result = new TransferEventModel(data);
-    if (!Array.isArray(data.args) || data.args.length !== 3) {
-      throw new Error('Invalid TransferEvent arguments.');
+    if (Array.isArray(data.args)) {
+      if (data.args.length !== 3) {
+        throw new Error('Invalid TransferEvent arguments.');
+      }
+      result.argsFrom = data.args[0];
+      result.argsTo = data.args[1];
+      result.argsAmount = CommonUtil.formatBigNumber(data.args[2]);
     }
-    result.argsFrom = data.args[0];
-    result.argsTo = data.args[1];
-    result.argsAmount = CommonUtil.formatBigNumber(data.args[2]);
     return result;
   }
 
@@ -118,13 +120,15 @@ export class TokensBridgingInitiatedEventModel extends EventModel {
   static fromJS(data: any): TokensBridgingInitiatedEventModel {
     data = typeof data === 'object' ? data : {};
     const result = new TokensBridgingInitiatedEventModel(data);
-    if (!Array.isArray(data.args) || data.args.length !== 4) {
-      throw new Error('Invalid TokensBridgingInitiatedEvent arguments.');
+    if (Array.isArray(data.args)) {
+      if (data.args.length !== 4) {
+        throw new Error('Invalid TokensBridgingInitiatedEvent arguments.');
+      }
+      result.argsToken = data.args[0];
+      result.argsSender = data.args[1];
+      result.argsValue = data.args[2];
+      result.argsMessageId = data.args[3];
     }
-    result.argsToken = data.args[0];
-    result.argsSender = data.args[1];
-    result.argsValue = data.args[2];
-    result.argsMessageId = data.args[3];
     return result;
   }
 
@@ -155,13 +159,15 @@ export class TokensBridgedEventModel extends EventModel {
   static fromJS(data: any): TokensBridgedEventModel {
     data = typeof data === 'object' ? data : {};
     const result = new TokensBridgedEventModel(data);
-    if (!Array.isArray(data.args) || data.args.length !== 4) {
-      throw new Error('Invalid TokensBridgedEvent arguments.');
+    if (Array.isArray(data.args)) {
+      if (data.args.length !== 4) {
+        throw new Error('Invalid TokensBridgedEvent arguments.');
+      }
+      result.argsToken = data.args[0];
+      result.argsRecipient = data.args[1];
+      result.argsValue = data.args[2];
+      result.argsMessageId = data.args[3];
     }
-    result.argsToken = data.args[0];
-    result.argsRecipient = data.args[1];
-    result.argsValue = data.args[2];
-    result.argsMessageId = data.args[3];
     return result;
   }
 

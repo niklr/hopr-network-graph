@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { TheGraphClient } from '../clients/thegraph.client';
-import { ChainType } from '../enums/chain.enum';
+import { ChainTxEventType, ChainType } from '../enums/chain.enum';
 import { ChainConfigModel } from '../models/config.model';
 import { EventModel, TransferEventModel } from '../models/event.model';
 import { SubgraphTokenTypes, SubgraphTransactionModel, SubgraphTransferEventModel } from '../models/subgraph.model';
@@ -22,25 +22,32 @@ export class GraphqlChainExtractor extends BaseChainExtractor {
   }
 
   protected async extractAsyncInternal(chain: ChainConfigModel): Promise<EventModel[]> {
-    const stat = await this.client.getStatContainer(chain.theGraphUrl);
-    if (!stat) {
-      throw new Error(`${this.name} stat container could not be retrieved.`);
-    }
-    const stepSize = 10;
-    const transactionCount = CommonUtil.tryParseInt(stat.lastTransactionIndex);
     // Get all transactions and transform them
     const events: EventModel[] = [];
-    const transactions = await this.client.getTransactions(chain.theGraphUrl, 10);
-    this.transform(chain.type, transactions, events);
+    const transactions = await this.getTransactionsRecursiveAsync(chain.theGraphUrl, 1000);
+    this.transform(chain, transactions, events);
     return events;
   }
 
-  private transform(chainType: ChainType, transactions: SubgraphTransactionModel[], events: EventModel[]): void {
+  private async getTransactionsRecursiveAsync(url: string, limit: number, lastIndex: number = 0): Promise<SubgraphTransactionModel[]> {
+    this.logger.info(`Extracting transactions with index greater than ${lastIndex}.`)();
+    let transactions = await this.client.getTransactions(url, limit, lastIndex);
+    if (transactions?.length >= limit) {
+      const index = CommonUtil.tryParseInt(transactions[transactions.length - 1].index);
+      if (index && index > 0) {
+        transactions = transactions.concat(await this.getTransactionsRecursiveAsync(url, limit, index));
+      }
+    }
+    return transactions;
+  }
+
+  private transform(chain: ChainConfigModel, transactions: SubgraphTransactionModel[], events: EventModel[]): void {
     if (transactions && events) {
+      const eventSignature = chain.mapTxEventTypeToString(ChainTxEventType.TRANSFER);
       for (const transaction of transactions) {
         for (const transfer of transaction.transferEvents) {
-          if (!this.shouldSkip(chainType, transfer.tokenType)) {
-            const event = this.transformTransfer(chainType, transaction, transfer);
+          if (!this.shouldSkip(chain.type, transfer.tokenType)) {
+            const event = this.transformTransfer(chain.type, transaction, transfer, eventSignature);
             if (event) {
               events.push(event);
             }
@@ -51,11 +58,15 @@ export class GraphqlChainExtractor extends BaseChainExtractor {
   }
 
   private transformTransfer(
-    chainType: ChainType, transaction: SubgraphTransactionModel, transfer: SubgraphTransferEventModel
+    chainType: ChainType,
+    transaction: SubgraphTransactionModel,
+    transfer: SubgraphTransferEventModel,
+    eventSignature: string
   ): TransferEventModel {
     if (transfer) {
       return new TransferEventModel({
         chainType,
+        eventSignature,
         blockNumber: CommonUtil.tryParseInt(transfer.blockNumber),
         blockTimestamp: transfer.blockTimestamp,
         transactionHash: transaction.id,
