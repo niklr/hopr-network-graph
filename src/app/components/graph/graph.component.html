@@ -45,6 +45,7 @@
       <ul *ngFor="let transfer of transfers">
         <li>amount: {{transfer.argsAmount}}</li>
         <li *ngIf="transfer.blockTimestamp">blockTimestamp: {{transfer.blockTimestamp}}</li>
+        <li *ngIf="node">to: <a [href]="buildAddressUrl(transfer.argsTo)" target="_blank">{{transfer.argsTo}}</a></li>
         <li *ngIf="transfer.transactionHash">transactionHash: <a [href]="buildTxUrl(transfer.transactionHash)"
             target="_blank">{{transfer.transactionHash}}</a></li>
       </ul>

@@ -221,8 +221,6 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
 
     this.registerMouseEvents();
 
-    // this.canvas.call(d3.drag().subject((e) => console.log(e)));
-    // this.canvas.call(this.drag());
     this.zoom = d3.zoom()
       .extent([[0, 0], [this.width, this.height]])
       .scaleExtent([0, 10])

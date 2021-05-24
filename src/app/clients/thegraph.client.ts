@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
 import axios from 'axios';
+import { ChainType } from '../enums/chain.enum';
+import { ChainConfigModel } from '../models/config.model';
 import { SubgraphStatContainerModel, SubgraphTransactionModel } from '../models/subgraph.model';
 
 @Injectable({
@@ -24,8 +26,8 @@ export class TheGraphClient {
     return Promise.reject(response);
   }
 
-  public getTransactions(url: string, limit: number = 1000, lastIndex: number = 0): Promise<SubgraphTransactionModel[]> {
-    return axios.post(url, {
+  public getTransactions(chain: ChainConfigModel, limit: number = 1000, lastIndex: number = 0): Promise<SubgraphTransactionModel[]> {
+    return axios.post(chain.theGraphUrl, {
       query: `{
         transactions(first: ${limit}, orderBy: index, orderDirection: asc, where: { index_gt: ${lastIndex} }) {
           id
@@ -34,18 +36,7 @@ export class TheGraphClient {
           to
           blockNumber
           blockTimestamp
-          transferEvents {
-            id
-            index
-            transaction
-            logIndex
-            blockNumber
-            blockTimestamp
-            from
-            to
-            amount
-            tokenType
-          }
+          ${this.getTransferEventsQuery(chain.type)}
         }
       }`
     }).then(result => {
@@ -76,5 +67,38 @@ export class TheGraphClient {
     }).catch(error => {
       return Promise.reject(error);
     });
+  }
+
+  private getTransferEventsQuery(chainType: ChainType): string {
+    switch (chainType) {
+      case ChainType.ETH_MAIN:
+        return `transferEvents {
+          id
+          index
+          transaction
+          logIndex
+          blockNumber
+          blockTimestamp
+          from
+          to
+          amount
+        }`;
+      case ChainType.XDAI_MAIN:
+        return `transferEvents {
+          id
+          index
+          transaction
+          logIndex
+          blockNumber
+          blockTimestamp
+          from
+          to
+          amount
+          tokenType
+        }`;
+      default:
+        break;
+    }
+    return undefined;
   }
 }

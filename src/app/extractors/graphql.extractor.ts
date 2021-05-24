@@ -24,18 +24,20 @@ export class GraphqlChainExtractor extends BaseChainExtractor {
   protected async extractAsyncInternal(chain: ChainConfigModel): Promise<EventModel[]> {
     // Get all transactions and transform them
     const events: EventModel[] = [];
-    const transactions = await this.getTransactionsRecursiveAsync(chain.theGraphUrl, 1000);
+    const transactions = await this.getTransactionsRecursiveAsync(chain, 1000);
     this.transform(chain, transactions, events);
     return events;
   }
 
-  private async getTransactionsRecursiveAsync(url: string, limit: number, lastIndex: number = 0): Promise<SubgraphTransactionModel[]> {
+  private async getTransactionsRecursiveAsync(
+    chain: ChainConfigModel, limit: number, lastIndex: number = 0
+  ): Promise<SubgraphTransactionModel[]> {
     this.logger.info(`Extracting transactions with index greater than ${lastIndex}.`)();
-    let transactions = await this.client.getTransactions(url, limit, lastIndex);
+    let transactions = await this.client.getTransactions(chain, limit, lastIndex);
     if (transactions?.length >= limit) {
       const index = CommonUtil.tryParseInt(transactions[transactions.length - 1].index);
       if (index && index > 0) {
-        transactions = transactions.concat(await this.getTransactionsRecursiveAsync(url, limit, index));
+        transactions = transactions.concat(await this.getTransactionsRecursiveAsync(chain, limit, index));
       }
     }
     return transactions;
