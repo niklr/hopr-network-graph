@@ -4,6 +4,7 @@ import * as DataForge from 'data-forge';
 import * as Stardust from 'stardust-core';
 import * as StardustWebGL from 'stardust-webgl';
 import { AppConstants } from '../../app.constants';
+import { ChainTxEventType } from '../../enums/chain.enum';
 import { EdgeViewGraphModel, GraphContainerModel, NodeViewGraphModel } from '../../models/graph.model';
 import { GraphService } from '../../services/graph.service';
 import { Logger } from '../../services/logger.service';
@@ -76,26 +77,46 @@ export class StardustComponent extends SharedGraphLibComponent implements OnInit
     if (this.nodes && this.edges) {
       this.nodesDataFrame = new DataForge.DataFrame(this.nodes).bake();
 
-      function mapColor(color: number[], opacity: number = 1) {
+      function mapColor(color: number[], opacity: number = 1): number[] {
         return [color[0] / 255, color[1] / 255, color[2] / 255, opacity];
       }
 
-      this.starNodes.attr('radius', 2).attr('color', mapColor(CommonUtil.hexToRgb(AppConstants.PIMARY_COLOR)));
-      this.starNodesBg.attr('radius', 3).attr('color', mapColor([0, 0, 0], 0.5));
-      this.starNodesSelected.attr('radius', 4).attr('color', mapColor(CommonUtil.hexToRgb(AppConstants.SECONDARY_COLOR)));
-      this.starEdges.attr('width', 1).attr('color', mapColor([169, 169, 169]));
-      this.starEdgesSelected.attr('width', 1).attr('color', mapColor(CommonUtil.hexToRgb(AppConstants.SECONDARY_COLOR)));
+      const colors = [
+        mapColor([0, 0, 0], 0.5),
+        mapColor([0.5, 0.5, 0.5], 1),
+        mapColor(CommonUtil.hexToRgb(AppConstants.PIMARY_COLOR)),
+        mapColor(CommonUtil.hexToRgb(AppConstants.SECONDARY_COLOR)),
+        mapColor(CommonUtil.hexToRgb(AppConstants.TX_EVENT_BURN_COLOR)),
+        mapColor(CommonUtil.hexToRgb(AppConstants.TX_EVENT_MINT_COLOR)),
+        mapColor(CommonUtil.hexToRgb(AppConstants.TX_EVENT_TRANSFER_COLOR))
+      ];
+
+      this.starNodes.attr('radius', 2).attr('color', colors[2]);
+      this.starNodesBg.attr('radius', 3).attr('color', colors[0]);
+      this.starNodesSelected.attr('radius', 4).attr('color', colors[3]);
+      this.starEdges.attr('width', 1).attr('color', (d: EdgeViewGraphModel) => {
+        switch (d.refTransfer?.type) {
+          case ChainTxEventType.BURN:
+            return colors[4];
+          case ChainTxEventType.MINT:
+            return colors[5];
+          default:
+            break;
+        }
+        return colors[6];
+      });
+      this.starEdgesSelected.attr('width', 1).attr('color', colors[3]);
       this.starNodeText.attr('text', (d: NodeViewGraphModel) => d.name)
         // .attr('up', [0, 1])
         .attr('fontFamily', 'Arial')
         .attr('fontSize', 12)
         // .attr('scale', d => this.transform.k)
         // .attr('scale', d => 1 + Math.sin(d) / 2)
-        .attr('color', mapColor([0.5, 0.5, 0.5], 1));
+        .attr('color', colors[1]);
       this.starEdgeText.attr('text', (d: EdgeViewGraphModel) => d.name)
         .attr('fontFamily', 'Arial')
         .attr('fontSize', 10)
-        .attr('color', mapColor([0.5, 0.5, 0.5], 1));
+        .attr('color', colors[1]);
 
       this.positions = Stardust.array()
         .value((d: NodeViewGraphModel) => [

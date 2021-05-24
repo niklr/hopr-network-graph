@@ -426,7 +426,6 @@ export class GraphService {
         name: '1'
       }),
       scratch: new GraphScratchModel({
-        refTransfer: transfer,
         transfers: [transfer]
       })
     });
