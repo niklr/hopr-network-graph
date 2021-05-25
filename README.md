@@ -5,7 +5,7 @@ A visualization approach to gain a bird view on the HOPR token transfers on Ethe
 Demo: https://niklr.github.io/hopr-network-graph/ (data collected on 25/05/2021)
 
 <h1 align="center">
-	<img src="images/hopr_network_graph_v0_3_0.gif" alt="HOPR network graph xDai chain">
+	<img src="images/hopr_network_graph_v0_0_3.gif" alt="HOPR network graph xDai chain">
 </h1>
 
 #### Table of Content
