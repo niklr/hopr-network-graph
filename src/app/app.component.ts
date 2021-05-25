@@ -79,7 +79,7 @@ export class AppComponent implements AfterViewInit {
   }
 
   public get showGraph(): boolean {
-    return !this.chainService.isExtracting && this.selectedChainStat?.extractSuccess;
+    return !this.chainService.isExtracting && (this.selectedChainStat?.extractSuccess || this.selectedChainType === ChainType.TEST);
   }
 
   public get showStopSimulationButton(): boolean {

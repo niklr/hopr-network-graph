@@ -1,11 +1,11 @@
 {
-  "minWeight": 10,
-  "selectedChainType": 2,
+  "minWeight": 20,
+  "selectedChainType": 1,
   "selectedGraphLibraryType": 2,
   "chains": [
     {
       "type": 0,
-      "eventsPath": "./assets/test_data.json"
+      "eventsPath": "./assets/data/test_data.json"
     },
     {
       "type": 1,
