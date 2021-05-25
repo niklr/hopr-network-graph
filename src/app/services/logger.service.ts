@@ -1,14 +1,16 @@
 import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
+import { LogEventType } from '../enums/log.enum';
 import { LogEventModel } from '../models/log.model';
 import { CommonUtil } from '../utils/common.util';
 
 export abstract class Logger {
-  abstract get onLogMessageSubject(): Subject<LogEventModel>;
+  abstract get onLogEventSubject(): Subject<LogEventModel>;
   abstract debug: any;
   abstract info: any;
   abstract warn: any;
   abstract error: any;
+  abstract clear(): void;
 }
 
 const noop = (): any => undefined;
@@ -18,15 +20,15 @@ const noop = (): any => undefined;
 })
 export class DefaultLoggerService extends Logger {
 
-  private _onLogMessageSubject: Subject<LogEventModel>;
+  private _onLogEventSubject: Subject<LogEventModel>;
 
   constructor() {
     super();
-    this._onLogMessageSubject = new Subject<LogEventModel>();
+    this._onLogEventSubject = new Subject<LogEventModel>();
   }
 
-  public get onLogMessageSubject(): Subject<LogEventModel> {
-    return this._onLogMessageSubject;
+  public get onLogEventSubject(): Subject<LogEventModel> {
+    return this._onLogEventSubject;
   }
 
   private get isEnabled(): boolean {
@@ -47,10 +49,11 @@ export class DefaultLoggerService extends Logger {
       return CommonUtil.toJsonString(e);
     };
     const result = new LogEventModel({
+      type: LogEventType.MESSAGE,
       banner: this.timestamp(type),
       args: args?.map(e => Array.isArray(e) ? e.map(e1 => mapFn(e1)) : mapFn(e))
     });
-    this._onLogMessageSubject.next(result);
+    this._onLogEventSubject.next(result);
     return result;
   }
 
@@ -101,5 +104,11 @@ export class DefaultLoggerService extends Logger {
     } else {
       return noop;
     }
+  }
+
+  public clear(): void {
+    this._onLogEventSubject.next(new LogEventModel({
+      type: LogEventType.CLEAR
+    }));
   }
 }

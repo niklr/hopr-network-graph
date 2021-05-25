@@ -1,5 +1,6 @@
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Subscription } from 'rxjs';
+import { LogEventType } from '../../enums/log.enum';
 import { LogEventModel } from '../../models/log.model';
 import { Logger } from '../../services/logger.service';
 import { CommonUtil } from '../../utils/common.util';
@@ -21,12 +22,21 @@ export class LogsComponent implements OnInit, OnDestroy {
   constructor(private logger: Logger) { }
 
   ngOnInit(): void {
-    if (this.logger.onLogMessageSubject) {
-      const sub1 = this.logger.onLogMessageSubject.subscribe({
+    if (this.logger.onLogEventSubject) {
+      const sub1 = this.logger.onLogEventSubject.subscribe({
         next: (data: LogEventModel) => {
-          const length = this.logs.push(data);
-          if (length > this.maxSize) {
-            this.logs.shift();
+          switch (data.type) {
+            case LogEventType.MESSAGE:
+              const length = this.logs.push(data);
+              if (length > this.maxSize) {
+                this.logs.shift();
+              }
+              break;
+            case LogEventType.CLEAR:
+              this.logs.length = 0;
+              break;
+            default:
+              break;
           }
           this.scrollToBottom();
         }

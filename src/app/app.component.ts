@@ -7,6 +7,7 @@ import { ChainSourceTypeModel, ChainTypeModel, GraphLibraryTypeModel } from './m
 import { ChainService } from './services/chain.service';
 import { ConfigService } from './services/config.service';
 import { GraphService } from './services/graph.service';
+import { Logger } from './services/logger.service';
 import { MomentUtil } from './utils/moment.util';
 
 @Component({
@@ -25,6 +26,7 @@ export class AppComponent implements AfterViewInit {
   public sources: ChainSourceTypeModel[] = AppConstants.SOURCES;
 
   constructor(
+    private logger: Logger,
     private momentUtil: MomentUtil,
     private configService: ConfigService,
     private chainService: ChainService,
@@ -64,7 +66,7 @@ export class AppComponent implements AfterViewInit {
   }
 
   public changeSource($event: any): void {
-    this.graphService.clear();
+    this.clear();
     const source = ChainSourceType[ChainSourceType[$event.target.value]];
     this.chainService.extractChainBySourceAsync(this.configService.config.selectedChainType, source).then(() => {
       this.setSelectedChainStat();
@@ -120,8 +122,13 @@ export class AppComponent implements AfterViewInit {
     this.selectedLibraryType = this.configService.config.selectedGraphLibraryType;
   }
 
-  private load(): void {
+  private clear(): void {
+    this.logger.clear();
     this.graphService.clear();
+  }
+
+  private load(): void {
+    this.clear();
     this.chainService.extractAsync().then(() => {
       this.setSelectedChainStat();
       this.graphService.load();
