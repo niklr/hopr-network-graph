@@ -56,6 +56,21 @@ export class ChainService {
     this.logger.info('Data extraction ended.')();
   }
 
+  public async extractChainBySourceAsync(type: ChainType, source: ChainSourceType): Promise<void> {
+    const chain = this.configService.config.getChainByType(type);
+    Ensure.notNull(chain, 'chain');
+    this.logger.info('Chain extraction started.')();
+    this._isExtracting = true;
+    try {
+      const events = await this.extractEventsAsync(chain, source);
+      await this.saveEventsAsync(type, source, events);
+    } catch (error) {
+      this.logger.error(error);
+    }
+    this._isExtracting = false;
+    this.logger.info('Chain extraction ended.')();
+  }
+
   private async extractChainAsync(type: ChainType): Promise<void> {
     if (type === ChainType.TEST) {
       return Promise.resolve();
@@ -63,8 +78,6 @@ export class ChainService {
 
     const chain = this.configService.config.getChainByType(type);
     Ensure.notNull(chain, 'chain');
-
-    const chainStat = await this.initChainStatAsync(chain);
 
     const existing = await this.eventRepository.getByChainTypeAsync(chain.type);
     if (existing && existing.length > 0) {
@@ -86,21 +99,28 @@ export class ChainService {
       events = await this.extractEventsAsync(chain, source);
     }
 
+    await this.saveEventsAsync(type, source, events);
+  }
+
+  private async saveEventsAsync(chainType: ChainType, source: ChainSourceType, events: EventModel[]): Promise<void> {
+    const chainStat = await this.initChainStatAsync(chainType);
+    Ensure.notNull(chainStat, 'chainStat');
     if (events?.length > 0) {
+      await this.eventRepository.clearByChainType(chainType);
       await this.eventRepository.insertManyAsync(events);
-      const lastBlock = await this.eventRepository.getLastBlockByChainTypeAsync(chain.type);
+      const lastBlock = await this.eventRepository.getLastBlockByChainTypeAsync(chainType);
       await this.updateChainStatAsync(chainStat, true, source, lastBlock);
     } else {
-      await this.eventRepository.clearByChainType(chain.type);
+      await this.eventRepository.clearByChainType(chainType);
       await this.updateChainStatAsync(chainStat, false, source, 0);
     }
   }
 
-  private async initChainStatAsync(chain: ChainConfigModel): Promise<ChainStatModel> {
-    let result = await this.statRepository.getOrCreateByChainTypeAsync(chain.type);
+  private async initChainStatAsync(chainType: ChainType): Promise<ChainStatModel> {
+    let result = await this.statRepository.getOrCreateByChainTypeAsync(chainType);
     if (result.version !== this.configService.config.version) {
       await this.clearAllAsync();
-      result = await this.statRepository.getOrCreateByChainTypeAsync(chain.type);
+      result = await this.statRepository.getOrCreateByChainTypeAsync(chainType);
     }
     return result;
   }
@@ -110,7 +130,7 @@ export class ChainService {
   ): Promise<void> {
     chainStat.extractSuccess = success;
     chainStat.extractedDate = new Date();
-    chainStat.source = ChainSourceType[source];
+    chainStat.source = source;
     chainStat.lastBlock = lastBlock;
     await this.statRepository.insertAsync(chainStat);
   }

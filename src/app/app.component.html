@@ -2,7 +2,7 @@
   <div id="header">
     <span>HOPR network graph</span>
     <div *ngIf="!isLoading">
-      <select (change)="changeChain($event)" #dropdown>
+      <select (change)="changeChain($event)">
         <option [value]="chain.type" [selected]="chain.type === selectedChainType" *ngFor="let chain of chains">
           {{chain.name}}
         </option>
@@ -11,7 +11,7 @@
       min. weight <input type="range" min="0" max="100" step="1" [value]="minWeight" (change)="changeMinWeight($event)">
       {{minWeight}}
 
-      <select (change)="changeLibrary($event)" #dropdown>
+      <select (change)="changeLibrary($event)">
         <option [value]="library.type" [selected]="library.type === selectedLibraryType"
           *ngFor="let library of libraries">
           {{library.name}}
@@ -23,8 +23,8 @@
   </div>
 
   <div id="main">
-    <hopr-logs *ngIf="isLoading"></hopr-logs>
-    <hopr-network-graph></hopr-network-graph>
+    <hopr-logs [hidden]="showGraph"></hopr-logs>
+    <hopr-network-graph *ngIf="showGraph"></hopr-network-graph>
   </div>
 
   <div id="footer">
@@ -33,7 +33,15 @@
         Last block: {{selectedChainStat.lastBlock}}
       </div>
       <ng-template #extractFailedBlock>Load failed</ng-template>
-      <div *ngIf="selectedChainStat?.source">&nbsp;/ Source: {{selectedChainStat.source}}</div>
+      <div *ngIf="selectedChainStat?.source">
+        &nbsp;/ Source:
+        <select (change)="changeSource($event)">
+          <option [value]="source.type" [selected]="source.type === selectedChainStat.source"
+            *ngFor="let source of sources">
+            {{source.name}}
+          </option>
+        </select>
+      </div>
       <button (click)="reload()">Reload</button>
     </div>
     <ng-template #showLoadingBlock>Loading...</ng-template>

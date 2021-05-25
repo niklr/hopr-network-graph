@@ -4,6 +4,7 @@ import { ChainTxEventType, ChainType } from '../enums/chain.enum';
 import { ChainConfigModel } from '../models/config.model';
 import { Logger } from '../services/logger.service';
 import { CommonUtil } from '../utils/common.util';
+import { Ensure } from '../utils/ensure.util';
 import { FileUtil } from '../utils/file.util';
 
 @Injectable({
@@ -16,15 +17,13 @@ export class EthersClient {
   }
 
   public createEthersProvider(url: string): ethers.providers.Provider {
-    if (CommonUtil.isNullOrWhitespace(url)) {
-      return null;
-    }
+    Ensure.notNullOrWhiteSpace(url, 'url');
     return new ethers.providers.JsonRpcProvider(url);
   }
 
   public async getBlockNumberAsync(provider: ethers.providers.Provider): Promise<number> {
     const blockNumber = await provider.getBlockNumber();
-    this.logger.info('getBlockNumber', blockNumber)();
+    this.logger.info('Current block number', blockNumber)();
     return blockNumber;
   }
 

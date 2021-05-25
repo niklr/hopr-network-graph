@@ -350,12 +350,12 @@ export class GraphService {
   private filterByWeight(data: GraphContainerModel, minWeight: number): GraphContainerModel {
     const result = this.createGraphContainerModel();
     if (data) {
-      this.logger.info('filterByWeight nodes/edges before', data.nodes.length, data.edges.length)();
+      this.logger.info(`${data.nodes.length} nodes and ${data.edges.length} edges before filtering by weight.`)();
       result.nodes = data.nodes.filter((e: NodeGraphModel) => e.data.weight > minWeight);
       result.edges = data.edges.filter(
         (e: EdgeGraphModel) => this._nodeMap.get(e.data.source)?.data.weight > minWeight
           && this._nodeMap.get(e.data.target)?.data.weight > minWeight);
-      this.logger.info('filterByWeight nodes/edges after', result.nodes.length, result.edges.length)();
+      this.logger.info(`${result.nodes.length} nodes and ${result.edges.length} edges after filtering by weight.`)();
     }
     return result;
   }

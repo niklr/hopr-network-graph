@@ -1,9 +1,9 @@
 import { AfterViewInit, Component } from '@angular/core';
 import { AppConstants } from './app.constants';
-import { ChainType } from './enums/chain.enum';
+import { ChainSourceType, ChainType } from './enums/chain.enum';
 import { GraphLibraryType } from './enums/graph.enum';
 import { StatModel } from './models/stat.model';
-import { ChainTypeModel, GraphLibraryTypeModel } from './models/type.model';
+import { ChainSourceTypeModel, ChainTypeModel, GraphLibraryTypeModel } from './models/type.model';
 import { ChainService } from './services/chain.service';
 import { ConfigService } from './services/config.service';
 import { GraphService } from './services/graph.service';
@@ -22,6 +22,7 @@ export class AppComponent implements AfterViewInit {
   public selectedChainStat: StatModel;
   public chains: ChainTypeModel[] = AppConstants.CHAINS;
   public libraries: GraphLibraryTypeModel[] = AppConstants.LIBRARIES;
+  public sources: ChainSourceTypeModel[] = AppConstants.SOURCES;
 
   constructor(
     private momentUtil: MomentUtil,
@@ -62,8 +63,21 @@ export class AppComponent implements AfterViewInit {
     }, 0);
   }
 
+  public changeSource($event: any): void {
+    this.graphService.clear();
+    const source = ChainSourceType[ChainSourceType[$event.target.value]];
+    this.chainService.extractChainBySourceAsync(this.configService.config.selectedChainType, source).then(() => {
+      this.setSelectedChainStat();
+      this.graphService.load();
+    });
+  }
+
   public get isLoading(): boolean {
     return this.chainService.isExtracting;
+  }
+
+  public get showGraph(): boolean {
+    return !this.chainService.isExtracting && this.selectedChainStat?.extractSuccess;
   }
 
   public get showStopSimulationButton(): boolean {

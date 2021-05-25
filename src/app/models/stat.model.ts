@@ -1,11 +1,10 @@
-import { ChainType } from '../enums/chain.enum';
+import { ChainSourceType, ChainType } from '../enums/chain.enum';
 
 export class StatModel {
   _id: string;
   version: string;
   extractedDate: Date;
   extractSuccess: boolean;
-  source: string;
   lastBlock: number;
 
   public constructor(init?: Partial<StatModel>) {
@@ -18,6 +17,7 @@ export class StatModel {
 
 export class ChainStatModel extends StatModel {
   type: ChainType;
+  source: ChainSourceType;
 
   public constructor(init?: Partial<ChainStatModel>) {
     super(init);
