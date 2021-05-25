@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { EthersClient } from '../clients/ethers.client';
+import { ChainSourceType } from '../enums/chain.enum';
 import { ChainConfigModel } from '../models/config.model';
 import { EventModel } from '../models/event.model';
 import { Logger } from '../services/logger.service';
@@ -14,8 +15,8 @@ export class RpcChainExtractor extends BaseChainExtractor {
     super(logger);
   }
 
-  protected get name(): string {
-    return 'RPC';
+  protected get type(): ChainSourceType {
+    return ChainSourceType.RPC;
   }
 
   protected async extractAsyncInternal(chain: ChainConfigModel): Promise<EventModel[]> {

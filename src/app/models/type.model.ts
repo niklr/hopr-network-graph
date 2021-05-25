@@ -1,4 +1,4 @@
-import { ChainType } from '../enums/chain.enum';
+import { ChainSourceType, ChainType } from '../enums/chain.enum';
 import { GraphLibraryType } from '../enums/graph.enum';
 
 export abstract class TypeModel<T> {
@@ -12,6 +12,12 @@ export abstract class TypeModel<T> {
 
 export class ChainTypeModel extends TypeModel<ChainType> {
   public constructor(init?: Partial<ChainTypeModel>) {
+    super(init);
+  }
+}
+
+export class ChainSourceTypeModel extends TypeModel<ChainSourceType> {
+  public constructor(init?: Partial<ChainSourceTypeModel>) {
     super(init);
   }
 }

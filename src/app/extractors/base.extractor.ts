@@ -1,4 +1,5 @@
-import { ChainType } from '../enums/chain.enum';
+import { AppConstants } from '../app.constants';
+import { ChainSourceType, ChainType } from '../enums/chain.enum';
 import { ChainConfigModel } from '../models/config.model';
 import { EventModel } from '../models/event.model';
 import { Logger } from '../services/logger.service';
@@ -14,7 +15,11 @@ export abstract class BaseChainExtractor implements IChainExtractor {
 
   }
 
-  protected abstract get name(): string;
+  protected abstract get type(): ChainSourceType;
+
+  protected get name(): string {
+    return AppConstants.SOURCES.find(e => e.type === this.type)?.name ?? 'Unknown';
+  }
 
   public async extractAsync(chain: ChainConfigModel): Promise<EventModel[]> {
     Ensure.notNull(chain, 'chain');

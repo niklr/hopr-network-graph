@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { TheGraphClient } from '../clients/thegraph.client';
-import { ChainTxEventType, ChainType } from '../enums/chain.enum';
+import { ChainSourceType, ChainTxEventType, ChainType } from '../enums/chain.enum';
 import { ChainConfigModel } from '../models/config.model';
 import { EventModel, TransferEventModel } from '../models/event.model';
 import { SubgraphTokenTypes, SubgraphTransactionModel, SubgraphTransferEventModel } from '../models/subgraph.model';
@@ -17,8 +17,8 @@ export class GraphqlChainExtractor extends BaseChainExtractor {
     super(logger);
   }
 
-  protected get name(): string {
-    return 'GraphQL';
+  protected get type(): ChainSourceType {
+    return ChainSourceType.GRAPHQL;
   }
 
   protected async extractAsyncInternal(chain: ChainConfigModel): Promise<EventModel[]> {

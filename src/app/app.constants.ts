@@ -1,6 +1,6 @@
-import { ChainType } from './enums/chain.enum';
+import { ChainSourceType, ChainType } from './enums/chain.enum';
 import { GraphLibraryType } from './enums/graph.enum';
-import { ChainTypeModel, GraphLibraryTypeModel } from './models/type.model';
+import { ChainSourceTypeModel, ChainTypeModel, GraphLibraryTypeModel } from './models/type.model';
 
 export abstract class AppConstants {
   static readonly VOID_ADDRESS: string = '0x0000000000000000000000000000000000000000';
@@ -36,5 +36,19 @@ export abstract class AppConstants {
     //   type: GraphLibraryType.D3_CANVAS,
     //   name: 'd3-canvas'
     // })
+  ];
+  static readonly SOURCES: ChainSourceTypeModel[] = [
+    new ChainSourceTypeModel({
+      type: ChainSourceType.FILE,
+      name: 'File'
+    }),
+    new ChainSourceTypeModel({
+      type: ChainSourceType.RPC,
+      name: 'RPC'
+    }),
+    new ChainSourceTypeModel({
+      type: ChainSourceType.GRAPHQL,
+      name: 'GraphQL'
+    })
   ];
 }

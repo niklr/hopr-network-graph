@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { ChainSourceType } from '../enums/chain.enum';
 import { ChainConfigModel } from '../models/config.model';
 import { EventModel } from '../models/event.model';
 import { Logger } from '../services/logger.service';
@@ -14,8 +15,8 @@ export class FileChainExtractor extends BaseChainExtractor {
     super(logger);
   }
 
-  protected get name(): string {
-    return 'File';
+  protected get type(): ChainSourceType {
+    return ChainSourceType.FILE;
   }
 
   public async extractAsyncInternal(chain: ChainConfigModel): Promise<EventModel[]> {

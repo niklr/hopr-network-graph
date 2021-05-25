@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { ChainExtractorType, ChainType } from '../enums/chain.enum';
+import { ChainSourceType, ChainType } from '../enums/chain.enum';
 import { ChainExtractorFactory } from '../factories/extractor.factory';
 import { ChainConfigModel } from '../models/config.model';
 import { EventModel } from '../models/event.model';
@@ -73,16 +73,16 @@ export class ChainService {
       return;
     }
     // Use file extractor by default
-    let source = ChainExtractorType.FILE;
+    let source = ChainSourceType.FILE;
     let events = await this.extractEventsAsync(chain, source);
     if ((!events || events?.length <= 0) && !CommonUtil.isNullOrWhitespace(chain.theGraphUrl)) {
       // Use GraphQL extractor
-      source = ChainExtractorType.GRAPHQL;
+      source = ChainSourceType.GRAPHQL;
       events = await this.extractEventsAsync(chain, source);
     }
     if ((!events || events?.length <= 0) && !CommonUtil.isNullOrWhitespace(chain.rpcProviderUrl)) {
       // Use RPC extractor
-      source = ChainExtractorType.RPC;
+      source = ChainSourceType.RPC;
       events = await this.extractEventsAsync(chain, source);
     }
 
@@ -106,16 +106,16 @@ export class ChainService {
   }
 
   private async updateChainStatAsync(
-    chainStat: ChainStatModel, success: boolean, source: ChainExtractorType, lastBlock: number
+    chainStat: ChainStatModel, success: boolean, source: ChainSourceType, lastBlock: number
   ): Promise<void> {
     chainStat.extractSuccess = success;
     chainStat.extractedDate = new Date();
-    chainStat.source = ChainExtractorType[source];
+    chainStat.source = ChainSourceType[source];
     chainStat.lastBlock = lastBlock;
     await this.statRepository.insertAsync(chainStat);
   }
 
-  private async extractEventsAsync(chain: ChainConfigModel, extractorType: ChainExtractorType): Promise<EventModel[]> {
+  private async extractEventsAsync(chain: ChainConfigModel, extractorType: ChainSourceType): Promise<EventModel[]> {
     try {
       const extractor = this.extractorFactory.get(extractorType);
       return await extractor.extractAsync(chain);

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { ChainExtractorType } from '../enums/chain.enum';
+import { ChainSourceType } from '../enums/chain.enum';
 import { IChainExtractor } from '../extractors/base.extractor';
 import { FileChainExtractor } from '../extractors/file.extractor';
 import { GraphqlChainExtractor } from '../extractors/graphql.extractor';
@@ -17,13 +17,13 @@ export class ChainExtractorFactory {
   ) {
   }
 
-  public get(type: ChainExtractorType): IChainExtractor {
+  public get(type: ChainSourceType): IChainExtractor {
     switch (type) {
-      case ChainExtractorType.GRAPHQL:
+      case ChainSourceType.GRAPHQL:
         return this.graphqlExtractor;
-      case ChainExtractorType.RPC:
+      case ChainSourceType.RPC:
         return this.rpcExtractor;
-      case ChainExtractorType.FILE:
+      case ChainSourceType.FILE:
       default:
         return this.fileExtractor;
     }
