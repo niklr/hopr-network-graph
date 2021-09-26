@@ -5,7 +5,7 @@ A visualization approach to gain a bird view on the HOPR token transfers on Ethe
 Demo: https://niklr.github.io/hopr-network-graph/ (data collected on 25/05/2021)
 
 <h1 align="center">
-	<img src="images/hopr_network_graph_v0_0_3.gif" alt="HOPR network graph xDai chain">
+	<img src="https://raw.githubusercontent.com/niklr/hopr-network-graph/main/images/hopr_network_graph_v0_0_3.gif" alt="HOPR network graph xDai chain">
 </h1>
 
 #### Table of Content
@@ -106,20 +106,20 @@ Run `ng generate component component-name` to generate a new component. You can 
 
 #### Ethereum mainnet using d3
 <h1 align="center">
-	<img src="images/hopr_network_graph_eth_d3.png" alt="HOPR network graph Ethereum mainnet using d3">
+	<img src="https://raw.githubusercontent.com/niklr/hopr-network-graph/main/images/hopr_network_graph_eth_d3.png" alt="HOPR network graph Ethereum mainnet using d3">
 </h1>
 
 #### Ethereum mainnet using cytoscape
 <h1 align="center">
-	<img src="images/hopr_network_graph_eth_cytoscape.png" alt="HOPR network graph Ethereum mainnet using cytoscape">
+	<img src="https://raw.githubusercontent.com/niklr/hopr-network-graph/main/images/hopr_network_graph_eth_cytoscape.png" alt="HOPR network graph Ethereum mainnet using cytoscape">
 </h1>
 
 #### xDai chain using d3
 <h1 align="center">
-	<img src="images/hopr_network_grap_xdai_d3.png" alt="HOPR network graph xDai chain using d3">
+	<img src="https://raw.githubusercontent.com/niklr/hopr-network-graph/main/images/hopr_network_grap_xdai_d3.png" alt="HOPR network graph xDai chain using d3">
 </h1>
 
 #### xDai chain using cytoscape
 <h1 align="center">
-	<img src="images/hopr_network_graph_xdai_cytoscape.png" alt="HOPR network graph xDai chain using cytoscape">
+	<img src="https://raw.githubusercontent.com/niklr/hopr-network-graph/main/images/hopr_network_graph_xdai_cytoscape.png" alt="HOPR network graph xDai chain using cytoscape">
 </h1>
